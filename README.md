@@ -32,6 +32,17 @@ src/
 └── components/
 ```
 
+## Configuration Files
+
+- `eslint.config.mjs` – Configuration for ESLint code quality and linting rules.
+- `next.config.ts` – Next.js framework configuration.
+- `postcss.config.mjs` – Configuration for PostCSS CSS processing.
+- `tsconfig.json` – TypeScript compiler configuration and project settings.
+- `.prettierrc` – Configuration for Prettier code formatting rules.
+- `package.json` – Project metadata, scripts, and dependencies.
+- `package-lock.json` – Locks dependency versions to ensure consistent installations.
+- `.gitignore` – Defines which files and folders Git should ignore.
+
 ## Architectural Principles
 
 The application follows a layered architecture.
@@ -235,3 +246,14 @@ npm install
 # then
 npm run dev
 ```
+
+## Working on a task
+
+In order to contribute, there are certain steps that are to be taken: 
+
+- Checkout the board in trello: https://trello.com/b/iVXi9r68/billioapp
+- Assign yourself a task, be sure to add your name and mark it as 'in progress'
+- If any questions, add comments in the tasks
+- Create a branch, name it feature/[number of the task] and once changes are done, send a Pull Request
+- Make sure task follows the steps in the board as yo progress
+
