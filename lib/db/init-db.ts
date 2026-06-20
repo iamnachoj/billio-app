@@ -62,3 +62,7 @@ export async function initDB() {
     );
   `);
 }
+
+initDB()
+  .then(() => console.log('Database initialized'))
+  .catch(console.error);
