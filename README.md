@@ -32,6 +32,17 @@ src/
 └── components/
 ```
 
+## Configuration Files
+
+- `eslint.config.mjs` – Configuration for ESLint code quality and linting rules.
+- `next.config.ts` – Next.js framework configuration.
+- `postcss.config.mjs` – Configuration for PostCSS CSS processing.
+- `tsconfig.json` – TypeScript compiler configuration and project settings.
+- `.prettierrc` – Configuration for Prettier code formatting rules.
+- `package.json` – Project metadata, scripts, and dependencies.
+- `package-lock.json` – Locks dependency versions to ensure consistent installations.
+- `.gitignore` – Defines which files and folders Git should ignore.
+
 ## Architectural Principles
 
 The application follows a layered architecture.
