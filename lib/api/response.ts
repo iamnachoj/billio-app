@@ -6,15 +6,11 @@ export function successResponse(data: unknown, status = 200) {
       success: true,
       data,
     },
-    { status },
+    { status }
   );
 }
 
-export function errorResponse(
-  code: string,
-  message: string,
-  status = 400,
-) {
+export function errorResponse(code: string, message: string, status = 400) {
   return NextResponse.json(
     {
       success: false,
@@ -23,6 +19,6 @@ export function errorResponse(
         message,
       },
     },
-    { status },
+    { status }
   );
 }

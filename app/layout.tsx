@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Billio',
-  description: 'Balance your bills with ease and clarity. Billio helps you manage shared expenses, track payments, and settle debts effortlessly. Simplify your financial interactions with friends, family, or roommates.',
+  description:
+    'Balance your bills with ease and clarity. Billio helps you manage shared expenses, track payments, and settle debts effortlessly. Simplify your financial interactions with friends, family, or roommates.',
 };
 
 export default function RootLayout({

@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db/db';
+import { mapUser, UserRow } from '@/lib/mappers/userMapper';
 
 type CreateUserInput = {
   name: string;
@@ -17,7 +18,13 @@ export async function getUser(email: string) {
     args: [email],
   });
 
-  return result.rows[0] ?? null;
+  const row = result.rows[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return mapUser(row as unknown as UserRow);
 }
 
 export async function createUserByEmail({
@@ -39,14 +46,7 @@ export async function createUserByEmail({
       )
       VALUES (?, ?, ?, ?, ?, ?)
     `,
-    args: [
-      id,
-      name,
-      email,
-      passwordHash,
-      1,
-      new Date().toISOString(),
-    ],
+    args: [id, name, email, passwordHash, 1, new Date().toISOString()],
   });
 
   return {
@@ -66,5 +66,11 @@ export async function getUserById(id: string) {
     args: [id],
   });
 
-  return result.rows[0] ?? null;
+  const row = result.rows[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return mapUser(row as unknown as UserRow);
 }

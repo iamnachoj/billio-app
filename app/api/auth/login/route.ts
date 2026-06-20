@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       return errorResponse(
         'INVALID_INPUT',
         'Email and password are required',
-        400,
+        400
       );
     }
 
@@ -23,20 +23,20 @@ export async function POST(req: Request) {
       return errorResponse(
         'INVALID_CREDENTIALS',
         'Invalid email or password',
-        401,
+        401
       );
     }
 
     const isValidPassword = await bcrypt.compare(
       password,
-      user.password_hash as string,
+      user.passwordHash as string
     );
 
     if (!isValidPassword) {
       return errorResponse(
         'INVALID_CREDENTIALS',
         'Invalid email or password',
-        401,
+        401
       );
     }
 
@@ -63,10 +63,6 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error(error);
 
-    return errorResponse(
-      'INTERNAL_ERROR',
-      'Something went wrong',
-      500,
-    );
+    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
   }
 }

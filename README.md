@@ -4,10 +4,10 @@ Billio is a web application designed to help groups of people track shared expen
 
 Typical use cases include:
 
-* Trips with friends
-* Flatmates sharing household expenses
-* Group events
-* Any situation where multiple people contribute money and need to keep track of who owes whom
+- Trips with friends
+- Flatmates sharing household expenses
+- Group events
+- Any situation where multiple people contribute money and need to keep track of who owes whom
 
 The project is built with Next.js, TypeScript and libSQL, following a simple and maintainable architecture that separates business logic, database access and API concerns.
 
@@ -57,10 +57,10 @@ src/app/api
 
 Route handlers are responsible for:
 
-* Receiving HTTP requests
-* Validating incoming data
-* Calling the appropriate business or repository functions
-* Returning HTTP responses
+- Receiving HTTP requests
+- Validating incoming data
+- Calling the appropriate business or repository functions
+- Returning HTTP responses
 
 Example:
 
@@ -85,9 +85,9 @@ Repositories encapsulate all database access.
 Example:
 
 ```ts
-findByEmail(email)
-createUser(user)
-findById(id)
+findByEmail(email);
+createUser(user);
+findById(id);
 ```
 
 Instead of writing SQL inside route handlers, routes call repository functions.
@@ -120,9 +120,9 @@ export const db = createClient(...)
 
 The application currently uses:
 
-* libSQL client
-* Local SQLite-compatible database during development
-* Turso for production
+- libSQL client
+- Local SQLite-compatible database during development
+- Turso for production
 
 The database layer only deals with establishing and managing connections.
 
@@ -159,9 +159,9 @@ errorResponse(...)
 
 Purpose:
 
-* Standardize API responses
-* Avoid duplicated response logic
-* Provide consistent error handling
+- Standardize API responses
+- Avoid duplicated response logic
+- Provide consistent error handling
 
 Example success response:
 
@@ -195,16 +195,16 @@ Contains authentication-related utilities.
 Examples:
 
 ```ts
-generateToken()
-verifyToken()
+generateToken();
+verifyToken();
 ```
 
 Responsibilities:
 
-* JWT generation
-* JWT validation
-* Session management
-* Authentication helpers
+- JWT generation
+- JWT validation
+- Session management
+- Authentication helpers
 
 ## Request Flow Example
 
@@ -228,14 +228,13 @@ Client
 
 Each layer has a single responsibility:
 
-* Routes handle HTTP
-* Repositories handle data access
-* Models define data structures
-* Auth handles authentication
-* Database handles connectivity
+- Routes handle HTTP
+- Repositories handle data access
+- Models define data structures
+- Auth handles authentication
+- Database handles connectivity
 
 This separation keeps the codebase scalable and easier to maintain as the project grows.
-
 
 ## Getting Started
 
@@ -249,11 +248,10 @@ npm run dev
 
 ## Working on a task
 
-In order to contribute, there are certain steps that are to be taken: 
+In order to contribute, there are certain steps that are to be taken:
 
 - Checkout the board in trello: https://trello.com/b/iVXi9r68/billioapp
 - Assign yourself a task, be sure to add your name and mark it as 'in progress'
 - If any questions, add comments in the tasks
 - Create a branch, name it feature/[number of the task] and once changes are done, send a Pull Request
 - Make sure task follows the steps in the board as yo progress
-
