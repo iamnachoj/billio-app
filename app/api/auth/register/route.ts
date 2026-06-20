@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { createUserByEmail, getUserByEmail } from '@/lib/repositories/userRepository';
+import { createUserByEmail, getUser } from '@/lib/repositories/userRepository';
 import { errorResponse, successResponse } from '@/lib/api/response';
 
 export async function POST(req: Request) {
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingUser = await getUserByEmail(email);
+    const existingUser = await getUser(email);
 
     if (existingUser) {
       return errorResponse(

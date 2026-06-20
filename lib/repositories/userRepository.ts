@@ -7,7 +7,7 @@ type CreateUserInput = {
   passwordHash: string;
 };
 
-export async function getUserByEmail(email: string) {
+export async function getUser(email: string) {
   const result = await db.execute({
     sql: `
       SELECT *
@@ -54,4 +54,17 @@ export async function createUserByEmail({
     name,
     email,
   };
+}
+
+export async function getUserById(id: string) {
+  const result = await db.execute({
+    sql: `
+      SELECT *
+      FROM users
+      WHERE id = ?
+    `,
+    args: [id],
+  });
+
+  return result.rows[0] ?? null;
 }

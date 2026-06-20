@@ -1,10 +1,12 @@
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '.env.local' });
-
 import { createClient } from '@libsql/client';
 
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is missing');
+}
+
 export const db = createClient({
-  url: process.env.DATABASE_URL!,
+  url: databaseUrl,
   authToken: process.env.AUTH_TOKEN!,
 });

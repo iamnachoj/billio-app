@@ -1,3 +1,9 @@
+import dotenv from 'dotenv';
+
+dotenv.config({
+  path: process.env.ENV_FILE || '.env.local',
+});
+
 import { db } from './db';
 
 export async function initDB() {
