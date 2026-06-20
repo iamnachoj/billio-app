@@ -235,3 +235,14 @@ npm install
 # then
 npm run dev
 ```
+
+## Working on a task
+
+In order to contribute, there are certain steps that are to be taken: 
+
+- Checkout the board in trello: https://trello.com/b/iVXi9r68/billioapp
+- Assign yourself a task, be sure to add your name and mark it as 'in progress'
+- If any questions, add comments in the tasks
+- Create a branch, name it feature/[number of the task] and once changes are done, send a Pull Request
+- Make sure task follows the steps in the board as yo progress
+
