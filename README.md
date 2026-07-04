@@ -14,53 +14,71 @@ The project is built with Next.js, TypeScript and libSQL, following a simple and
 ## Project Structure
 
 ```text
-src/
-├── app/
-│   ├── api/
-│   ├── dashboard/
-│   ├── login/
-│   └── register/
-│
-├── lib/
-│   ├── api/
+app/
+├── api/
 │   ├── auth/
-│   ├── db/
-│   └── repositories/
-│
+│   │   ├── login/
+│   │   │   └── route.ts
+│   │   └── register/
+│   │       └── route.ts
+│   └── me/
+│       └── route.ts
+├── globals.css
+├── layout.tsx
+└── page.tsx
+
+lib/
+├── api/
+│   └── response.ts
+├── db/
+│   ├── db.ts
+│   └── init-db.ts
+├── mappers/
+│   └── userMapper.ts
 ├── models/
-│
-└── components/
+│   ├── expense.ts
+│   ├── expenseSplit.ts
+│   ├── group.ts
+│   ├── groupMember.ts
+│   └── user.ts
+├── repositories/
+│   └── userRepository.ts
+├── services/
+│   ├── authService.ts
+│   └── authService.test.ts
+└── utils/
+    └── jwt.ts
 ```
 
 ## Configuration Files
 
-- `eslint.config.mjs` – Configuration for ESLint code quality and linting rules.
+- `eslint.config.mjs` – ESLint configuration.
 - `next.config.ts` – Next.js framework configuration.
-- `postcss.config.mjs` – Configuration for PostCSS CSS processing.
-- `tsconfig.json` – TypeScript compiler configuration and project settings.
-- `.prettierrc` – Configuration for Prettier code formatting rules.
+- `postcss.config.mjs` – PostCSS CSS processing configuration.
+- `tsconfig.json` – TypeScript compiler configuration and project aliases.
 - `package.json` – Project metadata, scripts, and dependencies.
-- `package-lock.json` – Locks dependency versions to ensure consistent installations.
-- `.gitignore` – Defines which files and folders Git should ignore.
+- `next-env.d.ts` – Next.js TypeScript environment definitions.
 
 ## Architectural Principles
 
-The application follows a layered architecture.
+The application follows a layered architecture that keeps the codebase easy to reason about and extend.
 
-### 1. Routes (API Layer)
+### 1. API Routes
 
 Located under:
 
 ```text
-src/app/api
+app/api
 ```
 
 Route handlers are responsible for:
 
-- Receiving HTTP requests
-- Validating incoming data
-- Calling the appropriate business or repository functions
-- Returning HTTP responses
+- receiving HTTP requests
+- extracting request data
+- calling the appropriate service
+- returning a consistent HTTP response
+
+They are intentionally thin and do not contain database queries or business rules.
 
 Example:
 
@@ -68,63 +86,42 @@ Example:
 POST /api/auth/register
 ```
 
-The route do not contain SQL queries or complex database logic.
-
-Its responsibility is to orchestrate the request flow.
-
-### 2. Repositories (Data Access Layer)
+### 2. Services
 
 Located under:
 
 ```text
-src/lib/repositories
+lib/services
 ```
 
-Repositories encapsulate all database access.
+Services contain the application’s business logic.
 
-Example:
+Examples include:
 
-```ts
-findByEmail(email);
-createUser(user);
-findById(id);
-```
+- validating registration and login input
+- checking whether a user already exists
+- hashing and comparing passwords
+- creating or verifying JWTs
 
-Instead of writing SQL inside route handlers, routes call repository functions.
+This is where the main behavior of the app lives.
 
-For example:
-
-```text
-Route Handler
-    ↓
-User Repository
-    ↓
-Database
-```
-
-### 3. Database Layer
+### 3. Repositories
 
 Located under:
 
 ```text
-src/lib/db
+lib/repositories
 ```
 
-This layer is responsible for database connectivity.
+Repositories encapsulate data access and persistence logic.
 
-Example:
+They are responsible for operations such as:
 
-```ts
-export const db = createClient(...)
-```
+- finding a user by email
+- finding a user by ID
+- creating a new user
 
-The application currently uses:
-
-- libSQL client
-- Local SQLite-compatible database during development
-- Turso for production
-
-The database layer only deals with establishing and managing connections.
+They keep database-specific code out of the services and routes.
 
 ### 4. Models
 
@@ -134,107 +131,92 @@ Located under:
 lib/models
 ```
 
-Models define the shape of the application's domain entities.
+Models define the domain entities used by the application.
 
-Models act as contracts between different layers of the application.
+They describe the shape of data such as:
 
-They do not contain database queries or business logic.
+- users
+- groups
+- expenses
+- expense splits
 
-### 5. API Utilities
+They act as contracts between layers and do not contain business rules.
 
-Located under:
-
-```text
-src/lib/api
-```
-
-Contains reusable helpers related to HTTP communication.
-
-Example:
-
-```ts
-successResponse(...)
-errorResponse(...)
-```
-
-Purpose:
-
-- Standardize API responses
-- Avoid duplicated response logic
-- Provide consistent error handling
-
-Example success response:
-
-```json
-{
-  "success": true,
-  "data": {}
-}
-```
-
-Example error response:
-
-```json
-{
-  "success": false,
-  "code": "EMAIL_IN_USE",
-  "message": "Email already in use"
-}
-```
-
-### 6. Authentication
+### 5. Mappers
 
 Located under:
 
 ```text
-src/lib/auth
+lib/mappers
 ```
 
-Contains authentication-related utilities.
+Mappers translate raw database rows into the app’s domain models.
 
-Examples:
+This is useful because database rows may use different naming or shapes than the TypeScript models used in the app.
 
-```ts
-generateToken();
-verifyToken();
+Example responsibilities:
+
+- convert database columns to camelCase properties
+- shape row data into a model expected by the rest of the app
+
+### 6. Utilities
+
+Located under:
+
+```text
+lib/utils
 ```
 
-Responsibilities:
+Utilities contain shared helper functions that support multiple layers of the app.
 
-- JWT generation
-- JWT validation
-- Session management
-- Authentication helpers
+In this project, that includes:
+
+- JWT helpers for token generation and verification
+
+### 7. API Response Helpers
+
+Located under:
+
+```text
+lib/api
+```
+
+This layer provides reusable helpers for formatting API responses consistently.
+
+It helps keep route handlers predictable and avoids duplicating response logic.
 
 ## Request Flow Example
 
-User registration follows the following flow:
+A typical registration flow looks like this:
 
 ```text
 Client
   ↓
 POST /api/auth/register
   ↓
-Validation
+Route handler
   ↓
-User Repository
+Auth service
+  ↓
+User repository
   ↓
 Database
   ↓
-Success/Error Response
+Success or error response
   ↓
 Client
 ```
 
-Each layer has a single responsibility:
+A typical login flow is similar, but it also uses the JWT utility to create and return an authentication token.
 
-- Routes handle HTTP
-- Repositories handle data access
-- Models define data structures
-- Auth handles authentication
-- Database handles connectivity
+This separation keeps responsibilities clear:
 
-This separation keeps the codebase scalable and easier to maintain as the project grows.
+- routes handle HTTP
+- services handle business rules
+- repositories handle data access
+- models define data structures
+- mappers adapt database data
+- utilities provide shared helpers
 
 ## Getting Started
 

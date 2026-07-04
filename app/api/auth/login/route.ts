@@ -1,57 +1,24 @@
-import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 
-import { getUser } from '@/lib/repositories/userRepository';
-import { generateToken } from '@/lib/auth/jwt';
 import { errorResponse } from '@/lib/api/response';
+import { loginUser } from '@/lib/services/authService';
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    if (!email || !password) {
-      return errorResponse(
-        'INVALID_INPUT',
-        'Email and password are required',
-        400
-      );
+    const result = await loginUser({ email, password });
+
+    if (!result.ok) {
+      return errorResponse(result.error.code, result.error.message, result.error.status);
     }
-
-    const user = await getUser(email);
-
-    if (!user) {
-      return errorResponse(
-        'INVALID_CREDENTIALS',
-        'Invalid email or password',
-        401
-      );
-    }
-
-    const isValidPassword = await bcrypt.compare(
-      password,
-      user.passwordHash as string
-    );
-
-    if (!isValidPassword) {
-      return errorResponse(
-        'INVALID_CREDENTIALS',
-        'Invalid email or password',
-        401
-      );
-    }
-
-    const token = generateToken(user.id as string);
 
     const response = NextResponse.json({
       success: true,
-      data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+      data: result.data.user,
     });
 
-    response.cookies.set('token', token, {
+    response.cookies.set('token', result.data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

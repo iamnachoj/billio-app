@@ -1,5 +1,12 @@
 import { createClient } from '@libsql/client';
 
+import dotenv from 'dotenv';
+
+dotenv.config({
+  path: process.env.ENV_FILE || '.env.local',
+});
+
+
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
