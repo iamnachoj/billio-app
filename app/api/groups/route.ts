@@ -1,6 +1,6 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/services/authService';
-import { createGroup, getGroupsForUser, leaveGroup } from '@/lib/services/groupService';
+import { addParticipantToGroup, createGroup, getGroupsForUser, leaveGroup } from '@/lib/services/groupService';
 
 export async function POST(req: Request) {
   try {
@@ -10,7 +10,25 @@ export async function POST(req: Request) {
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const { name, description } = await req.json();
+    const body = await req.json();
+
+    if (body?.groupId && body?.displayName) {
+      const result = await addParticipantToGroup({
+        groupId: body.groupId,
+        displayName: body.displayName,
+        role: body.role,
+        status: body.status,
+        createdBy: currentUser.id,
+      });
+
+      if (!result.ok) {
+        return errorResponse(result.error.code, result.error.message, result.error.status);
+      }
+
+      return successResponse(result.data.participant, 201);
+    }
+
+    const { name, description } = body;
 
     const result = await createGroup({
       name,

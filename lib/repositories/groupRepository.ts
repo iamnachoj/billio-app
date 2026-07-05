@@ -211,6 +211,24 @@ export async function getGroupParticipantsByGroupId(groupId: string) {
   }));
 }
 
+export async function hasExpensesLinkedToUser(userId: string) {
+  const result = await db.execute({
+    sql: `
+      SELECT 1
+      FROM expenses
+      WHERE paid_by_user_id = ? OR created_by_user_id = ?
+      UNION
+      SELECT 1
+      FROM expense_splits
+      WHERE user_id = ? OR owed_to_user_id = ?
+      LIMIT 1
+    `,
+    args: [userId, userId, userId, userId],
+  });
+
+  return result.rows.length > 0;
+}
+
 export async function updateGroupParticipant(participantId: string, updates: { displayName?: string; role?: 'owner' | 'admin' | 'member' | 'viewer'; status?: 'active' | 'invited' | 'left' }) {
   const fields = [] as string[];
   const args: string[] = [];
@@ -271,13 +289,26 @@ export async function removeMemberFromGroup(groupId: string, userId: string) {
 export async function cleanupEmptyGroups() {
   await db.execute({
     sql: `
+      DELETE FROM group_participants
+      WHERE group_id IN (
+        SELECT g.id
+        FROM groups g
+        LEFT JOIN group_participants gp ON gp.group_id = g.id
+        GROUP BY g.id
+        HAVING COUNT(CASE WHEN gp.user_id IS NOT NULL THEN 1 END) = 0
+      )
+    `,
+  });
+
+  await db.execute({
+    sql: `
       DELETE FROM groups
       WHERE id IN (
         SELECT g.id
         FROM groups g
         LEFT JOIN group_participants gp ON gp.group_id = g.id
         GROUP BY g.id
-        HAVING COUNT(gp.id) = 0
+        HAVING COUNT(CASE WHEN gp.user_id IS NOT NULL THEN 1 END) = 0
       )
     `,
   });

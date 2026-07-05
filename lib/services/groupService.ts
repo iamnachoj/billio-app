@@ -7,6 +7,7 @@ import {
   getGroupParticipantsByGroupId,
   getGroupById,
   getGroupsByUserId,
+  hasExpensesLinkedToUser,
   getParticipantByGroupAndUserId,
   linkParticipantToUser as linkParticipantToUserInRepository,
   removeMemberFromGroup,
@@ -300,9 +301,11 @@ export async function updateParticipant({
 
 export async function deleteParticipant({
   participantId,
+  groupId,
   userId,
 }: {
   participantId: string;
+  groupId?: string;
   userId: string;
 }): Promise<GroupServiceResult<{ success: true }>> {
   if (!participantId || !userId) {
@@ -328,9 +331,46 @@ export async function deleteParticipant({
     };
   }
 
+  if (groupId && participant.groupId !== groupId) {
+    return {
+      ok: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Participant not found',
+        status: 404,
+      },
+    };
+  }
+
   const adminResult = await ensureGroupAdmin(participant.groupId, userId);
   if (!adminResult.ok) {
     return adminResult;
+  }
+
+  if (participant.role === 'owner' || participant.role === 'admin') {
+    return {
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Admin participants cannot be deleted',
+        status: 403,
+      },
+    };
+  }
+
+  if (participant.userId) {
+    const hasExpenses = await hasExpensesLinkedToUser(participant.userId);
+
+    if (hasExpenses) {
+      return {
+        ok: false,
+        error: {
+          code: 'CONFLICT',
+          message: 'Participant has linked expenses and cannot be deleted',
+          status: 409,
+        },
+      };
+    }
   }
 
   await deleteGroupParticipantInRepository(participantId);

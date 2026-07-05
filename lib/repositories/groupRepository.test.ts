@@ -14,7 +14,7 @@ describe('groupRepository', () => {
     vi.clearAllMocks();
   });
 
-  it('uses the participant table when cleaning up empty groups', async () => {
+  it('cleans up groups that have no linked users', async () => {
     vi.mocked(db.execute).mockResolvedValue({
       rows: [],
       rowsAffected: 0,
@@ -22,18 +22,17 @@ describe('groupRepository', () => {
 
     await cleanupEmptyGroups();
 
-    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(db.execute).toHaveBeenCalledTimes(2);
 
-    expect(db.execute).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sql: expect.stringContaining('group_participants'),
-      }),
-    );
+    const sqlCalls = vi
+      .mocked(db.execute)
+      .mock.calls.map((call) => (call[0] as { sql?: string }).sql ?? '');
 
-    expect(db.execute).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        sql: expect.stringContaining('group_members'),
-      }),
-    );
+    expect(sqlCalls.some((sql) => sql.includes('DELETE FROM group_participants'))).toBe(true);
+    expect(sqlCalls.some((sql) => sql.includes('DELETE FROM groups'))).toBe(true);
+    expect(sqlCalls.every((sql) => sql.includes('group_participants'))).toBe(true);
+    expect(sqlCalls.every((sql) => sql.includes('gp.user_id IS NOT NULL'))).toBe(true);
+
+    expect(sqlCalls.some((sql) => sql.includes('group_members'))).toBe(false);
   });
 });

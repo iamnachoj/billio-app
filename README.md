@@ -19,8 +19,19 @@ app/
 │   ├── auth/
 │   │   ├── login/
 │   │   │   └── route.ts
+│   │   ├── forgot-password/
+│   │   │   └── route.ts
+│   │   ├── reset-password/
+│   │   │   └── route.ts
 │   │   └── register/
 │   │       └── route.ts
+│   ├── groups/
+│   │   ├── [groupId]/
+│   │   │   └── participants/
+│   │   │       ├── [participantId]/
+│   │   │       │   └── route.ts
+│   │   │       └── route.ts
+│   │   └── route.ts
 │   └── me/
 │       └── route.ts
 ├── globals.css
@@ -122,6 +133,50 @@ They are responsible for operations such as:
 - creating a new user
 
 They keep database-specific code out of the services and routes.
+
+## API Endpoints
+
+The current API surface is split by feature and keeps each handler thin.
+
+### Authentication
+
+- `POST /api/auth/register` - create a new account
+- `POST /api/auth/login` - authenticate and receive a token
+- `POST /api/auth/forgot-password` - request a password reset email
+- `POST /api/auth/reset-password` - complete the password reset flow
+
+### Current User
+
+- `GET /api/me` - fetch the authenticated user
+- `DELETE /api/me` - delete the authenticated user account
+
+### Groups
+
+- `POST /api/groups` - create a group
+- `GET /api/groups` - list the current user’s groups
+- `DELETE /api/groups` - leave a group
+
+### Participants
+
+- `GET /api/groups/[groupId]/participants` - list participants in a group
+- `POST /api/groups` - add a participant to an existing group when the body includes `groupId` and `displayName`
+- `DELETE /api/groups/[groupId]/participants/[participantId]` - delete a participant when allowed by role and expense rules
+
+## Group Roles
+
+The group model uses participants rather than only registered users, which makes it possible to represent people before they create an account.
+
+- `owner` - full control of the group, including ownership and administration decisions
+- `admin` - can manage participants and group membership, but is still below the owner
+- `member` - a normal contributor who can participate in the group
+- `viewer` - read-only access for people who should not mutate group data
+
+In practice, the current rules are:
+
+- only `owner` and `admin` users can add or delete participants
+- `admin` and `owner` participants themselves cannot be deleted
+- participants linked to expense records cannot be deleted
+- placeholder participants without a linked `userId` can exist temporarily, but they do not keep an empty group alive once no real user remains
 
 ### 4. Models
 

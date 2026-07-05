@@ -1,18 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as groupRepository from '@/lib/repositories/groupRepository';
-import { addParticipantToGroup, createGroup, getGroupsForUser, leaveGroup, linkParticipantToUser } from './groupService';
+import { addParticipantToGroup, createGroup, deleteParticipant, getGroupsForUser, leaveGroup, linkParticipantToUser } from './groupService';
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
   createGroup: vi.fn(),
   addMemberToGroup: vi.fn(),
   createGroupParticipant: vi.fn(),
   linkParticipantToUser: vi.fn(),
+  deleteGroupParticipant: vi.fn(),
   removeMemberFromGroup: vi.fn(),
   getGroupById: vi.fn(),
   getGroupsByUserId: vi.fn(),
   getParticipantByGroupAndUserId: vi.fn(),
   getGroupParticipantById: vi.fn(),
+  hasExpensesLinkedToUser: vi.fn(),
 }));
 
 describe('groupService', () => {
@@ -237,5 +239,173 @@ describe('groupService', () => {
       participantId: 'participant-1',
       userId: 'user-2',
     });
+  });
+
+  it('deletes a participant when it has no linked expenses', async () => {
+    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+      id: 'participant-1',
+      groupId: 'group-1',
+      displayName: 'Guest',
+      userId: 'user-1',
+      role: 'member',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      id: 'participant-admin',
+      groupId: 'group-1',
+      displayName: 'Owner',
+      userId: 'admin-1',
+      role: 'owner',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+    vi.mocked(groupRepository.hasExpensesLinkedToUser).mockResolvedValue(false);
+
+    const result = await deleteParticipant({
+      participantId: 'participant-1',
+      userId: 'admin-1',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error('Expected participant deletion to succeed');
+    }
+
+    expect(groupRepository.hasExpensesLinkedToUser).toHaveBeenCalledWith('user-1');
+    expect(groupRepository.deleteGroupParticipant).toHaveBeenCalledWith('participant-1');
+  });
+
+  it('rejects deleting a participant that already has linked expenses', async () => {
+    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+      id: 'participant-1',
+      groupId: 'group-1',
+      displayName: 'Guest',
+      userId: 'user-1',
+      role: 'member',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      id: 'participant-admin',
+      groupId: 'group-1',
+      displayName: 'Owner',
+      userId: 'admin-1',
+      role: 'owner',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+    vi.mocked(groupRepository.hasExpensesLinkedToUser).mockResolvedValue(true);
+
+    const result = await deleteParticipant({
+      participantId: 'participant-1',
+      userId: 'admin-1',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected participant deletion to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'CONFLICT',
+      message: 'Participant has linked expenses and cannot be deleted',
+      status: 409,
+    });
+    expect(groupRepository.deleteGroupParticipant).not.toHaveBeenCalled();
+  });
+
+  it('rejects deleting an admin participant', async () => {
+    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+      id: 'participant-1',
+      groupId: 'group-1',
+      displayName: 'Moderator',
+      userId: 'user-1',
+      role: 'admin',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      id: 'participant-admin',
+      groupId: 'group-1',
+      displayName: 'Owner',
+      userId: 'admin-1',
+      role: 'owner',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+
+    const result = await deleteParticipant({
+      participantId: 'participant-1',
+      groupId: 'group-1',
+      userId: 'admin-1',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected participant deletion to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'FORBIDDEN',
+      message: 'Admin participants cannot be deleted',
+      status: 403,
+    });
+    expect(groupRepository.deleteGroupParticipant).not.toHaveBeenCalled();
+  });
+
+  it('rejects deleting any participant when the caller is not an admin', async () => {
+    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+      id: 'participant-1',
+      groupId: 'group-1',
+      displayName: 'Guest',
+      userId: 'user-2',
+      role: 'member',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      id: 'participant-member',
+      groupId: 'group-1',
+      displayName: 'Member',
+      userId: 'user-1',
+      role: 'member',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+
+    const result = await deleteParticipant({
+      participantId: 'participant-1',
+      groupId: 'group-1',
+      userId: 'user-1',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected participant deletion to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'FORBIDDEN',
+      message: 'Admin privileges required',
+      status: 403,
+    });
+    expect(groupRepository.deleteGroupParticipant).not.toHaveBeenCalled();
   });
 });
