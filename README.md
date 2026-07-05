@@ -39,7 +39,7 @@ lib/
 │   ├── expense.ts
 │   ├── expenseSplit.ts
 │   ├── group.ts
-│   ├── groupMember.ts
+│   ├── groupParticipant.ts
 │   └── user.ts
 ├── repositories/
 │   └── userRepository.ts

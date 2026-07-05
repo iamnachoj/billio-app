@@ -32,11 +32,16 @@ export async function initDB() {
   `);
 
   await db.execute(`
-    CREATE TABLE IF NOT EXISTS group_members (
-      user_id TEXT NOT NULL,
+    CREATE TABLE IF NOT EXISTS group_participants (
+      id TEXT PRIMARY KEY,
       group_id TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      user_id TEXT,
+      role TEXT NOT NULL,
+      status TEXT NOT NULL,
       joined_at TEXT NOT NULL,
-      PRIMARY KEY (user_id, group_id)
+      created_at TEXT NOT NULL,
+      updated_at TEXT
     );
   `);
 
