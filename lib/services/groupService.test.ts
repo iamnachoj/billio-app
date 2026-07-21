@@ -1,20 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as groupRepository from '@/lib/repositories/groupRepository';
+import * as participantRepository from '@/lib/repositories/participantRepository';
 import { addParticipantToGroup, createGroup, deleteParticipant, getGroupsForUser, leaveGroup, linkParticipantToUser } from './groupService';
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
   createGroup: vi.fn(),
-  addMemberToGroup: vi.fn(),
-  createGroupParticipant: vi.fn(),
-  linkParticipantToUser: vi.fn(),
-  deleteGroupParticipant: vi.fn(),
-  removeMemberFromGroup: vi.fn(),
   getGroupById: vi.fn(),
   getGroupsByUserId: vi.fn(),
+}));
+
+vi.mock('@/lib/repositories/participantRepository', () => ({
+  createParticipant: vi.fn(),
+  linkParticipantToUser: vi.fn(),
+  deleteParticipantById: vi.fn(),
+  removeParticipantByGroupAndUserId: vi.fn(),
   getParticipantByGroupAndUserId: vi.fn(),
-  getGroupParticipantById: vi.fn(),
-  hasExpensesLinkedToParticipant: vi.fn(),
+  getParticipantById: vi.fn(),
+  getParticipantsByGroupId: vi.fn(),
+  participantHasLinkedExpenses: vi.fn(),
+  updateParticipantById: vi.fn(),
 }));
 
 describe('groupService', () => {
@@ -57,7 +62,14 @@ describe('groupService', () => {
       description: 'Weekend trip',
       createdBy: 'user-1',
     });
-    expect(groupRepository.addMemberToGroup).toHaveBeenCalledWith('123-123-123-123-123', 'user-1', 'Alice');
+    expect(participantRepository.createParticipant).toHaveBeenCalledWith({
+      groupId: '123-123-123-123-123',
+      displayName: 'Alice',
+      userId: 'user-1',
+      role: 'owner',
+      status: 'active',
+      createdBy: 'user-1',
+    });
   });
 
   it('rejects invalid input', async () => {
@@ -112,7 +124,7 @@ describe('groupService', () => {
   });
 
   it('allows a user to leave a group without deleting the group history', async () => {
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
       displayName: 'Owner',
@@ -131,11 +143,11 @@ describe('groupService', () => {
       throw new Error('Expected leaving the group to succeed');
     }
 
-    expect(groupRepository.removeMemberFromGroup).toHaveBeenCalledWith('group-1', 'user-1');
+    expect(participantRepository.removeParticipantByGroupAndUserId).toHaveBeenCalledWith('group-1', 'user-1');
   });
 
   it('returns not found when leaving a nonexistent group', async () => {
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
     vi.mocked(groupRepository.getGroupById).mockResolvedValue(null);
 
     const result = await leaveGroup({ groupId: 'missing-group', userId: 'user-1' });
@@ -153,7 +165,7 @@ describe('groupService', () => {
   });
 
   it('returns forbidden when a user leaves a group they do not belong to', async () => {
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
     vi.mocked(groupRepository.getGroupById).mockResolvedValue({
       id: 'group-1',
       name: 'Trip',
@@ -178,7 +190,7 @@ describe('groupService', () => {
   });
 
   it('adds a named participant to a group', async () => {
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
       displayName: 'Owner',
@@ -190,7 +202,7 @@ describe('groupService', () => {
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
 
-    vi.mocked(groupRepository.createGroupParticipant).mockResolvedValue({
+    vi.mocked(participantRepository.createParticipant).mockResolvedValue({
       id: '123-123-123-123-123',
       groupId: 'group-1',
       displayName: 'Ana',
@@ -214,7 +226,7 @@ describe('groupService', () => {
       throw new Error('Expected participant creation to succeed');
     }
 
-    expect(groupRepository.createGroupParticipant).toHaveBeenCalledWith({
+    expect(participantRepository.createParticipant).toHaveBeenCalledWith({
       groupId: 'group-1',
       displayName: 'Ana',
       userId: undefined,
@@ -235,14 +247,14 @@ describe('groupService', () => {
       throw new Error('Expected linking to succeed');
     }
 
-    expect(groupRepository.linkParticipantToUser).toHaveBeenCalledWith({
+    expect(participantRepository.linkParticipantToUser).toHaveBeenCalledWith({
       participantId: 'participant-1',
       userId: 'user-2',
     });
   });
 
   it('deletes a participant when it has no linked expenses', async () => {
-    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantById).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
       displayName: 'Guest',
@@ -253,7 +265,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       id: 'participant-admin',
       groupId: 'group-1',
       displayName: 'Owner',
@@ -264,7 +276,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.hasExpensesLinkedToParticipant).mockResolvedValue(false);
+    vi.mocked(participantRepository.participantHasLinkedExpenses).mockResolvedValue(false);
 
     const result = await deleteParticipant({
       participantId: 'participant-1',
@@ -276,12 +288,12 @@ describe('groupService', () => {
       throw new Error('Expected participant deletion to succeed');
     }
 
-    expect(groupRepository.hasExpensesLinkedToParticipant).toHaveBeenCalledWith('participant-1');
-    expect(groupRepository.deleteGroupParticipant).toHaveBeenCalledWith('participant-1');
+    expect(participantRepository.participantHasLinkedExpenses).toHaveBeenCalledWith('participant-1');
+    expect(participantRepository.deleteParticipantById).toHaveBeenCalledWith('participant-1');
   });
 
   it('rejects deleting a participant that already has linked expenses', async () => {
-    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantById).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
       displayName: 'Guest',
@@ -292,7 +304,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       id: 'participant-admin',
       groupId: 'group-1',
       displayName: 'Owner',
@@ -303,7 +315,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.hasExpensesLinkedToParticipant).mockResolvedValue(true);
+    vi.mocked(participantRepository.participantHasLinkedExpenses).mockResolvedValue(true);
 
     const result = await deleteParticipant({
       participantId: 'participant-1',
@@ -320,11 +332,11 @@ describe('groupService', () => {
       message: 'Participant has linked expenses and cannot be deleted',
       status: 409,
     });
-    expect(groupRepository.deleteGroupParticipant).not.toHaveBeenCalled();
+    expect(participantRepository.deleteParticipantById).not.toHaveBeenCalled();
   });
 
   it('rejects deleting an admin participant', async () => {
-    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantById).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
       displayName: 'Moderator',
@@ -335,7 +347,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       id: 'participant-admin',
       groupId: 'group-1',
       displayName: 'Owner',
@@ -363,11 +375,11 @@ describe('groupService', () => {
       message: 'Admin participants cannot be deleted',
       status: 403,
     });
-    expect(groupRepository.deleteGroupParticipant).not.toHaveBeenCalled();
+    expect(participantRepository.deleteParticipantById).not.toHaveBeenCalled();
   });
 
   it('rejects deleting any participant when the caller is not an admin', async () => {
-    vi.mocked(groupRepository.getGroupParticipantById).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantById).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
       displayName: 'Guest',
@@ -378,7 +390,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       id: 'participant-member',
       groupId: 'group-1',
       displayName: 'Member',
@@ -406,6 +418,6 @@ describe('groupService', () => {
       message: 'Admin privileges required',
       status: 403,
     });
-    expect(groupRepository.deleteGroupParticipant).not.toHaveBeenCalled();
+    expect(participantRepository.deleteParticipantById).not.toHaveBeenCalled();
   });
 });

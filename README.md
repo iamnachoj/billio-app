@@ -188,14 +188,22 @@ lib/models
 
 Models define the domain entities used by the application.
 
-They describe the shape of data such as:
+The most important distinction is between authentication users and group participants:
 
-- users
-- groups
-- expenses
-- expense splits
+- `user` represents an authenticated account in the system
+- `groupParticipant` represents a person inside a group, whether or not they have an account yet
 
-They act as contracts between layers and do not contain business rules.
+That separation matters because a participant can exist before a user account exists, and expense data is now tied to participants instead of only to users.
+
+The main models are:
+
+- `user.ts` - the authenticated account
+- `group.ts` - the group itself
+- `groupParticipant.ts` - the person taking part in a group
+- `expense.ts` - an expense attached to a group and linked to participants
+- `expenseSplit.ts` - the participant-level breakdown of who owes what
+
+Models act as contracts between layers and do not contain business rules.
 
 ### 5. Mappers
 
@@ -269,7 +277,7 @@ This separation keeps responsibilities clear:
 - routes handle HTTP
 - services handle business rules
 - repositories handle data access
-- models define data structures
+- models define domain entities and the relationships between users, participants and expenses
 - mappers adapt database data
 - utilities provide shared helpers
 

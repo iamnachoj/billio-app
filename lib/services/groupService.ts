@@ -1,18 +1,19 @@
 import {
-  addMemberToGroup,
   createGroup as createGroupInRepository,
-  createGroupParticipant as createGroupParticipantInRepository,
-  deleteGroupParticipant as deleteGroupParticipantInRepository,
-  getGroupParticipantById,
-  getGroupParticipantsByGroupId,
   getGroupById,
   getGroupsByUserId,
-  hasExpensesLinkedToParticipant,
-  getParticipantByGroupAndUserId,
-  linkParticipantToUser as linkParticipantToUserInRepository,
-  removeMemberFromGroup,
-  updateGroupParticipant as updateGroupParticipantInRepository,
 } from '@/lib/repositories/groupRepository';
+import {
+  createParticipant as createParticipantInRepository,
+  deleteParticipantById as deleteParticipantByIdInRepository,
+  getParticipantById,
+  getParticipantsByGroupId,
+  getParticipantByGroupAndUserId,
+  participantHasLinkedExpenses,
+  linkParticipantToUser as linkParticipantToUserInRepository,
+  removeParticipantByGroupAndUserId,
+  updateParticipantById as updateParticipantByIdInRepository,
+} from '@/lib/repositories/participantRepository';
 
 export type GroupServiceResult<T> =
   | { ok: true; data: T }
@@ -59,7 +60,14 @@ export async function createGroup({
     createdBy,
   });
 
-  await addMemberToGroup(group.id, createdBy, creatorName);
+  await createParticipantInRepository({
+    groupId: group.id,
+    displayName: creatorName,
+    userId: createdBy,
+    role: 'owner',
+    status: 'active',
+    createdBy,
+  });
 
   return {
     ok: true,
@@ -129,7 +137,7 @@ export async function leaveGroup({
     };
   }
 
-  await removeMemberFromGroup(groupId, userId);
+  await removeParticipantByGroupAndUserId(groupId, userId);
 
   return {
     ok: true,
@@ -192,7 +200,7 @@ export async function getParticipantsForGroup(groupId: string, userId: string): 
     };
   }
 
-  const participants = await getGroupParticipantsByGroupId(groupId);
+  const participants = await getParticipantsByGroupId(groupId);
 
   return {
     ok: true,
@@ -231,7 +239,7 @@ export async function addParticipantToGroup({
     return adminResult;
   }
 
-  const participant = await createGroupParticipantInRepository({
+  const participant = await createParticipantInRepository({
     groupId,
     displayName: displayName.trim(),
     userId,
@@ -270,7 +278,7 @@ export async function updateParticipant({
     };
   }
 
-  const participant = await getGroupParticipantById(participantId);
+  const participant = await getParticipantById(participantId);
   if (!participant) {
     return {
       ok: false,
@@ -287,7 +295,7 @@ export async function updateParticipant({
     return adminResult;
   }
 
-  await updateGroupParticipantInRepository(participantId, {
+  await updateParticipantByIdInRepository(participantId, {
     displayName: displayName?.trim(),
     role,
     status,
@@ -319,7 +327,7 @@ export async function deleteParticipant({
     };
   }
 
-  const participant = await getGroupParticipantById(participantId);
+  const participant = await getParticipantById(participantId);
   if (!participant) {
     return {
       ok: false,
@@ -358,7 +366,7 @@ export async function deleteParticipant({
     };
   }
 
-  const hasExpenses = await hasExpensesLinkedToParticipant(participant.id);
+  const hasExpenses = await participantHasLinkedExpenses(participant.id);
 
   if (hasExpenses) {
     return {
@@ -371,7 +379,7 @@ export async function deleteParticipant({
     };
   }
 
-  await deleteGroupParticipantInRepository(participantId);
+  await deleteParticipantByIdInRepository(participantId);
 
   return {
     ok: true,
