@@ -66,6 +66,16 @@ export async function markPasswordResetTokenAsUsed(id: string) {
   });
 }
 
+export async function deletePasswordResetTokenById(id: string) {
+  await db.execute({
+    sql: `
+      DELETE FROM password_resets
+      WHERE id = ?
+    `,
+    args: [id],
+  });
+}
+
 export async function deletePasswordResetTokensForUser(userId: string) {
   await db.execute({
     sql: `
@@ -92,4 +102,17 @@ export async function getRecentPasswordResetRequests(userId: string, windowMs: n
   const row = result.rows[0] as Record<string, unknown> | undefined;
 
   return Number(row?.count ?? 0);
+}
+
+export async function cleanupExpiredPasswordResetTokens() {
+  const staleCutoff = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString();
+
+  await db.execute({
+    sql: `
+      DELETE FROM password_resets
+      WHERE expires_at < ?
+         OR (used_at IS NOT NULL AND used_at < ?)
+    `,
+    args: [new Date().toISOString(), staleCutoff],
+  });
 }

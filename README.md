@@ -27,11 +27,16 @@ app/
 │   │       └── route.ts
 │   ├── groups/
 │   │   ├── [groupId]/
-│   │   │   └── participants/
-│   │   │       ├── [participantId]/
-│   │   │       │   └── route.ts
+│   │   │   ├── participants/
+│   │   │   │   ├── [participantId]/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   └── invites/
 │   │   │       └── route.ts
 │   │   └── route.ts
+│   ├── invites/
+│   │   └── [token]/
+│   │       └── route.ts
 │   └── me/
 │       └── route.ts
 ├── globals.css
@@ -162,6 +167,50 @@ The current API surface is split by feature and keeps each handler thin.
 - `POST /api/groups/[groupId]/participants` - add a participant to an existing group
 - `DELETE /api/groups/[groupId]/participants/[participantId]` - delete a participant when allowed by role and expense rules
 
+### Invites
+
+- `POST /api/groups/[groupId]/invites` - create a reusable invite link for a group
+- `GET /api/invites/[token]` - preview an invite by token
+- `POST /api/invites/[token]` - accept an invite by claiming a participant or creating one
+
+## Invite Flow
+
+The invite flow is token-based and participant-first.
+
+1. A group `owner` or `admin` creates an invite link:
+
+- `POST /api/groups/[groupId]/invites`
+- optional body: `{ "email": "friend@example.com" }` to tie the invite to one email
+
+2. The invite token is shared (for example via WhatsApp).
+
+3. Any user can preview the invite metadata by token:
+
+- `GET /api/invites/[token]`
+
+4. The invited person logs in and accepts the invite:
+
+- `POST /api/invites/[token]`
+- authenticated user required
+- one of the following body options:
+  - `{ "participantId": "existing-participant-id" }` to claim an existing participant
+  - `{ "displayName": "Carlos" }` to create a new participant during acceptance
+
+5. On acceptance:
+
+- if `participantId` is provided, that participant is set to `active` and linked to the current user when needed
+- if `displayName` is provided, a new `member` participant is created and linked to the current user
+
+6. Group visibility for a logged-in user is still based on linked participants:
+
+- `GET /api/groups` returns groups where `group_participants.user_id` equals the authenticated user id
+
+Important behavior notes:
+
+- invites are reusable until expiration (they are not one-time consumed by default)
+- if an invite is tied to an email, only a user with that email can accept it
+- a participant already linked to a different user cannot be claimed
+
 ## Group Roles
 
 The group model uses participants rather than only registered users, which makes it possible to represent people before they create an account.
@@ -177,6 +226,15 @@ In practice, the current rules are:
 - `admin` and `owner` participants themselves cannot be deleted
 - participants linked to expense records cannot be deleted
 - placeholder participants without a linked `userId` can exist temporarily, but they do not keep an empty group alive once no real user remains
+
+## Temporary Tokens
+
+Some flows use short-lived tokens that should not accumulate forever.
+
+- password reset tokens are deleted as soon as they are used
+- stale password reset rows are cleaned opportunistically during password reset requests
+- invite records are cleaned opportunistically when invite endpoints run
+- cleanup removes expired pending invites and stale terminal invite rows (`accepted`, `expired`, `revoked`)
 
 ### 4. Models
 

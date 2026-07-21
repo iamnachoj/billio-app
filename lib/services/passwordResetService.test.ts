@@ -20,10 +20,11 @@ vi.mock('@/lib/repositories/userRepository', () => ({
 
 vi.mock('@/lib/repositories/passwordResetRepository', () => ({
   createPasswordResetToken: vi.fn(),
+  cleanupExpiredPasswordResetTokens: vi.fn(),
   deletePasswordResetTokensForUser: vi.fn(),
+  deletePasswordResetTokenById: vi.fn(),
   getPasswordResetTokenByToken: vi.fn(),
   getRecentPasswordResetRequests: vi.fn(),
-  markPasswordResetTokenAsUsed: vi.fn(),
 }));
 
 vi.mock('./emailService', () => ({
@@ -51,6 +52,7 @@ describe('passwordResetService', () => {
       throw new Error('Expected reset request to succeed');
     }
 
+    expect(passwordResetRepository.cleanupExpiredPasswordResetTokens).toHaveBeenCalled();
     expect(passwordResetRepository.deletePasswordResetTokensForUser).toHaveBeenCalledWith('user-1');
     expect(passwordResetRepository.createPasswordResetToken).toHaveBeenCalled();
     expect(sendPasswordResetEmail).toHaveBeenCalledWith('ana@example.com', expect.any(String));
@@ -104,6 +106,6 @@ describe('passwordResetService', () => {
     }
 
     expect(userRepository.updateUserPassword).toHaveBeenCalledWith('user-1', 'new-hash');
-    expect(passwordResetRepository.markPasswordResetTokenAsUsed).toHaveBeenCalledWith('reset-1');
+    expect(passwordResetRepository.deletePasswordResetTokenById).toHaveBeenCalledWith('reset-1');
   });
 });

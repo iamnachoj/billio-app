@@ -46,6 +46,81 @@ export async function initDB() {
   `);
 
   await db.execute(`
+    CREATE TABLE IF NOT EXISTS group_invites (
+      id TEXT PRIMARY KEY,
+      group_id TEXT NOT NULL,
+      participant_id TEXT,
+      token TEXT UNIQUE NOT NULL,
+      email TEXT,
+      status TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      accepted_at TEXT,
+      revoked_at TEXT,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT
+    );
+  `);
+
+  const inviteTableInfo = await db.execute('PRAGMA table_info(group_invites);');
+  const participantIdColumn = (inviteTableInfo.rows as Record<string, unknown>[]).find(
+    (row) => row.name === 'participant_id'
+  );
+
+  if (Number(participantIdColumn?.notnull ?? 0) === 1) {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS group_invites_new (
+        id TEXT PRIMARY KEY,
+        group_id TEXT NOT NULL,
+        participant_id TEXT,
+        token TEXT UNIQUE NOT NULL,
+        email TEXT,
+        status TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        accepted_at TEXT,
+        revoked_at TEXT,
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT
+      );
+    `);
+
+    await db.execute(`
+      INSERT INTO group_invites_new (
+        id,
+        group_id,
+        participant_id,
+        token,
+        email,
+        status,
+        expires_at,
+        accepted_at,
+        revoked_at,
+        created_by,
+        created_at,
+        updated_at
+      )
+      SELECT
+        id,
+        group_id,
+        participant_id,
+        token,
+        email,
+        status,
+        expires_at,
+        accepted_at,
+        revoked_at,
+        created_by,
+        created_at,
+        updated_at
+      FROM group_invites;
+    `);
+
+    await db.execute('DROP TABLE group_invites;');
+    await db.execute('ALTER TABLE group_invites_new RENAME TO group_invites;');
+  }
+
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS expenses (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,

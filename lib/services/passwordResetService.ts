@@ -3,10 +3,11 @@ import bcrypt from 'bcryptjs';
 
 import {
   createPasswordResetToken,
+  cleanupExpiredPasswordResetTokens,
   deletePasswordResetTokensForUser,
+  deletePasswordResetTokenById,
   getPasswordResetTokenByToken,
   getRecentPasswordResetRequests,
-  markPasswordResetTokenAsUsed,
 } from '@/lib/repositories/passwordResetRepository';
 import { getUserByEmail, getUserById, updateUserPassword } from '@/lib/repositories/userRepository';
 import { sendPasswordResetEmail } from './emailService';
@@ -48,6 +49,7 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
     };
   }
 
+  await cleanupExpiredPasswordResetTokens();
   await deletePasswordResetTokensForUser(user.id);
 
   const token = crypto.randomBytes(32).toString('hex');
@@ -144,7 +146,7 @@ export async function resetPassword(
   const passwordHash = await bcrypt.hash(newPassword, 10);
 
   await updateUserPassword(user.id, passwordHash);
-  await markPasswordResetTokenAsUsed(resetRecord.id);
+  await deletePasswordResetTokenById(resetRecord.id);
 
   return {
     ok: true,
