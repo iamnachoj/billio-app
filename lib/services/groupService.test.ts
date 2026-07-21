@@ -14,7 +14,7 @@ vi.mock('@/lib/repositories/groupRepository', () => ({
   getGroupsByUserId: vi.fn(),
   getParticipantByGroupAndUserId: vi.fn(),
   getGroupParticipantById: vi.fn(),
-  hasExpensesLinkedToUser: vi.fn(),
+  hasExpensesLinkedToParticipant: vi.fn(),
 }));
 
 describe('groupService', () => {
@@ -264,7 +264,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.hasExpensesLinkedToUser).mockResolvedValue(false);
+    vi.mocked(groupRepository.hasExpensesLinkedToParticipant).mockResolvedValue(false);
 
     const result = await deleteParticipant({
       participantId: 'participant-1',
@@ -276,7 +276,7 @@ describe('groupService', () => {
       throw new Error('Expected participant deletion to succeed');
     }
 
-    expect(groupRepository.hasExpensesLinkedToUser).toHaveBeenCalledWith('user-1');
+    expect(groupRepository.hasExpensesLinkedToParticipant).toHaveBeenCalledWith('participant-1');
     expect(groupRepository.deleteGroupParticipant).toHaveBeenCalledWith('participant-1');
   });
 
@@ -303,7 +303,7 @@ describe('groupService', () => {
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
-    vi.mocked(groupRepository.hasExpensesLinkedToUser).mockResolvedValue(true);
+    vi.mocked(groupRepository.hasExpensesLinkedToParticipant).mockResolvedValue(true);
 
     const result = await deleteParticipant({
       participantId: 'participant-1',

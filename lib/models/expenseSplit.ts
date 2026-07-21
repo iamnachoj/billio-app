@@ -1,9 +1,9 @@
 export type ExpenseSplit = {
   id: string;
   expenseId: string;
-  userId: string;
+  participantId: string;
   amount: number; // cents (ej: 1234 = 12.34€)
-  owedToUserId: string;
+  owedToParticipantId: string;
   createdAt: Date;
   updatedAt: Date;
 };

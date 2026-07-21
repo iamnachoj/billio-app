@@ -7,7 +7,7 @@ import {
   getGroupParticipantsByGroupId,
   getGroupById,
   getGroupsByUserId,
-  hasExpensesLinkedToUser,
+  hasExpensesLinkedToParticipant,
   getParticipantByGroupAndUserId,
   linkParticipantToUser as linkParticipantToUserInRepository,
   removeMemberFromGroup,
@@ -358,19 +358,17 @@ export async function deleteParticipant({
     };
   }
 
-  if (participant.userId) {
-    const hasExpenses = await hasExpensesLinkedToUser(participant.userId);
+  const hasExpenses = await hasExpensesLinkedToParticipant(participant.id);
 
-    if (hasExpenses) {
-      return {
-        ok: false,
-        error: {
-          code: 'CONFLICT',
-          message: 'Participant has linked expenses and cannot be deleted',
-          status: 409,
-        },
-      };
-    }
+  if (hasExpenses) {
+    return {
+      ok: false,
+      error: {
+        code: 'CONFLICT',
+        message: 'Participant has linked expenses and cannot be deleted',
+        status: 409,
+      },
+    };
   }
 
   await deleteGroupParticipantInRepository(participantId);

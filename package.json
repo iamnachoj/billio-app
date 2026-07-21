@@ -6,6 +6,7 @@
     "dev": "cross-env NODE_ENV=development next dev",
     "build": "next build",
     "start": "next start",
+    "test": "npx vitest run",
     "format": "npx prettier --write .",
     "lint": "eslint",
     "db:init": "tsx lib/db/init-db.ts"

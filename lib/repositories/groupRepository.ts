@@ -211,19 +211,19 @@ export async function getGroupParticipantsByGroupId(groupId: string) {
   }));
 }
 
-export async function hasExpensesLinkedToUser(userId: string) {
+export async function hasExpensesLinkedToParticipant(participantId: string) {
   const result = await db.execute({
     sql: `
       SELECT 1
       FROM expenses
-      WHERE paid_by_user_id = ? OR created_by_user_id = ?
+      WHERE paid_by_participant_id = ? OR created_by_participant_id = ?
       UNION
       SELECT 1
       FROM expense_splits
-      WHERE user_id = ? OR owed_to_user_id = ?
+      WHERE participant_id = ? OR owed_to_participant_id = ?
       LIMIT 1
     `,
-    args: [userId, userId, userId, userId],
+    args: [participantId, participantId, participantId, participantId],
   });
 
   return result.rows.length > 0;

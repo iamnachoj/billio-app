@@ -8,6 +8,6 @@ export type Expense = {
   groupId: string;
   createdAt: Date;
   updatedAt: Date;
-  paidBy: string; // user ID of the person who paid the expense
-  createdBy: string; // user ID of the creator
+  paidByParticipantId: string; // participant ID of the person who paid the expense
+  createdByParticipantId: string; // participant ID of the creator
 };
