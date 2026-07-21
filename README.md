@@ -159,7 +159,7 @@ The current API surface is split by feature and keeps each handler thin.
 ### Participants
 
 - `GET /api/groups/[groupId]/participants` - list participants in a group
-- `POST /api/groups` - add a participant to an existing group when the body includes `groupId` and `displayName`
+- `POST /api/groups/[groupId]/participants` - add a participant to an existing group
 - `DELETE /api/groups/[groupId]/participants/[participantId]` - delete a participant when allowed by role and expense rules
 
 ## Group Roles
