@@ -40,19 +40,6 @@ export async function createGroup({ name, description, createdBy }: CreateGroupI
 export async function cleanupEmptyGroups() {
   await db.execute({
     sql: `
-      DELETE FROM group_participants
-      WHERE group_id IN (
-        SELECT g.id
-        FROM groups g
-        LEFT JOIN group_participants gp ON gp.group_id = g.id
-        GROUP BY g.id
-        HAVING COUNT(CASE WHEN gp.user_id IS NOT NULL THEN 1 END) = 0
-      )
-    `,
-  });
-
-  await db.execute({
-    sql: `
       DELETE FROM groups
       WHERE id IN (
         SELECT g.id

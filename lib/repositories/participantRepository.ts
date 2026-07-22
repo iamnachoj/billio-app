@@ -173,9 +173,9 @@ export async function participantHasLinkedExpenses(participantId: string) {
   return result.rows.length > 0;
 }
 
-export async function updateParticipantById(participantId: string, updates: { displayName?: string; role?: 'owner' | 'admin' | 'member' | 'viewer'; status?: 'active' | 'invited' | 'left' }) {
+export async function updateParticipantById(participantId: string, updates: { displayName?: string; role?: 'owner' | 'admin' | 'member' | 'viewer'; status?: 'active' | 'invited' | 'left'; userId?: string | null }) {
   const fields = [] as string[];
-  const args: string[] = [];
+  const args: Array<string | null> = [];
 
   if (updates.displayName !== undefined) {
     fields.push('display_name = ?');
@@ -188,6 +188,10 @@ export async function updateParticipantById(participantId: string, updates: { di
   if (updates.status !== undefined) {
     fields.push('status = ?');
     args.push(updates.status);
+  }
+  if (updates.userId !== undefined) {
+    fields.push('user_id = ?');
+    args.push(updates.userId);
   }
 
   if (fields.length === 0) {

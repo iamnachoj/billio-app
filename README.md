@@ -220,6 +220,7 @@ Important behavior notes:
 - invites are reusable until expiration (they are not one-time consumed by default)
 - if an invite is tied to an email, only a user with that email can accept it
 - a participant already linked to a different user cannot be claimed
+- leaving a group preserves the participant row as `left` and removes its `user_id`, so expense history keeps the original display name
 
 ### Expense Split Modes
 

@@ -143,7 +143,10 @@ describe('groupService', () => {
       throw new Error('Expected leaving the group to succeed');
     }
 
-    expect(participantRepository.removeParticipantByGroupAndUserId).toHaveBeenCalledWith('group-1', 'user-1');
+    expect(participantRepository.updateParticipantById).toHaveBeenCalledWith('participant-1', {
+      status: 'left',
+      userId: null,
+    });
   });
 
   it('returns not found when leaving a nonexistent group', async () => {

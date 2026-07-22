@@ -11,7 +11,6 @@ import {
   getParticipantByGroupAndUserId,
   participantHasLinkedExpenses,
   linkParticipantToUser as linkParticipantToUserInRepository,
-  removeParticipantByGroupAndUserId,
   updateParticipantById as updateParticipantByIdInRepository,
 } from '@/lib/repositories/participantRepository';
 
@@ -137,7 +136,10 @@ export async function leaveGroup({
     };
   }
 
-  await removeParticipantByGroupAndUserId(groupId, userId);
+  await updateParticipantByIdInRepository(membership.id, {
+    status: 'left',
+    userId: null,
+  });
 
   return {
     ok: true,
