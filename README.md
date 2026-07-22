@@ -154,6 +154,7 @@ The current API surface is split by feature and keeps each handler thin.
 
 - `GET /api/me` - fetch the authenticated user
 - `DELETE /api/me` - delete the authenticated user account
+- `PATCH /api/me` - updates either email or name or both
 
 ### Groups
 
