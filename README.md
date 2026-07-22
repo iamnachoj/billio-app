@@ -168,6 +168,13 @@ The current API surface is split by feature and keeps each handler thin.
 - `POST /api/groups/[groupId]/participants` - add a participant to an existing group
 - `DELETE /api/groups/[groupId]/participants/[participantId]` - delete a participant when allowed by role and expense rules
 
+### Expenses
+
+- `POST /api/groups/[groupId]/expenses` - create a new expense in a group
+- `GET /api/groups/[groupId]/expenses` - list group expenses
+- `GET /api/groups/[groupId]/expenses/[expenseId]` - get one expense with its splits
+- `DELETE /api/groups/[groupId]/expenses/[expenseId]` - delete an expense (owner/admin only)
+
 ### Invites
 
 - `POST /api/groups/[groupId]/invites` - create a reusable invite link for a group
@@ -211,6 +218,75 @@ Important behavior notes:
 - invites are reusable until expiration (they are not one-time consumed by default)
 - if an invite is tied to an email, only a user with that email can accept it
 - a participant already linked to a different user cannot be claimed
+
+### Expense Split Modes
+
+When creating an expense, the payer can be any active participant in the group (not necessarily the participant linked to the authenticated user).
+
+Current split modes supported by `POST /api/groups/[groupId]/expenses`:
+
+- `equal` - split among all active participants
+- `selected` - split equally among a provided subset of active participants
+- `percentage` - split by explicit percentage shares that must sum to 100
+
+Request contract for the expense body:
+
+For `equal`, the frontend only needs to send the mode. The backend splits the amount across all active participants in the group and stores only the debt rows. The payer's own share is implicit.
+
+```json
+{
+  "title": "Dinner",
+  "amount": 1235,
+  "currency": "EUR",
+  "paidByParticipantId": "participant-id-that-paid",
+  "split": {
+    "mode": "equal"
+  }
+}
+```
+
+For `selected`, the frontend sends the participant ids that should be included in the split. They must all be active participants in the group.
+
+```json
+{
+  "title": "Taxi",
+  "amount": 900,
+  "currency": "EUR",
+  "paidByParticipantId": "participant-id-that-paid",
+  "split": {
+    "mode": "selected",
+    "participantIds": [
+      "participant-id-1",
+      "participant-id-2"
+    ]
+  }
+}
+```
+
+For `percentage`, the frontend sends one entry per participant, each with an explicit percentage. The percentages must sum to `100`.
+
+```json
+{
+  "title": "Groceries",
+  "amount": 1000,
+  "currency": "EUR",
+  "paidByParticipantId": "participant-id-that-paid",
+  "split": {
+    "mode": "percentage",
+    "shares": [
+      { "participantId": "participant-id-1", "percentage": 30 },
+      { "participantId": "participant-id-2", "percentage": 70 }
+    ]
+  }
+}
+```
+
+Notes:
+
+- `amount` is stored as an integer in cents.
+- `currency` should be sent as a 3-letter code such as `EUR` or `USD`.
+- `paidByParticipantId` must belong to an active participant in the group.
+- the response returns the created expense plus the persisted `splits` that represent who owes the payer.
 
 ## Group Roles
 
