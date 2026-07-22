@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as userRepository from '@/lib/repositories/userRepository';
 import bcrypt from 'bcryptjs';
-import { deleteUserAccount, getCurrentUser, loginUser, registerUser } from './authService';
+import {
+  deleteUserAccount,
+  getCurrentUser,
+  loginUser,
+  registerUser,
+  updateUserAccount,
+} from './authService';
 import { cookies } from 'next/headers';
 import { generateToken, verifyToken } from '@/lib/utils/jwt';
 
@@ -16,8 +22,10 @@ vi.mock('bcryptjs', () => ({
 vi.mock('@/lib/repositories/userRepository', () => ({
   getUserByEmail: vi.fn(),
   getUserById: vi.fn(),
+  getUserByName: vi.fn(),
   createUserByEmail: vi.fn(),
   deleteUserById: vi.fn(),
+  updateUserById: vi.fn(),
 }));
 
 vi.mock('@/lib/utils/jwt', () => ({
@@ -100,7 +108,11 @@ describe('authService', () => {
     vi.mocked(cookies).mockResolvedValue({
       get: vi.fn().mockReturnValue({ value: 'token-value' }),
     } as never);
-    vi.mocked(verifyToken).mockReturnValue({ userId: 'user-1', iat: 1, exp: 2 } as never);
+    vi.mocked(verifyToken).mockReturnValue({
+      userId: 'user-1',
+      iat: 1,
+      exp: 2,
+    } as never);
     vi.mocked(userRepository.getUserById).mockResolvedValue({
       id: 'user-1',
       name: 'Ana',
@@ -143,6 +155,212 @@ describe('authService', () => {
       code: 'FORBIDDEN',
       message: 'You can only delete your own account',
       status: 403,
+    });
+  });
+
+  describe('updateUserAccount', () => {
+    const existingUser = {
+      id: 'user-1',
+      name: 'Ana',
+      email: 'ana@example.com',
+      passwordHash: 'hashed-password',
+    };
+
+    it('returns UNAUTHORIZED when not authenticated', async () => {
+      const result = await updateUserAccount(null, {
+        email: 'new@example.com',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('UNAUTHORIZED');
+      expect(result.error.status).toBe(401);
+    });
+
+    it('returns NOT_FOUND when user does not exist', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(null);
+
+      const result = await updateUserAccount('user-1', {
+        email: 'new@example.com',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('NOT_FOUND');
+      expect(result.error.status).toBe(404);
+    });
+
+    it('returns NO_UPDATES_PROVIDED when neither email nor name is given', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+
+      const result = await updateUserAccount('user-1', { password: 'secret' });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('NO_UPDATES_PROVIDED');
+      expect(result.error.status).toBe(400);
+    });
+
+    it('returns INVALID_PASSWORD when no password is provided', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+
+      const result = await updateUserAccount('user-1', {
+        email: 'new@example.com',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('INVALID_PASSWORD');
+      expect(result.error.status).toBe(400);
+    });
+
+    it('returns INVALID_PASSWORD when wrong password is provided', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
+
+      const result = await updateUserAccount('user-1', {
+        email: 'new@example.com',
+        password: 'wrongpassword',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('INVALID_PASSWORD');
+      expect(result.error.status).toBe(400);
+    });
+
+    it('returns EMAIL_IN_USE when email is taken by another user', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(userRepository.getUserByEmail).mockResolvedValue({
+        id: 'user-2',
+        name: 'Bob',
+        email: 'new@example.com',
+        passwordHash: 'other-hash',
+      } as never);
+
+      const result = await updateUserAccount('user-1', {
+        email: 'new@example.com',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('EMAIL_IN_USE');
+      expect(result.error.status).toBe(409);
+    });
+
+    it('returns NAME_IN_USE when name is taken by another user', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(userRepository.getUserByEmail).mockResolvedValue(null);
+      vi.mocked(userRepository.getUserByName).mockResolvedValue({
+        id: 'user-2',
+        name: 'Bob',
+        email: 'bob@example.com',
+        passwordHash: 'other-hash',
+      } as never);
+
+      const result = await updateUserAccount('user-1', {
+        name: 'Bob',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('NAME_IN_USE');
+      expect(result.error.status).toBe(409);
+    });
+
+    it('successfully updates email with correct password', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(userRepository.getUserByEmail).mockResolvedValue(null);
+      vi.mocked(userRepository.updateUserById).mockResolvedValue({
+        id: 'user-1',
+        name: 'Ana',
+        email: 'new@example.com',
+      } as never);
+
+      const result = await updateUserAccount('user-1', {
+        email: 'new@example.com',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw new Error('Expected success');
+      expect(result.data).toEqual({
+        id: 'user-1',
+        name: 'Ana',
+        email: 'new@example.com',
+      });
+      expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', {
+        email: 'new@example.com',
+        name: 'Ana',
+      });
+    });
+
+    it('successfully updates name with correct password', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(userRepository.getUserByName).mockResolvedValue(null);
+      vi.mocked(userRepository.updateUserById).mockResolvedValue({
+        id: 'user-1',
+        name: 'NewName',
+        email: 'ana@example.com',
+      } as never);
+
+      const result = await updateUserAccount('user-1', {
+        name: 'NewName',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw new Error('Expected success');
+      expect(result.data).toEqual({
+        id: 'user-1',
+        name: 'NewName',
+        email: 'ana@example.com',
+      });
+      expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', {
+        email: 'ana@example.com',
+        name: 'NewName',
+      });
+    });
+
+    it('returns UPDATE_FAILED when repository update returns null', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(userRepository.getUserByEmail).mockResolvedValue(null);
+      vi.mocked(userRepository.updateUserById).mockResolvedValue(null as never);
+
+      const result = await updateUserAccount('user-1', {
+        email: 'new@example.com',
+        password: 'secret',
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('UPDATE_FAILED');
+      expect(result.error.status).toBe(500);
     });
   });
 });

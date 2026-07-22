@@ -7,6 +7,8 @@ import {
   deleteUserById,
   getUserByEmail,
   getUserById,
+  getUserByName,
+  updateUserById,
 } from '@/lib/repositories/userRepository';
 
 export type AuthResult<T> =
@@ -28,7 +30,9 @@ export async function registerUser({
   name,
   email,
   password,
-}: RegisterInput): Promise<AuthResult<{ user: { id: string; name: string; email: string } }>> {
+}: RegisterInput): Promise<
+  AuthResult<{ user: { id: string; name: string; email: string } }>
+> {
   if (!name || !email || !password) {
     return {
       ok: false,
@@ -79,10 +83,12 @@ export async function registerUser({
   };
 }
 
-export async function loginUser({
-  email,
-  password,
-}: LoginInput): Promise<AuthResult<{ user: { id: string; name: string; email: string }; token: string }>> {
+export async function loginUser({ email, password }: LoginInput): Promise<
+  AuthResult<{
+    user: { id: string; name: string; email: string };
+    token: string;
+  }>
+> {
   if (!email || !password) {
     return {
       ok: false,
@@ -201,5 +207,118 @@ export async function deleteUserAccount(
   return {
     ok: true,
     data: { deleted: true },
+  };
+}
+
+export async function updateUserAccount(
+  currentUserId: string | null,
+  updates: { email?: string; name?: string; password?: string }
+): Promise<AuthResult<{ id: string; name: string; email: string }>> {
+  if (!currentUserId) {
+    return {
+      ok: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required',
+        status: 401,
+      },
+    };
+  }
+
+  const user = await getUserById(currentUserId);
+
+  if (!user) {
+    return {
+      ok: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'User not found',
+        status: 404,
+      },
+    };
+  }
+
+  if (!updates.email && !updates.name) {
+    return {
+      ok: false,
+      error: {
+        code: 'NO_UPDATES_PROVIDED',
+        message: 'No updates provided',
+        status: 400,
+      },
+    };
+  }
+
+  const isSamePassword = updates.password
+    ? await bcrypt.compare(updates.password, user.passwordHash)
+    : false;
+
+  if (!isSamePassword) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_PASSWORD',
+        message: 'Current password is incorrect',
+        status: 400,
+      },
+    };
+  }
+
+  if (updates.email) {
+    const existingUser = await getUserByEmail(updates.email);
+    if (existingUser && existingUser.id !== currentUserId) {
+      return {
+        ok: false,
+        error: {
+          code: 'EMAIL_IN_USE',
+          message: 'Email already in use',
+          status: 409,
+        },
+      };
+    }
+  }
+
+  if (updates.name) {
+    const existingUser = await getUserByName(updates.name);
+    if (existingUser && existingUser.id !== currentUserId) {
+      return {
+        ok: false,
+        error: {
+          code: 'NAME_IN_USE',
+          message: 'Name already in use',
+          status: 409,
+        },
+      };
+    }
+  }
+
+  const updatedUser = await updateUserById(currentUserId, {
+    email: updates.email ?? user.email,
+    name: updates.name ?? user.name,
+  });
+
+  if (
+    !updatedUser ||
+    !updatedUser.id ||
+    !updatedUser.name ||
+    !updatedUser.email
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'UPDATE_FAILED',
+        message: 'Failed to update user',
+        status: 500,
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+    },
   };
 }
