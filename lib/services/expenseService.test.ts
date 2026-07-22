@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as expenseRepository from '@/lib/repositories/expenseRepository';
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
-import { createExpense, deleteExpenseForGroup } from './expenseService';
+import { createExpense, deleteExpenseForGroup, updateExpenseForGroup } from './expenseService';
 
 vi.mock('@/lib/repositories/expenseRepository', () => ({
   createExpenseWithSplits: vi.fn(),
@@ -11,6 +11,8 @@ vi.mock('@/lib/repositories/expenseRepository', () => ({
   getExpenseById: vi.fn(),
   getExpensesByGroupId: vi.fn(),
   getExpenseSplitsByExpenseId: vi.fn(),
+  updateExpenseById: vi.fn(),
+  updateExpenseWithSplits: vi.fn(),
 }));
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
@@ -80,6 +82,8 @@ describe('expenseService', () => {
       createdByParticipantId: 'participant-a',
     });
     vi.mocked(expenseRepository.getExpenseSplitsByExpenseId).mockResolvedValue([]);
+    vi.mocked(expenseRepository.updateExpenseById).mockResolvedValue('2024-01-01T00:00:00.000Z');
+    vi.mocked(expenseRepository.updateExpenseWithSplits).mockResolvedValue('2024-01-01T00:00:00.000Z');
   }
 
   it('creates an expense with equal split and allows paying participant to be different from creator participant', async () => {
@@ -246,6 +250,173 @@ describe('expenseService', () => {
     expect(result.error.code).toBe('NOT_FOUND');
   });
 
+  it('updates basic expense fields without rebuilding splits', async () => {
+    setupCommonMembership();
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      ...activeParticipants[1],
+      role: 'member',
+    });
+
+    vi.mocked(expenseRepository.getExpenseById).mockResolvedValue({
+      id: 'expense-1',
+      title: 'Dinner',
+      description: 'old',
+      category: 'food',
+      amount: 1000,
+      currency: 'EUR',
+      groupId: 'group-1',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      paidByParticipantId: 'participant-b',
+      createdByParticipantId: 'participant-a',
+    });
+    vi.mocked(expenseRepository.getExpenseSplitsByExpenseId).mockResolvedValue([
+      {
+        id: 'split-1',
+        expenseId: 'expense-1',
+        participantId: 'participant-c',
+        amount: 500,
+        owedToParticipantId: 'participant-b',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+    ]);
+
+    const result = await updateExpenseForGroup({
+      groupId: 'group-1',
+      expenseId: 'expense-1',
+      userId: 'user-a',
+      title: 'Dinner updated',
+      category: 'restaurant',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(expenseRepository.updateExpenseById).toHaveBeenCalledWith({
+      expenseId: 'expense-1',
+      expense: expect.objectContaining({
+        title: 'Dinner updated',
+        category: 'restaurant',
+        amount: 1000,
+        paidByParticipantId: 'participant-b',
+      }),
+    });
+    expect(expenseRepository.updateExpenseWithSplits).not.toHaveBeenCalled();
+  });
+
+  it('rejects amount changes without a split payload', async () => {
+    setupCommonMembership();
+
+    vi.mocked(expenseRepository.getExpenseById).mockResolvedValue({
+      id: 'expense-1',
+      title: 'Dinner',
+      description: 'old',
+      category: 'food',
+      amount: 1000,
+      currency: 'EUR',
+      groupId: 'group-1',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      paidByParticipantId: 'participant-b',
+      createdByParticipantId: 'participant-a',
+    });
+
+    const result = await updateExpenseForGroup({
+      groupId: 'group-1',
+      expenseId: 'expense-1',
+      userId: 'user-a',
+      amount: 1235,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected amount change without split to fail');
+    }
+
+    expect(result.error.code).toBe('INVALID_INPUT');
+    expect(expenseRepository.updateExpenseById).not.toHaveBeenCalled();
+    expect(expenseRepository.updateExpenseWithSplits).not.toHaveBeenCalled();
+  });
+
+  it('updates expense and rebuilds splits when amount changes', async () => {
+    setupCommonMembership();
+
+    vi.mocked(expenseRepository.getExpenseById).mockResolvedValue({
+      id: 'expense-1',
+      title: 'Dinner',
+      description: 'old',
+      category: 'food',
+      amount: 1000,
+      currency: 'EUR',
+      groupId: 'group-1',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      paidByParticipantId: 'participant-b',
+      createdByParticipantId: 'participant-a',
+    });
+    vi.mocked(expenseRepository.getExpenseSplitsByExpenseId).mockResolvedValue([
+      {
+        id: 'split-1',
+        expenseId: 'expense-1',
+        participantId: 'participant-c',
+        amount: 500,
+        owedToParticipantId: 'participant-b',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+    ]);
+
+    const result = await updateExpenseForGroup({
+      groupId: 'group-1',
+      expenseId: 'expense-1',
+      userId: 'user-a',
+      amount: 1235,
+      split: { mode: 'equal' },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(expenseRepository.updateExpenseWithSplits).toHaveBeenCalledWith({
+      expenseId: 'expense-1',
+      expense: expect.objectContaining({
+        amount: 1235,
+        paidByParticipantId: 'participant-b',
+      }),
+      splits: [
+        {
+          participantId: 'participant-a',
+          owedToParticipantId: 'participant-b',
+          amount: 412,
+        },
+        {
+          participantId: 'participant-c',
+          owedToParticipantId: 'participant-b',
+          amount: 411,
+        },
+      ],
+    });
+    expect(expenseRepository.updateExpenseById).not.toHaveBeenCalled();
+  });
+
+  it('rejects expense updates from viewers', async () => {
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      ...activeParticipants[0],
+      role: 'viewer',
+    });
+
+    const result = await updateExpenseForGroup({
+      groupId: 'group-1',
+      expenseId: 'expense-1',
+      userId: 'user-a',
+      title: 'Dinner updated',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected viewer update to fail');
+    }
+
+    expect(result.error.code).toBe('FORBIDDEN');
+  });
+
   it('deletes an expense when requester is admin', async () => {
     vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       ...activeParticipants[0],
@@ -276,7 +447,7 @@ describe('expenseService', () => {
     expect(expenseRepository.deleteExpenseById).toHaveBeenCalledWith('expense-1');
   });
 
-  it('rejects expense deletion for non-admin members', async () => {
+  it('rejects expense deletion for members', async () => {
     vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       ...activeParticipants[1],
       role: 'member',
@@ -290,7 +461,28 @@ describe('expenseService', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) {
-      throw new Error('Expected deletion to fail for non-admin member');
+      throw new Error('Expected deletion to fail for member');
+    }
+
+    expect(result.error.code).toBe('FORBIDDEN');
+    expect(expenseRepository.deleteExpenseById).not.toHaveBeenCalled();
+  });
+
+  it('rejects expense deletion for viewers', async () => {
+    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+      ...activeParticipants[1],
+      role: 'viewer',
+    });
+
+    const result = await deleteExpenseForGroup({
+      groupId: 'group-1',
+      expenseId: 'expense-1',
+      userId: 'user-b',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected deletion to fail for viewer');
     }
 
     expect(result.error.code).toBe('FORBIDDEN');

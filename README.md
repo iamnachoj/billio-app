@@ -166,6 +166,7 @@ The current API surface is split by feature and keeps each handler thin.
 
 - `GET /api/groups/[groupId]/participants` - list participants in a group
 - `POST /api/groups/[groupId]/participants` - add a participant to an existing group
+- `PATCH /api/groups/[groupId]/participants/[participantId]` - update a participant's display name, role, or status
 - `DELETE /api/groups/[groupId]/participants/[participantId]` - delete a participant when allowed by role and expense rules
 
 ### Expenses
@@ -173,6 +174,7 @@ The current API surface is split by feature and keeps each handler thin.
 - `POST /api/groups/[groupId]/expenses` - create a new expense in a group
 - `GET /api/groups/[groupId]/expenses` - list group expenses
 - `GET /api/groups/[groupId]/expenses/[expenseId]` - get one expense with its splits
+- `PATCH /api/groups/[groupId]/expenses/[expenseId]` - edit an expense
 - `DELETE /api/groups/[groupId]/expenses/[expenseId]` - delete an expense (owner/admin only)
 
 ### Invites
@@ -228,6 +230,44 @@ Current split modes supported by `POST /api/groups/[groupId]/expenses`:
 - `equal` - split among all active participants
 - `selected` - split equally among a provided subset of active participants
 - `percentage` - split by explicit percentage shares that must sum to 100
+
+PATCH contract for expenses:
+
+```json
+{
+  "title": "Updated dinner title",
+  "description": "Optional updated text",
+  "category": "restaurant"
+}
+```
+
+You can patch only the fields you want to change. If you change `amount` or `paidByParticipantId`, you must also send `split`, because the backend needs to recalculate who owes what.
+
+Example when changing the amount:
+
+```json
+{
+  "amount": 1235,
+  "split": {
+    "mode": "equal"
+  }
+}
+```
+
+Example when changing payer or split distribution:
+
+```json
+{
+  "paidByParticipantId": "participant-id-that-paid",
+  "split": {
+    "mode": "selected",
+    "participantIds": [
+      "participant-id-1",
+      "participant-id-2"
+    ]
+  }
+}
+```
 
 Request contract for the expense body:
 

@@ -1,6 +1,10 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/services/authService';
-import { deleteExpenseForGroup, getExpenseForGroup } from '@/lib/services/expenseService';
+import {
+  deleteExpenseForGroup,
+  getExpenseForGroup,
+  updateExpenseForGroup,
+} from '@/lib/services/expenseService';
 
 export async function GET(
   _req: Request,
@@ -50,6 +54,45 @@ export async function DELETE(
       groupId,
       expenseId,
       userId: currentUser.id,
+    });
+
+    if (!result.ok) {
+      return errorResponse(result.error.code, result.error.message, result.error.status);
+    }
+
+    return successResponse(result.data);
+  } catch (error) {
+    console.error(error);
+
+    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+  }
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ groupId: string; expenseId: string }> }
+) {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+    }
+
+    const { groupId, expenseId } = await params;
+    const body = await req.json();
+
+    const result = await updateExpenseForGroup({
+      groupId,
+      expenseId,
+      userId: currentUser.id,
+      title: body?.title,
+      description: body?.description,
+      amount: body?.amount,
+      currency: body?.currency,
+      paidByParticipantId: body?.paidByParticipantId,
+      category: body?.category,
+      split: body?.split,
     });
 
     if (!result.ok) {

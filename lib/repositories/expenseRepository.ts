@@ -21,6 +21,15 @@ type CreateExpenseSplitInput = {
   amount: number;
 };
 
+type UpdateExpenseInput = {
+  title: string;
+  description?: string;
+  amount: number;
+  category?: string;
+  currency: string;
+  paidByParticipantId: string;
+};
+
 function mapExpenseRow(row: Record<string, unknown>): Expense {
   return {
     id: row.id as string,
@@ -217,4 +226,121 @@ export async function deleteExpenseById(expenseId: string) {
     await db.execute('ROLLBACK');
     throw error;
   }
+}
+
+export async function updateExpenseById({
+  expenseId,
+  expense,
+}: {
+  expenseId: string;
+  expense: UpdateExpenseInput;
+}) {
+  const now = new Date().toISOString();
+
+  await db.execute({
+    sql: `
+      UPDATE expenses
+      SET title = ?,
+          description = ?,
+          amount = ?,
+          category = ?,
+          currency = ?,
+          paid_by_participant_id = ?,
+          updated_at = ?
+      WHERE id = ?
+    `,
+    args: [
+      expense.title,
+      expense.description ?? null,
+      expense.amount,
+      expense.category ?? null,
+      expense.currency,
+      expense.paidByParticipantId,
+      now,
+      expenseId,
+    ],
+  });
+
+  return now;
+}
+
+export async function updateExpenseWithSplits({
+  expenseId,
+  expense,
+  splits,
+}: {
+  expenseId: string;
+  expense: UpdateExpenseInput;
+  splits: CreateExpenseSplitInput[];
+}) {
+  const now = new Date().toISOString();
+
+  await db.execute('BEGIN');
+
+  try {
+    await db.execute({
+      sql: `
+        UPDATE expenses
+        SET title = ?,
+            description = ?,
+            amount = ?,
+            category = ?,
+            currency = ?,
+            paid_by_participant_id = ?,
+            updated_at = ?
+        WHERE id = ?
+      `,
+      args: [
+        expense.title,
+        expense.description ?? null,
+        expense.amount,
+        expense.category ?? null,
+        expense.currency,
+        expense.paidByParticipantId,
+        now,
+        expenseId,
+      ],
+    });
+
+    await db.execute({
+      sql: `
+        DELETE FROM expense_splits
+        WHERE expense_id = ?
+      `,
+      args: [expenseId],
+    });
+
+    for (const split of splits) {
+      await db.execute({
+        sql: `
+          INSERT INTO expense_splits (
+            id,
+            expense_id,
+            participant_id,
+            owed_to_participant_id,
+            amount,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        args: [
+          randomUUID(),
+          expenseId,
+          split.participantId,
+          split.owedToParticipantId,
+          split.amount,
+          now,
+          now,
+        ],
+      });
+    }
+
+    await db.execute('COMMIT');
+  } catch (error) {
+    await db.execute('ROLLBACK');
+    throw error;
+  }
+
+  return now;
 }
