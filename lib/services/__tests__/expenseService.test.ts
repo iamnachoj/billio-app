@@ -72,7 +72,7 @@ describe('expenseService', () => {
       id: 'expense-1',
       title: 'Dinner',
       description: undefined,
-      category: undefined,
+      category: 'food',
       amount: 1000,
       currency: 'EUR',
       groupId: 'group-1',
@@ -93,6 +93,7 @@ describe('expenseService', () => {
       groupId: 'group-1',
       userId: 'user-a',
       title: 'Dinner',
+      category: 'food',
       amount: 1000,
       currency: 'eur',
       paidByParticipantId: 'participant-b',
@@ -122,6 +123,7 @@ describe('expenseService', () => {
       groupId: 'group-1',
       userId: 'user-a',
       title: 'Taxi',
+      category: 'travel',
       amount: 900,
       currency: 'EUR',
       paidByParticipantId: 'participant-a',
@@ -151,6 +153,7 @@ describe('expenseService', () => {
       groupId: 'group-1',
       userId: 'user-a',
       title: 'Groceries',
+      category: 'groceries',
       amount: 1000,
       currency: 'EUR',
       paidByParticipantId: 'participant-a',
@@ -183,6 +186,7 @@ describe('expenseService', () => {
       groupId: 'group-1',
       userId: 'user-a',
       title: 'Groceries',
+      category: 'groceries',
       amount: 1000,
       currency: 'EUR',
       paidByParticipantId: 'participant-a',
@@ -204,6 +208,60 @@ describe('expenseService', () => {
     expect(expenseRepository.createExpenseWithSplits).not.toHaveBeenCalled();
   });
 
+  it('rejects expense creation when category is missing', async () => {
+    setupCommonMembership();
+
+    const result = await createExpense({
+      groupId: 'group-1',
+      userId: 'user-a',
+      title: 'Dinner',
+      category: '   ',
+      amount: 1000,
+      currency: 'EUR',
+      paidByParticipantId: 'participant-a',
+      split: { mode: 'equal' },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected missing category to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'INVALID_INPUT',
+      message: 'Group ID, user ID, title, category, currency and payer are required',
+      status: 400,
+    });
+    expect(expenseRepository.createExpenseWithSplits).not.toHaveBeenCalled();
+  });
+
+  it('rejects expense creation when category is invalid', async () => {
+    setupCommonMembership();
+
+    const result = await createExpense({
+      groupId: 'group-1',
+      userId: 'user-a',
+      title: 'Dinner',
+      category: 'restaurant',
+      amount: 1000,
+      currency: 'EUR',
+      paidByParticipantId: 'participant-a',
+      split: { mode: 'equal' },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected invalid category to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'INVALID_INPUT',
+      message: 'Category is invalid',
+      status: 400,
+    });
+    expect(expenseRepository.createExpenseWithSplits).not.toHaveBeenCalled();
+  });
+
   it('rejects expense creation for viewer participants', async () => {
     vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
       ...activeParticipants[0],
@@ -214,6 +272,7 @@ describe('expenseService', () => {
       groupId: 'group-1',
       userId: 'user-a',
       title: 'Dinner',
+      category: 'food',
       amount: 1000,
       currency: 'EUR',
       paidByParticipantId: 'participant-a',
@@ -236,6 +295,7 @@ describe('expenseService', () => {
       groupId: 'group-404',
       userId: 'user-a',
       title: 'Dinner',
+      category: 'food',
       amount: 1000,
       currency: 'EUR',
       paidByParticipantId: 'participant-a',
@@ -287,7 +347,7 @@ describe('expenseService', () => {
       expenseId: 'expense-1',
       userId: 'user-a',
       title: 'Dinner updated',
-      category: 'restaurant',
+      category: 'drinks',
     });
 
     expect(result.ok).toBe(true);
@@ -295,7 +355,7 @@ describe('expenseService', () => {
       expenseId: 'expense-1',
       expense: expect.objectContaining({
         title: 'Dinner updated',
-        category: 'restaurant',
+        category: 'drinks',
         amount: 1000,
         paidByParticipantId: 'participant-b',
       }),
@@ -426,7 +486,7 @@ describe('expenseService', () => {
       id: 'expense-1',
       title: 'Dinner',
       description: undefined,
-      category: undefined,
+      category: 'food',
       amount: 1000,
       currency: 'EUR',
       groupId: 'group-1',

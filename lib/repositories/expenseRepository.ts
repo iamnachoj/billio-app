@@ -1,14 +1,14 @@
 import { randomUUID } from 'crypto';
 
 import { db } from '@/lib/db/db';
-import { Expense } from '@/lib/models/expense';
+import { Expense, ExpenseCategory } from '@/lib/models/expense';
 import { ExpenseSplit } from '@/lib/models/expenseSplit';
 
 type CreateExpenseInput = {
   title: string;
   description?: string;
   amount: number;
-  category?: string;
+  category: ExpenseCategory;
   currency: string;
   groupId: string;
   paidByParticipantId: string;
@@ -25,7 +25,7 @@ type UpdateExpenseInput = {
   title: string;
   description?: string;
   amount: number;
-  category?: string;
+  category: ExpenseCategory;
   currency: string;
   paidByParticipantId: string;
 };
@@ -35,7 +35,7 @@ function mapExpenseRow(row: Record<string, unknown>): Expense {
     id: row.id as string,
     title: row.title as string,
     description: row.description as string | undefined,
-    category: row.category as string | undefined,
+    category: row.category as ExpenseCategory,
     amount: row.amount as number,
     currency: row.currency as string,
     groupId: row.group_id as string,

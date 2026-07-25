@@ -12,6 +12,7 @@ import {
   getParticipantByGroupAndUserId,
   getParticipantsByGroupId,
 } from '@/lib/repositories/participantRepository';
+import { ExpenseCategories, ExpenseCategory } from '@/lib/models/expense';
 
 export type ExpenseServiceResult<T> =
   | { ok: true; data: T }
@@ -66,9 +67,19 @@ type CreateExpenseInput = {
   currency: string;
   paidByParticipantId: string;
   description?: string;
-  category?: string;
+  category: string;
   split: SplitInput;
 };
+
+const expenseCategorySet = new Set<string>(ExpenseCategories);
+
+function normalizeExpenseCategory(category: string): ExpenseCategory {
+  return category.trim().toLowerCase() as ExpenseCategory;
+}
+
+function isValidExpenseCategory(category: string): category is ExpenseCategory {
+  return expenseCategorySet.has(category);
+}
 
 function buildEqualShares(totalAmount: number, participantIds: string[]) {
   const base = Math.floor(totalAmount / participantIds.length);
@@ -310,12 +321,25 @@ export async function createExpense({
   category,
   split,
 }: CreateExpenseInput): Promise<ExpenseServiceResult<{ expense: unknown; splits: unknown[] }>> {
-  if (!groupId || !userId || !title?.trim() || !currency?.trim() || !paidByParticipantId) {
+  if (!groupId || !userId || !title?.trim() || !currency?.trim() || !paidByParticipantId || !category?.trim()) {
     return {
       ok: false,
       error: {
         code: 'INVALID_INPUT',
-        message: 'Group ID, user ID, title, currency and payer are required',
+        message: 'Group ID, user ID, title, category, currency and payer are required',
+        status: 400,
+      },
+    };
+  }
+
+  const normalizedCategory = normalizeExpenseCategory(category);
+
+  if (!isValidExpenseCategory(normalizedCategory)) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'Category is invalid',
         status: 400,
       },
     };
@@ -494,7 +518,7 @@ export async function createExpense({
       title: title.trim(),
       description: description?.trim(),
       amount,
-      category: category?.trim(),
+      category: normalizedCategory,
       currency: currency.trim().toUpperCase(),
       groupId,
       paidByParticipantId,
@@ -775,7 +799,36 @@ export async function updateExpenseForGroup({
 
   const nextTitle = title?.trim() ?? expense.title;
   const nextDescription = description === undefined ? expense.description : description.trim();
-  const nextCategory = category === undefined ? expense.category : category.trim();
+
+  let validatedCategory: ExpenseCategory | undefined;
+  if (category !== undefined) {
+    if (!category.trim()) {
+      return {
+        ok: false,
+        error: {
+          code: 'INVALID_INPUT',
+          message: 'Category is required',
+          status: 400,
+        },
+      };
+    }
+
+    const normalizedCategory = normalizeExpenseCategory(category);
+    if (!isValidExpenseCategory(normalizedCategory)) {
+      return {
+        ok: false,
+        error: {
+          code: 'INVALID_INPUT',
+          message: 'Category is invalid',
+          status: 400,
+        },
+      };
+    }
+
+    validatedCategory = normalizedCategory;
+  }
+
+  const nextCategory = validatedCategory ?? expense.category;
   const nextCurrency = currency?.trim().toUpperCase() ?? expense.currency;
   const nextAmount = amount ?? expense.amount;
   const nextPaidByParticipantId = paidByParticipantId ?? expense.paidByParticipantId;
