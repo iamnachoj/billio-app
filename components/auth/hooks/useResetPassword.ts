@@ -11,12 +11,8 @@ type AlertState = {
   message: string;
 };
 
-export function useResetPassword() {
+export function useResetPassword(token: string | null) {
   const router = useRouter();
-
-  const searchParams = useSearchParams();
-
-  const token = searchParams.get('token') ?? '';
 
   const [password, setPassword] = useState('');
 

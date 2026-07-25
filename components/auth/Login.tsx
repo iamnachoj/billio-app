@@ -9,7 +9,11 @@ import Input from '@/components/ui/Input';
 import Feature from './Feature';
 import { useLogin } from './hooks/useLogin';
 
-export default function Login() {
+type Props = {
+  initialMode: 'login' | 'register';
+};
+
+export default function Login({ initialMode }: Props) {
   const {
     mode,
     loading,
@@ -26,7 +30,7 @@ export default function Login() {
     setAcceptTerms,
     toggleMode,
     handleSubmit,
-  } = useLogin();
+  } = useLogin(initialMode);
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">

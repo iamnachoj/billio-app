@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input';
 
 import { useResetPassword } from './hooks/useResetPassword';
 
-export default function ResetPassword() {
+export default function ResetPassword({ token }: { token: string | null }) {
   const {
     password,
     confirmPassword,
@@ -17,7 +17,7 @@ export default function ResetPassword() {
     setPassword,
     setConfirmPassword,
     handleSubmit,
-  } = useResetPassword();
+  } = useResetPassword(token);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-teal-50 via-white to-gray-100 px-6">

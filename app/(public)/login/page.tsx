@@ -1,5 +1,13 @@
 import Login from '@/components/auth/Login';
 
-export default function LoginPage() {
-  return <Login />;
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ register?: string }>;
+}) {
+  const params = await searchParams;
+
+  return (
+    <Login initialMode={params.register === 'true' ? 'register' : 'login'} />
+  );
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { login, register } from '@/frontend-services/auth.service';
 
@@ -11,14 +11,8 @@ type AlertState = {
   message: string;
 };
 
-export function useLogin() {
+export function useLogin(initialMode: 'login' | 'register') {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const initialMode = useMemo(
-    () => (searchParams.get('register') === 'true' ? 'register' : 'login'),
-    [searchParams]
-  );
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
 
