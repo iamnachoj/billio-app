@@ -32,3 +32,37 @@ export async function register(data: {
 
   return response.json();
 }
+
+export async function requestPasswordReset(email: string) {
+  const response = await fetch(`${BASE_URL}/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email }),
+  });
+
+  return response.json();
+}
+
+export async function resetPassword({
+  token,
+  password,
+}: {
+  token: string;
+  password: string;
+}) {
+  const response = await fetch('/api/auth/reset-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      token,
+      password,
+    }),
+  });
+
+  return response.json();
+}

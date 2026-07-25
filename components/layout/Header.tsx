@@ -14,9 +14,9 @@ export default function Header({ user }: { user: any }) {
           </nav>
         </>
       ) : (
-        <div className="text-3xl text-center">
+        <Link href="/" className="text-3xl text-center">
           Welcome to <BillioLogo />
-        </div>
+        </Link>
       )}
     </header>
   );
