@@ -131,6 +131,8 @@ export async function initDB() {
       group_id TEXT NOT NULL,
       paid_by_participant_id TEXT NOT NULL,
       created_by_participant_id TEXT NOT NULL,
+      last_edited_at TEXT,
+      last_edited_by_participant_id TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT
     );
@@ -165,6 +167,8 @@ export async function initDB() {
         group_id TEXT NOT NULL,
         paid_by_participant_id TEXT NOT NULL,
         created_by_participant_id TEXT NOT NULL,
+        last_edited_at TEXT,
+        last_edited_by_participant_id TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT
       );
@@ -181,6 +185,8 @@ export async function initDB() {
         group_id,
         paid_by_participant_id,
         created_by_participant_id,
+        last_edited_at,
+        last_edited_by_participant_id,
         created_at,
         updated_at
       )
@@ -194,6 +200,8 @@ export async function initDB() {
         e.group_id,
         paid.id,
         created.id,
+        NULL,
+        NULL,
         e.created_at,
         e.updated_at
       FROM expenses e
@@ -203,6 +211,19 @@ export async function initDB() {
 
     await db.execute('DROP TABLE expenses;');
     await db.execute('ALTER TABLE expenses_new RENAME TO expenses;');
+  }
+
+  const refreshedExpensesInfo = await db.execute('PRAGMA table_info(expenses);');
+  const refreshedExpensesColumns = (refreshedExpensesInfo.rows as Record<string, unknown>[]).map((row) =>
+    String(row.name)
+  );
+
+  if (!refreshedExpensesColumns.includes('last_edited_at')) {
+    await db.execute('ALTER TABLE expenses ADD COLUMN last_edited_at TEXT;');
+  }
+
+  if (!refreshedExpensesColumns.includes('last_edited_by_participant_id')) {
+    await db.execute('ALTER TABLE expenses ADD COLUMN last_edited_by_participant_id TEXT;');
   }
 
   const expenseSplitsInfo = await db.execute('PRAGMA table_info(expense_splits);');

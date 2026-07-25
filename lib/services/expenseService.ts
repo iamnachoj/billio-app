@@ -882,6 +882,7 @@ export async function updateExpenseForGroup({
         paidByParticipantId: nextPaidByParticipantId,
       },
       splits: splitResult.data.splits,
+      editedByParticipantId: membership.id,
     });
 
     const updatedExpense = await getExpenseById(expenseId);
@@ -906,6 +907,7 @@ export async function updateExpenseForGroup({
       currency: nextCurrency,
       paidByParticipantId: nextPaidByParticipantId,
     },
+    editedByParticipantId: membership.id,
   });
 
   const updatedExpense = await getExpenseById(expenseId);

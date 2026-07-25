@@ -43,6 +43,8 @@ function mapExpenseRow(row: Record<string, unknown>): Expense {
     updatedAt: new Date(row.updated_at as string),
     paidByParticipantId: row.paid_by_participant_id as string,
     createdByParticipantId: row.created_by_participant_id as string,
+    lastEditedAt: row.last_edited_at ? new Date(row.last_edited_at as string) : undefined,
+    lastEditedByParticipantId: (row.last_edited_by_participant_id as string | null) ?? undefined,
   };
 }
 
@@ -83,10 +85,12 @@ export async function createExpenseWithSplits({
           group_id,
           paid_by_participant_id,
           created_by_participant_id,
+          last_edited_at,
+          last_edited_by_participant_id,
           created_at,
           updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       args: [
         expenseId,
@@ -98,6 +102,8 @@ export async function createExpenseWithSplits({
         expense.groupId,
         expense.paidByParticipantId,
         expense.createdByParticipantId,
+        null,
+        null,
         now,
         now,
       ],
@@ -246,9 +252,11 @@ export async function deleteExpenseById(expenseId: string) {
 export async function updateExpenseById({
   expenseId,
   expense,
+  editedByParticipantId,
 }: {
   expenseId: string;
   expense: UpdateExpenseInput;
+  editedByParticipantId: string;
 }) {
   const now = new Date().toISOString();
 
@@ -261,6 +269,8 @@ export async function updateExpenseById({
           category = ?,
           currency = ?,
           paid_by_participant_id = ?,
+          last_edited_at = ?,
+          last_edited_by_participant_id = ?,
           updated_at = ?
       WHERE id = ?
     `,
@@ -271,6 +281,8 @@ export async function updateExpenseById({
       expense.category ?? null,
       expense.currency,
       expense.paidByParticipantId,
+      now,
+      editedByParticipantId,
       now,
       expenseId,
     ],
@@ -283,10 +295,12 @@ export async function updateExpenseWithSplits({
   expenseId,
   expense,
   splits,
+  editedByParticipantId,
 }: {
   expenseId: string;
   expense: UpdateExpenseInput;
   splits: CreateExpenseSplitInput[];
+  editedByParticipantId: string;
 }) {
   const now = new Date().toISOString();
 
@@ -302,6 +316,8 @@ export async function updateExpenseWithSplits({
             category = ?,
             currency = ?,
             paid_by_participant_id = ?,
+            last_edited_at = ?,
+            last_edited_by_participant_id = ?,
             updated_at = ?
         WHERE id = ?
       `,
@@ -312,6 +328,8 @@ export async function updateExpenseWithSplits({
         expense.category ?? null,
         expense.currency,
         expense.paidByParticipantId,
+        now,
+        editedByParticipantId,
         now,
         expenseId,
       ],

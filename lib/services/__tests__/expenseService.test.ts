@@ -359,6 +359,7 @@ describe('expenseService', () => {
         amount: 1000,
         paidByParticipantId: 'participant-b',
       }),
+      editedByParticipantId: 'participant-b',
     });
     expect(expenseRepository.updateExpenseWithSplits).not.toHaveBeenCalled();
   });
@@ -452,6 +453,7 @@ describe('expenseService', () => {
           amount: 411,
         },
       ],
+      editedByParticipantId: 'participant-a',
     });
     expect(expenseRepository.updateExpenseById).not.toHaveBeenCalled();
   });

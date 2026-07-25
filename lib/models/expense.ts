@@ -10,6 +10,8 @@ export type Expense = {
   updatedAt: Date;
   paidByParticipantId: string; // participant ID of the person who paid the expense
   createdByParticipantId: string; // participant ID of the creator
+  lastEditedAt?: Date;
+  lastEditedByParticipantId?: string;
 };
 
 export const ExpenseCategories = [
