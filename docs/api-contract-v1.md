@@ -32,7 +32,169 @@ Typical error statuses:
 - `404` resource does not exist
 - `409` business conflict
 
-### 2. Groups
+### 2. Authentication
+
+`POST /api/auth/register`
+
+Request:
+
+```json
+{
+  "name": "Ana",
+  "email": "ana@example.com",
+  "password": "secret123"
+}
+```
+
+Response `201`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-id",
+    "name": "Ana",
+    "email": "ana@example.com"
+  }
+}
+```
+
+`POST /api/auth/login`
+
+Request:
+
+```json
+{
+  "email": "ana@example.com",
+  "password": "secret123"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-id",
+    "name": "Ana",
+    "email": "ana@example.com"
+  }
+}
+```
+
+Cookie side effect:
+
+- sets HTTP-only cookie `token`
+- `sameSite: "lax"`
+- `path: "/"`
+- `maxAge: 7 days`
+- `secure: true` in production
+
+`POST /api/auth/forgot-password`
+
+Request:
+
+```json
+{
+  "email": "ana@example.com"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "sent": true
+  }
+}
+```
+
+`POST /api/auth/reset-password`
+
+Request:
+
+```json
+{
+  "token": "password-reset-token",
+  "password": "newSecret123"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "reset": true
+  }
+}
+```
+
+### 3. Current User
+
+`GET /api/me`
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-id",
+    "name": "Ana",
+    "email": "ana@example.com"
+  }
+}
+```
+
+`PATCH /api/me`
+
+Request:
+
+```json
+{
+  "email": "ana-new@example.com",
+  "name": "Ana New",
+  "password": "currentPassword"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-id",
+    "name": "Ana New",
+    "email": "ana-new@example.com"
+  }
+}
+```
+
+Notes:
+
+- `password` is required by the current implementation to authorize profile updates
+- at least one of `email` or `name` must be provided
+
+`DELETE /api/me`
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "deleted": true
+  }
+}
+```
+
+### 4. Groups
 
 `POST /api/groups`
 
@@ -102,7 +264,7 @@ Response `200`:
 }
 ```
 
-### 3. Participants
+### 5. Participants
 
 `GET /api/groups/[groupId]/participants`
 
@@ -195,7 +357,7 @@ Response `200`:
 }
 ```
 
-### 4. Expenses
+### 6. Expenses
 
 `POST /api/groups/[groupId]/expenses`
 
@@ -355,7 +517,7 @@ Response `200`:
 }
 ```
 
-### 5. Balances
+### 7. Balances
 
 `GET /api/groups/[groupId]/balances`
 
@@ -412,7 +574,7 @@ Response `200`:
 }
 ```
 
-### 6. Invites
+### 8. Invites
 
 `POST /api/groups/[groupId]/invites`
 

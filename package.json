@@ -6,7 +6,9 @@
     "dev": "cross-env NODE_ENV=development next dev",
     "build": "next build",
     "start": "next start",
-    "test": "npx vitest run",
+    "test": "npx vitest run -c vitest.unit.config.ts",
+    "test:integration": "cross-env ENV_FILE=.env.integration npx vitest run -c vitest.integration.config.ts",
+    "test:all": "npm run test && npm run test:integration",
     "format": "npx prettier --write .",
     "lint": "eslint",
     "db:init": "tsx lib/db/init-db.ts"
