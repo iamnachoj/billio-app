@@ -9,14 +9,20 @@ import {
   getPasswordResetTokenByToken,
   getRecentPasswordResetRequests,
 } from '@/lib/repositories/passwordResetRepository';
-import { getUserByEmail, getUserById, updateUserPassword } from '@/lib/repositories/userRepository';
+import {
+  getUserByEmail,
+  getUserById,
+  updateUserPassword,
+} from '@/lib/repositories/userRepository';
 import { sendPasswordResetEmail } from './emailService';
 
 export type PasswordResetResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: { code: string; message: string; status: number } };
 
-export async function requestPasswordReset(email: string): Promise<PasswordResetResult<{ sent: true }>> {
+export async function requestPasswordReset(
+  email: string
+): Promise<PasswordResetResult<{ sent: true }>> {
   if (!email) {
     return {
       ok: false,

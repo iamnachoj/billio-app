@@ -7,7 +7,11 @@ type CreatePasswordResetInput = {
   expiresAt: string;
 };
 
-export async function createPasswordResetToken({ userId, token, expiresAt }: CreatePasswordResetInput) {
+export async function createPasswordResetToken({
+  userId,
+  token,
+  expiresAt,
+}: CreatePasswordResetInput) {
   const id = randomUUID();
 
   await db.execute({
@@ -86,7 +90,10 @@ export async function deletePasswordResetTokensForUser(userId: string) {
   });
 }
 
-export async function getRecentPasswordResetRequests(userId: string, windowMs: number) {
+export async function getRecentPasswordResetRequests(
+  userId: string,
+  windowMs: number
+) {
   const cutoff = new Date(Date.now() - windowMs).toISOString();
 
   const result = await db.execute({
@@ -105,7 +112,9 @@ export async function getRecentPasswordResetRequests(userId: string, windowMs: n
 }
 
 export async function cleanupExpiredPasswordResetTokens() {
-  const staleCutoff = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString();
+  const staleCutoff = new Date(
+    Date.now() - 1000 * 60 * 60 * 24 * 7
+  ).toISOString();
 
   await db.execute({
     sql: `

@@ -1,6 +1,12 @@
-import { getExpensesByGroupId, getExpenseSplitsByGroupId } from '@/lib/repositories/expenseRepository';
+import {
+  getExpensesByGroupId,
+  getExpenseSplitsByGroupId,
+} from '@/lib/repositories/expenseRepository';
 import { getGroupById } from '@/lib/repositories/groupRepository';
-import { getParticipantByGroupAndUserId, getParticipantsByGroupId } from '@/lib/repositories/participantRepository';
+import {
+  getParticipantByGroupAndUserId,
+  getParticipantsByGroupId,
+} from '@/lib/repositories/participantRepository';
 
 export type BalanceServiceResult<T> =
   | { ok: true; data: T }
@@ -52,14 +58,20 @@ export type GroupBalances = {
   currencies: CurrencySummary[];
 };
 
-function buildSettlements(participantBalances: ParticipantBalance[]): Settlement[] {
+function buildSettlements(
+  participantBalances: ParticipantBalance[]
+): Settlement[] {
   const creditors = participantBalances
     .filter((participant) => participant.netBalanceCents > 0)
     .map((participant) => ({
       participantId: participant.participantId,
       amountCents: participant.netBalanceCents,
     }))
-    .sort((a, b) => b.amountCents - a.amountCents || a.participantId.localeCompare(b.participantId));
+    .sort(
+      (a, b) =>
+        b.amountCents - a.amountCents ||
+        a.participantId.localeCompare(b.participantId)
+    );
 
   const debtors = participantBalances
     .filter((participant) => participant.netBalanceCents < 0)
@@ -67,7 +79,11 @@ function buildSettlements(participantBalances: ParticipantBalance[]): Settlement
       participantId: participant.participantId,
       amountCents: Math.abs(participant.netBalanceCents),
     }))
-    .sort((a, b) => b.amountCents - a.amountCents || a.participantId.localeCompare(b.participantId));
+    .sort(
+      (a, b) =>
+        b.amountCents - a.amountCents ||
+        a.participantId.localeCompare(b.participantId)
+    );
 
   const settlements: Settlement[] = [];
 
@@ -151,17 +167,23 @@ export async function getGroupBalances({
     getExpenseSplitsByGroupId(groupId),
   ]);
 
-  const participantInfos: ParticipantInfo[] = participants.map((participant) => ({
-    id: participant.id,
-    displayName: participant.displayName,
-    userId: participant.userId ?? null,
-    role: participant.role,
-    status: participant.status,
-  }));
+  const participantInfos: ParticipantInfo[] = participants.map(
+    (participant) => ({
+      id: participant.id,
+      displayName: participant.displayName,
+      userId: participant.userId ?? null,
+      role: participant.role,
+      status: participant.status,
+    })
+  );
 
-  const currencies = Array.from(new Set(expenses.map((expense) => expense.currency))).sort();
+  const currencies = Array.from(
+    new Set(expenses.map((expense) => expense.currency))
+  ).sort();
 
-  const expenseCurrencyById = new Map(expenses.map((expense) => [expense.id, expense.currency]));
+  const expenseCurrencyById = new Map(
+    expenses.map((expense) => [expense.id, expense.currency])
+  );
 
   const currencySummaries: CurrencySummary[] = currencies.map((currency) => {
     const participantBalancesMap = new Map<string, ParticipantBalance>();
@@ -211,7 +233,8 @@ export async function getGroupBalances({
 
     const participantBalances = participants.map((participant) => {
       const balance = participantBalancesMap.get(participant.id)!;
-      balance.netBalanceCents = balance.totalLentCents - balance.totalBorrowedCents;
+      balance.netBalanceCents =
+        balance.totalLentCents - balance.totalBorrowedCents;
       balance.position =
         balance.netBalanceCents > 0
           ? 'creditor'

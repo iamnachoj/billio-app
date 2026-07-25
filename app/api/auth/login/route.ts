@@ -10,7 +10,11 @@ export async function POST(req: Request) {
     const result = await loginUser({ email, password });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     const response = NextResponse.json({

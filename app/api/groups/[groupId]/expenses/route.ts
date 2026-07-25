@@ -1,6 +1,9 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/services/authService';
-import { createExpense, getExpensesForGroup } from '@/lib/services/expenseService';
+import {
+  createExpense,
+  getExpensesForGroup,
+} from '@/lib/services/expenseService';
 
 export async function POST(
   req: Request,
@@ -29,7 +32,11 @@ export async function POST(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data, 201);
@@ -59,7 +66,11 @@ export async function GET(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data.expenses);

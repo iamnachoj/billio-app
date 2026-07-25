@@ -39,7 +39,20 @@ export async function createGroupInvite({
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
-    args: [id, groupId, participantId ?? null, token, email ?? null, 'pending', expiresAt, null, null, createdBy, now, now],
+    args: [
+      id,
+      groupId,
+      participantId ?? null,
+      token,
+      email ?? null,
+      'pending',
+      expiresAt,
+      null,
+      null,
+      createdBy,
+      now,
+      now,
+    ],
   });
 
   return {
@@ -83,7 +96,9 @@ export async function getGroupInviteByToken(token: string) {
     email: row.email as string | undefined,
     status: row.status as GroupInvite['status'],
     expiresAt: new Date(row.expires_at as string),
-    acceptedAt: row.accepted_at ? new Date(row.accepted_at as string) : undefined,
+    acceptedAt: row.accepted_at
+      ? new Date(row.accepted_at as string)
+      : undefined,
     revokedAt: row.revoked_at ? new Date(row.revoked_at as string) : undefined,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
@@ -116,7 +131,9 @@ export async function deleteGroupInviteById(id: string) {
 
 export async function cleanupExpiredGroupInvites() {
   const now = new Date().toISOString();
-  const staleCutoff = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString();
+  const staleCutoff = new Date(
+    Date.now() - 1000 * 60 * 60 * 24 * 7
+  ).toISOString();
 
   await db.execute({
     sql: `

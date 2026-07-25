@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as groupInviteRepository from '@/lib/repositories/groupInviteRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
-import { acceptInvite, createGroupInvite, getInviteByToken } from '../inviteService';
+import {
+  acceptInvite,
+  createGroupInvite,
+  getInviteByToken,
+} from '../inviteService';
 
 vi.mock('crypto', () => ({
   default: {
@@ -43,7 +47,9 @@ describe('inviteService', () => {
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
       createdBy: 'user-1',
     });
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       id: 'participant-admin',
       groupId: 'group-1',
       displayName: 'Owner',
@@ -126,9 +132,12 @@ describe('inviteService', () => {
       throw new Error('Expected invite acceptance to succeed');
     }
 
-    expect(participantRepository.updateParticipantById).toHaveBeenCalledWith('participant-1', {
-      status: 'active',
-    });
+    expect(participantRepository.updateParticipantById).toHaveBeenCalledWith(
+      'participant-1',
+      {
+        status: 'active',
+      }
+    );
     expect(participantRepository.linkParticipantToUser).toHaveBeenCalledWith({
       participantId: 'participant-1',
       userId: 'user-2',
@@ -195,9 +204,11 @@ describe('inviteService', () => {
       throw new Error('Expected invite lookup to succeed');
     }
 
-    expect(result.data.invite).toEqual(expect.objectContaining({
-      token: 'invite-token',
-      groupId: 'group-1',
-    }));
+    expect(result.data.invite).toEqual(
+      expect.objectContaining({
+        token: 'invite-token',
+        groupId: 'group-1',
+      })
+    );
   });
 });

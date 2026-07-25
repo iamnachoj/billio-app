@@ -106,7 +106,8 @@ function buildPercentageShares(
     };
   });
 
-  let remaining = totalAmount - withRaw.reduce((sum, share) => sum + share.amount, 0);
+  let remaining =
+    totalAmount - withRaw.reduce((sum, share) => sum + share.amount, 0);
 
   const byFraction = [...withRaw].sort((a, b) => b.fraction - a.fraction);
 
@@ -169,7 +170,15 @@ async function resolveExpenseSplits({
   amount: number;
   paidByParticipantId: string;
   split: SplitInput;
-}): Promise<ExpenseServiceResult<{ splits: Array<{ participantId: string; owedToParticipantId: string; amount: number }> }>> {
+}): Promise<
+  ExpenseServiceResult<{
+    splits: Array<{
+      participantId: string;
+      owedToParticipantId: string;
+      amount: number;
+    }>;
+  }>
+> {
   const normalizedSplit = normalizeSplit(split);
   if (!normalizedSplit) {
     return {
@@ -183,8 +192,12 @@ async function resolveExpenseSplits({
   }
 
   const allParticipants = await getParticipantsByGroupId(groupId);
-  const activeParticipants = allParticipants.filter((participant) => participant.status === 'active');
-  const activeParticipantIds = new Set(activeParticipants.map((participant) => participant.id));
+  const activeParticipants = allParticipants.filter(
+    (participant) => participant.status === 'active'
+  );
+  const activeParticipantIds = new Set(
+    activeParticipants.map((participant) => participant.id)
+  );
 
   if (!activeParticipantIds.has(paidByParticipantId)) {
     return {
@@ -211,7 +224,10 @@ async function resolveExpenseSplits({
       };
     }
 
-    shares = buildEqualShares(amount, activeParticipants.map((participant) => participant.id));
+    shares = buildEqualShares(
+      amount,
+      activeParticipants.map((participant) => participant.id)
+    );
   }
 
   if (normalizedSplit.mode === 'selected') {
@@ -227,7 +243,9 @@ async function resolveExpenseSplits({
       };
     }
 
-    const hasInvalid = selectedIds.some((participantId) => !activeParticipantIds.has(participantId));
+    const hasInvalid = selectedIds.some(
+      (participantId) => !activeParticipantIds.has(participantId)
+    );
     if (hasInvalid) {
       return {
         ok: false,
@@ -268,20 +286,25 @@ async function resolveExpenseSplits({
     }
 
     const hasInvalid = sharesInput.some(
-      (share) => !activeParticipantIds.has(share.participantId) || share.percentage < 0
+      (share) =>
+        !activeParticipantIds.has(share.participantId) || share.percentage < 0
     );
     if (hasInvalid) {
       return {
         ok: false,
         error: {
           code: 'INVALID_INPUT',
-          message: 'Percentage split contains invalid participants or percentages',
+          message:
+            'Percentage split contains invalid participants or percentages',
           status: 400,
         },
       };
     }
 
-    const percentageSum = sharesInput.reduce((sum, share) => sum + share.percentage, 0);
+    const percentageSum = sharesInput.reduce(
+      (sum, share) => sum + share.percentage,
+      0
+    );
     if (Math.abs(percentageSum - 100) > 0.0001) {
       return {
         ok: false,
@@ -300,7 +323,10 @@ async function resolveExpenseSplits({
     ok: true,
     data: {
       splits: shares
-        .filter((share) => share.amount > 0 && share.participantId !== paidByParticipantId)
+        .filter(
+          (share) =>
+            share.amount > 0 && share.participantId !== paidByParticipantId
+        )
         .map((share) => ({
           participantId: share.participantId,
           owedToParticipantId: paidByParticipantId,
@@ -320,13 +346,23 @@ export async function createExpense({
   description,
   category,
   split,
-}: CreateExpenseInput): Promise<ExpenseServiceResult<{ expense: unknown; splits: unknown[] }>> {
-  if (!groupId || !userId || !title?.trim() || !currency?.trim() || !paidByParticipantId || !category?.trim()) {
+}: CreateExpenseInput): Promise<
+  ExpenseServiceResult<{ expense: unknown; splits: unknown[] }>
+> {
+  if (
+    !groupId ||
+    !userId ||
+    !title?.trim() ||
+    !currency?.trim() ||
+    !paidByParticipantId ||
+    !category?.trim()
+  ) {
     return {
       ok: false,
       error: {
         code: 'INVALID_INPUT',
-        message: 'Group ID, user ID, title, category, currency and payer are required',
+        message:
+          'Group ID, user ID, title, category, currency and payer are required',
         status: 400,
       },
     };
@@ -392,8 +428,12 @@ export async function createExpense({
   }
 
   const allParticipants = await getParticipantsByGroupId(groupId);
-  const activeParticipants = allParticipants.filter((participant) => participant.status === 'active');
-  const activeParticipantIds = new Set(activeParticipants.map((participant) => participant.id));
+  const activeParticipants = allParticipants.filter(
+    (participant) => participant.status === 'active'
+  );
+  const activeParticipantIds = new Set(
+    activeParticipants.map((participant) => participant.id)
+  );
 
   if (!activeParticipantIds.has(paidByParticipantId)) {
     return {
@@ -420,7 +460,10 @@ export async function createExpense({
       };
     }
 
-    shares = buildEqualShares(amount, activeParticipants.map((participant) => participant.id));
+    shares = buildEqualShares(
+      amount,
+      activeParticipants.map((participant) => participant.id)
+    );
   }
 
   if (split.mode === 'selected') {
@@ -436,7 +479,9 @@ export async function createExpense({
       };
     }
 
-    const hasInvalid = selectedIds.some((participantId) => !activeParticipantIds.has(participantId));
+    const hasInvalid = selectedIds.some(
+      (participantId) => !activeParticipantIds.has(participantId)
+    );
     if (hasInvalid) {
       return {
         ok: false,
@@ -477,20 +522,25 @@ export async function createExpense({
     }
 
     const hasInvalid = sharesInput.some(
-      (share) => !activeParticipantIds.has(share.participantId) || share.percentage < 0
+      (share) =>
+        !activeParticipantIds.has(share.participantId) || share.percentage < 0
     );
     if (hasInvalid) {
       return {
         ok: false,
         error: {
           code: 'INVALID_INPUT',
-          message: 'Percentage split contains invalid participants or percentages',
+          message:
+            'Percentage split contains invalid participants or percentages',
           status: 400,
         },
       };
     }
 
-    const percentageSum = sharesInput.reduce((sum, share) => sum + share.percentage, 0);
+    const percentageSum = sharesInput.reduce(
+      (sum, share) => sum + share.percentage,
+      0
+    );
     if (Math.abs(percentageSum - 100) > 0.0001) {
       return {
         ok: false,
@@ -506,7 +556,9 @@ export async function createExpense({
   }
 
   const splitsToPersist = shares
-    .filter((share) => share.amount > 0 && share.participantId !== paidByParticipantId)
+    .filter(
+      (share) => share.amount > 0 && share.participantId !== paidByParticipantId
+    )
     .map((share) => ({
       participantId: share.participantId,
       owedToParticipantId: paidByParticipantId,
@@ -738,7 +790,9 @@ export async function updateExpenseForGroup({
   paidByParticipantId,
   category,
   split,
-}: PatchExpenseInput): Promise<ExpenseServiceResult<{ expense: unknown; splits: unknown[] }>> {
+}: PatchExpenseInput): Promise<
+  ExpenseServiceResult<{ expense: unknown; splits: unknown[] }>
+> {
   if (!groupId || !expenseId || !userId) {
     return {
       ok: false,
@@ -798,7 +852,8 @@ export async function updateExpenseForGroup({
   }
 
   const nextTitle = title?.trim() ?? expense.title;
-  const nextDescription = description === undefined ? expense.description : description.trim();
+  const nextDescription =
+    description === undefined ? expense.description : description.trim();
 
   let validatedCategory: ExpenseCategory | undefined;
   if (category !== undefined) {
@@ -831,7 +886,8 @@ export async function updateExpenseForGroup({
   const nextCategory = validatedCategory ?? expense.category;
   const nextCurrency = currency?.trim().toUpperCase() ?? expense.currency;
   const nextAmount = amount ?? expense.amount;
-  const nextPaidByParticipantId = paidByParticipantId ?? expense.paidByParticipantId;
+  const nextPaidByParticipantId =
+    paidByParticipantId ?? expense.paidByParticipantId;
 
   const amountChanged = amount !== undefined;
   const payerChanged = paidByParticipantId !== undefined;
@@ -848,7 +904,15 @@ export async function updateExpenseForGroup({
     };
   }
 
-  if (!title && description === undefined && amount === undefined && currency === undefined && paidByParticipantId === undefined && category === undefined && split === undefined) {
+  if (
+    !title &&
+    description === undefined &&
+    amount === undefined &&
+    currency === undefined &&
+    paidByParticipantId === undefined &&
+    category === undefined &&
+    split === undefined
+  ) {
     return {
       ok: false,
       error: {

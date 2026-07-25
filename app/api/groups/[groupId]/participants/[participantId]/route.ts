@@ -1,6 +1,9 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/services/authService';
-import { deleteParticipant, updateParticipant } from '@/lib/services/groupService';
+import {
+  deleteParticipant,
+  updateParticipant,
+} from '@/lib/services/groupService';
 
 export async function DELETE(
   _req: Request,
@@ -22,7 +25,11 @@ export async function DELETE(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse({ success: true });
@@ -56,7 +63,11 @@ export async function PATCH(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse({ success: true });

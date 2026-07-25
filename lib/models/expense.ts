@@ -15,7 +15,7 @@ export type Expense = {
 };
 
 export const ExpenseCategories = [
-  'food',
+  'eating_out',
   'groceries',
   'drinks',
   'rent',
@@ -46,5 +46,4 @@ export const ExpenseCategories = [
   'other',
 ] as const;
 
-export type ExpenseCategory =
-  (typeof ExpenseCategories)[number];
+export type ExpenseCategory = (typeof ExpenseCategories)[number];

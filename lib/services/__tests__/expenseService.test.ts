@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as expenseRepository from '@/lib/repositories/expenseRepository';
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
-import { createExpense, deleteExpenseForGroup, updateExpenseForGroup } from '../expenseService';
+import {
+  createExpense,
+  deleteExpenseForGroup,
+  updateExpenseForGroup,
+} from '../expenseService';
 
 vi.mock('@/lib/repositories/expenseRepository', () => ({
   createExpenseWithSplits: vi.fn(),
@@ -66,8 +70,12 @@ describe('expenseService', () => {
   ];
 
   function setupCommonMembership() {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue(activeParticipants[0]);
-    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(activeParticipants);
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue(activeParticipants[0]);
+    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
+      activeParticipants
+    );
     vi.mocked(expenseRepository.createExpenseWithSplits).mockResolvedValue({
       id: 'expense-1',
       title: 'Dinner',
@@ -81,9 +89,15 @@ describe('expenseService', () => {
       paidByParticipantId: 'participant-b',
       createdByParticipantId: 'participant-a',
     });
-    vi.mocked(expenseRepository.getExpenseSplitsByExpenseId).mockResolvedValue([]);
-    vi.mocked(expenseRepository.updateExpenseById).mockResolvedValue('2024-01-01T00:00:00.000Z');
-    vi.mocked(expenseRepository.updateExpenseWithSplits).mockResolvedValue('2024-01-01T00:00:00.000Z');
+    vi.mocked(expenseRepository.getExpenseSplitsByExpenseId).mockResolvedValue(
+      []
+    );
+    vi.mocked(expenseRepository.updateExpenseById).mockResolvedValue(
+      '2024-01-01T00:00:00.000Z'
+    );
+    vi.mocked(expenseRepository.updateExpenseWithSplits).mockResolvedValue(
+      '2024-01-01T00:00:00.000Z'
+    );
   }
 
   it('creates an expense with equal split and allows paying participant to be different from creator participant', async () => {
@@ -229,7 +243,8 @@ describe('expenseService', () => {
 
     expect(result.error).toEqual({
       code: 'INVALID_INPUT',
-      message: 'Group ID, user ID, title, category, currency and payer are required',
+      message:
+        'Group ID, user ID, title, category, currency and payer are required',
       status: 400,
     });
     expect(expenseRepository.createExpenseWithSplits).not.toHaveBeenCalled();
@@ -263,7 +278,9 @@ describe('expenseService', () => {
   });
 
   it('rejects expense creation for viewer participants', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[0],
       role: 'viewer',
     });
@@ -288,7 +305,9 @@ describe('expenseService', () => {
   });
 
   it('returns not found when group does not exist and user is not a member', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue(null);
     vi.mocked(groupRepository.getGroupById).mockResolvedValue(null);
 
     const result = await createExpense({
@@ -312,7 +331,9 @@ describe('expenseService', () => {
 
   it('updates basic expense fields without rebuilding splits', async () => {
     setupCommonMembership();
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[1],
       role: 'member',
     });
@@ -459,7 +480,9 @@ describe('expenseService', () => {
   });
 
   it('rejects expense updates from viewers', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[0],
       role: 'viewer',
     });
@@ -480,7 +503,9 @@ describe('expenseService', () => {
   });
 
   it('deletes an expense when requester is admin', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[0],
       role: 'admin',
     });
@@ -506,11 +531,15 @@ describe('expenseService', () => {
     });
 
     expect(result).toEqual({ ok: true, data: { success: true } });
-    expect(expenseRepository.deleteExpenseById).toHaveBeenCalledWith('expense-1');
+    expect(expenseRepository.deleteExpenseById).toHaveBeenCalledWith(
+      'expense-1'
+    );
   });
 
   it('rejects expense deletion for members', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[1],
       role: 'member',
     });
@@ -531,7 +560,9 @@ describe('expenseService', () => {
   });
 
   it('rejects expense deletion for viewers', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[1],
       role: 'viewer',
     });
@@ -552,7 +583,9 @@ describe('expenseService', () => {
   });
 
   it('returns not found when deleting a missing expense', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       ...activeParticipants[0],
       role: 'owner',
     });

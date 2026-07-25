@@ -1,6 +1,10 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/services/authService';
-import { createGroup, getGroupsForUser, leaveGroup } from '@/lib/services/groupService';
+import {
+  createGroup,
+  getGroupsForUser,
+  leaveGroup,
+} from '@/lib/services/groupService';
 
 export async function POST(req: Request) {
   try {
@@ -22,7 +26,11 @@ export async function POST(req: Request) {
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data.group, 201);
@@ -44,7 +52,11 @@ export async function GET() {
     const result = await getGroupsForUser(currentUser.id);
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data.groups);
@@ -71,7 +83,11 @@ export async function DELETE(req: Request) {
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse({ success: true });

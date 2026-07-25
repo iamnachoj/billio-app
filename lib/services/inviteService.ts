@@ -1,8 +1,6 @@
 import crypto from 'crypto';
 
-import {
-  getGroupById,
-} from '@/lib/repositories/groupRepository';
+import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
   createParticipant as createParticipantInRepository,
   getParticipantByGroupAndUserId,
@@ -26,7 +24,10 @@ type CreateInviteInput = {
   createdBy: string;
 };
 
-async function ensureGroupAdmin(groupId: string, userId: string): Promise<InviteResult<{ participant: unknown }>> {
+async function ensureGroupAdmin(
+  groupId: string,
+  userId: string
+): Promise<InviteResult<{ participant: unknown }>> {
   const membership = await getParticipantByGroupAndUserId(groupId, userId);
 
   if (!membership) {
@@ -104,7 +105,9 @@ export async function createGroupInvite({
   await cleanupExpiredGroupInvites();
 
   const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString();
+  const expiresAt = new Date(
+    Date.now() + 1000 * 60 * 60 * 24 * 7
+  ).toISOString();
 
   const invite = await createGroupInviteInRepository({
     groupId,
@@ -120,7 +123,9 @@ export async function createGroupInvite({
   };
 }
 
-export async function getInviteByToken(token: string): Promise<InviteResult<{ invite: unknown }>> {
+export async function getInviteByToken(
+  token: string
+): Promise<InviteResult<{ invite: unknown }>> {
   if (!token) {
     return {
       ok: false,
@@ -199,7 +204,11 @@ export async function acceptInvite({
     email?: string;
   };
 
-  if (invite.email && userEmail && invite.email.toLowerCase() !== userEmail.toLowerCase()) {
+  if (
+    invite.email &&
+    userEmail &&
+    invite.email.toLowerCase() !== userEmail.toLowerCase()
+  ) {
     return {
       ok: false,
       error: {

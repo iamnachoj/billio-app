@@ -21,13 +21,19 @@ describe('emailService', () => {
   });
 
   it('logs the reset link when the resend API key is not configured', async () => {
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     await sendPasswordResetEmail('user@example.com', 'token-123');
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith('[password-reset] RESEND_API_KEY is not configured; skipping email send.');
-    expect(consoleLogSpy).toHaveBeenCalledWith('[password-reset] reset link for user@example.com: http://localhost:3000/reset-password?token=token-123');
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '[password-reset] RESEND_API_KEY is not configured; skipping email send.'
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[password-reset] reset link for user@example.com: http://localhost:3000/reset-password?token=token-123'
+    );
   });
 
   it('sends an email through resend when the API key is configured', async () => {
@@ -44,9 +50,16 @@ describe('emailService', () => {
       from: 'noreply@example.com',
       to: 'user@example.com',
       subject: 'Reset your password',
-      html: expect.stringContaining('https://billio.app/reset-password?token=token-123'),
+      html: expect.stringContaining(
+        'https://billio.app/reset-password?token=token-123'
+      ),
     });
-    expect(consoleLogSpy).toHaveBeenCalledWith('[password-reset] sending to user@example.com');
-    expect(consoleLogSpy).toHaveBeenCalledWith('[password-reset] email sent successfully', { id: 'email-1' });
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[password-reset] sending to user@example.com'
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[password-reset] email sent successfully',
+      { id: 'email-1' }
+    );
   });
 });

@@ -28,7 +28,9 @@ function getObjectExecuteCall(index = 0) {
   const firstArg = vi.mocked(db.execute).mock.calls[index]?.[0] as unknown;
 
   if (!firstArg || typeof firstArg === 'string') {
-    throw new Error('Expected db.execute to be called with an object-style query');
+    throw new Error(
+      'Expected db.execute to be called with an object-style query'
+    );
   }
 
   return firstArg as { sql: string; args: unknown[] };
@@ -116,7 +118,10 @@ describe('participantRepository', () => {
       rowsAffected: 1,
     } as never);
 
-    const participant = await getParticipantByGroupAndUserId('group-1', 'user-1');
+    const participant = await getParticipantByGroupAndUserId(
+      'group-1',
+      'user-1'
+    );
 
     expect(participant).toEqual({
       id: 'participant-1',
@@ -137,7 +142,9 @@ describe('participantRepository', () => {
       rowsAffected: 0,
     } as never);
 
-    await expect(getParticipantByGroupAndUserId('group-1', 'user-1')).resolves.toBeNull();
+    await expect(
+      getParticipantByGroupAndUserId('group-1', 'user-1')
+    ).resolves.toBeNull();
   });
 
   it('gets a participant by id', async () => {
@@ -236,12 +243,19 @@ describe('participantRepository', () => {
       rowsAffected: 1,
     } as never);
 
-    await expect(participantHasLinkedExpenses('participant-1')).resolves.toBe(true);
+    await expect(participantHasLinkedExpenses('participant-1')).resolves.toBe(
+      true
+    );
 
     const call = getObjectExecuteCall();
     expect(call.sql).toContain('FROM expenses');
     expect(call.sql).toContain('FROM expense_splits');
-    expect(call.args).toEqual(['participant-1', 'participant-1', 'participant-1', 'participant-1']);
+    expect(call.args).toEqual([
+      'participant-1',
+      'participant-1',
+      'participant-1',
+      'participant-1',
+    ]);
   });
 
   it('updates a participant when fields are provided', async () => {
@@ -257,12 +271,21 @@ describe('participantRepository', () => {
     });
 
     expect(db.execute).toHaveBeenCalledTimes(1);
-    const [sql, args] = vi.mocked(db.execute).mock.calls[0] as [string, unknown[]];
+    const [sql, args] = vi.mocked(db.execute).mock.calls[0] as [
+      string,
+      unknown[],
+    ];
     expect(sql).toContain('UPDATE group_participants');
     expect(sql).toContain('display_name = ?');
     expect(sql).toContain('role = ?');
     expect(sql).toContain('status = ?');
-    expect(args).toEqual(['New name', 'admin', 'left', expect.any(String), 'participant-1']);
+    expect(args).toEqual([
+      'New name',
+      'admin',
+      'left',
+      expect.any(String),
+      'participant-1',
+    ]);
   });
 
   it('does nothing when no participant updates are provided', async () => {
@@ -292,7 +315,10 @@ describe('participantRepository', () => {
     await removeParticipantByGroupAndUserId('group-1', 'user-1');
 
     expect(db.execute).toHaveBeenCalledTimes(1);
-    const [sql, args] = vi.mocked(db.execute).mock.calls[0] as [string, unknown[]];
+    const [sql, args] = vi.mocked(db.execute).mock.calls[0] as [
+      string,
+      unknown[],
+    ];
     expect(sql).toContain('DELETE FROM group_participants');
     expect(args).toEqual(['group-1', 'user-1']);
     expect(cleanupEmptyGroups).toHaveBeenCalledTimes(1);

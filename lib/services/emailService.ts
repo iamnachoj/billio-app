@@ -6,7 +6,9 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   if (!resendApiKey) {
-    console.warn('[password-reset] RESEND_API_KEY is not configured; skipping email send.');
+    console.warn(
+      '[password-reset] RESEND_API_KEY is not configured; skipping email send.'
+    );
     console.log(`[password-reset] reset link for ${email}: ${resetLink}`);
     return;
   }

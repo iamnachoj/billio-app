@@ -26,7 +26,11 @@ export async function GET(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data);
@@ -57,7 +61,11 @@ export async function DELETE(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data);
@@ -96,7 +104,11 @@ export async function PATCH(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data);

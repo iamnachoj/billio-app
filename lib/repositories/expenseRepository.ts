@@ -43,8 +43,11 @@ function mapExpenseRow(row: Record<string, unknown>): Expense {
     updatedAt: new Date(row.updated_at as string),
     paidByParticipantId: row.paid_by_participant_id as string,
     createdByParticipantId: row.created_by_participant_id as string,
-    lastEditedAt: row.last_edited_at ? new Date(row.last_edited_at as string) : undefined,
-    lastEditedByParticipantId: (row.last_edited_by_participant_id as string | null) ?? undefined,
+    lastEditedAt: row.last_edited_at
+      ? new Date(row.last_edited_at as string)
+      : undefined,
+    lastEditedByParticipantId:
+      (row.last_edited_by_participant_id as string | null) ?? undefined,
   };
 }
 
@@ -169,7 +172,9 @@ export async function getExpensesByGroupId(groupId: string) {
     args: [groupId],
   });
 
-  return result.rows.map((row) => mapExpenseRow(row as Record<string, unknown>));
+  return result.rows.map((row) =>
+    mapExpenseRow(row as Record<string, unknown>)
+  );
 }
 
 export async function getExpenseById(expenseId: string) {
@@ -202,7 +207,9 @@ export async function getExpenseSplitsByExpenseId(expenseId: string) {
     args: [expenseId],
   });
 
-  return result.rows.map((row) => mapExpenseSplitRow(row as Record<string, unknown>));
+  return result.rows.map((row) =>
+    mapExpenseSplitRow(row as Record<string, unknown>)
+  );
 }
 
 export async function getExpenseSplitsByGroupId(groupId: string) {
@@ -217,7 +224,9 @@ export async function getExpenseSplitsByGroupId(groupId: string) {
     args: [groupId],
   });
 
-  return result.rows.map((row) => mapExpenseSplitRow(row as Record<string, unknown>));
+  return result.rows.map((row) =>
+    mapExpenseSplitRow(row as Record<string, unknown>)
+  );
 }
 
 export async function deleteExpenseById(expenseId: string) {

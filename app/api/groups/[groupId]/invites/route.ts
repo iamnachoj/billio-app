@@ -29,7 +29,11 @@ export async function POST(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data.invite, 201);

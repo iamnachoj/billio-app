@@ -8,7 +8,11 @@ type CreateGroupInput = {
   createdBy: string;
 };
 
-export async function createGroup({ name, description, createdBy }: CreateGroupInput) {
+export async function createGroup({
+  name,
+  description,
+  createdBy,
+}: CreateGroupInput) {
   const id = randomUUID();
   const now = new Date().toISOString();
 

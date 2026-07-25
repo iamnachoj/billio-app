@@ -43,7 +43,9 @@ describe('passwordResetService', () => {
       email: 'ana@example.com',
       passwordHash: 'hash',
     } as never);
-    vi.mocked(passwordResetRepository.getRecentPasswordResetRequests).mockResolvedValue(0);
+    vi.mocked(
+      passwordResetRepository.getRecentPasswordResetRequests
+    ).mockResolvedValue(0);
 
     const result = await requestPasswordReset('ana@example.com');
 
@@ -52,10 +54,17 @@ describe('passwordResetService', () => {
       throw new Error('Expected reset request to succeed');
     }
 
-    expect(passwordResetRepository.cleanupExpiredPasswordResetTokens).toHaveBeenCalled();
-    expect(passwordResetRepository.deletePasswordResetTokensForUser).toHaveBeenCalledWith('user-1');
+    expect(
+      passwordResetRepository.cleanupExpiredPasswordResetTokens
+    ).toHaveBeenCalled();
+    expect(
+      passwordResetRepository.deletePasswordResetTokensForUser
+    ).toHaveBeenCalledWith('user-1');
     expect(passwordResetRepository.createPasswordResetToken).toHaveBeenCalled();
-    expect(sendPasswordResetEmail).toHaveBeenCalledWith('ana@example.com', expect.any(String));
+    expect(sendPasswordResetEmail).toHaveBeenCalledWith(
+      'ana@example.com',
+      expect.any(String)
+    );
   });
 
   it('rejects a password reset request when the user is rate limited', async () => {
@@ -65,7 +74,9 @@ describe('passwordResetService', () => {
       email: 'ana@example.com',
       passwordHash: 'hash',
     } as never);
-    vi.mocked(passwordResetRepository.getRecentPasswordResetRequests).mockResolvedValue(2);
+    vi.mocked(
+      passwordResetRepository.getRecentPasswordResetRequests
+    ).mockResolvedValue(2);
 
     const result = await requestPasswordReset('ana@example.com');
 
@@ -82,7 +93,9 @@ describe('passwordResetService', () => {
   });
 
   it('resets a password when the token is valid', async () => {
-    vi.mocked(passwordResetRepository.getPasswordResetTokenByToken).mockResolvedValue({
+    vi.mocked(
+      passwordResetRepository.getPasswordResetTokenByToken
+    ).mockResolvedValue({
       id: 'reset-1',
       userId: 'user-1',
       token: 'token-123',
@@ -105,7 +118,12 @@ describe('passwordResetService', () => {
       throw new Error('Expected password reset to succeed');
     }
 
-    expect(userRepository.updateUserPassword).toHaveBeenCalledWith('user-1', 'new-hash');
-    expect(passwordResetRepository.deletePasswordResetTokenById).toHaveBeenCalledWith('reset-1');
+    expect(userRepository.updateUserPassword).toHaveBeenCalledWith(
+      'user-1',
+      'new-hash'
+    );
+    expect(
+      passwordResetRepository.deletePasswordResetTokenById
+    ).toHaveBeenCalledWith('reset-1');
   });
 });

@@ -71,9 +71,9 @@ Example:
 
 ```tsx
 export default async function GroupsPage() {
-    const groups = await getGroups();
+  const groups = await getGroups();
 
-    return <GroupList groups={groups} />;
+  return <GroupList groups={groups} />;
 }
 ```
 
@@ -280,7 +280,7 @@ frontend-services/
 Instead of
 
 ```tsx
-await fetch("/api/groups")
+await fetch('/api/groups');
 ```
 
 components should simply call

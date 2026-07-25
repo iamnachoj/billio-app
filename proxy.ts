@@ -11,16 +11,12 @@ export function proxy(request: NextRequest) {
   }
 
   if (!token || !verifyToken(token)) {
-    return NextResponse.redirect(
-      new URL('/login', request.url)
-    );
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-  ],
+  matcher: ['/dashboard/:path*'],
 };

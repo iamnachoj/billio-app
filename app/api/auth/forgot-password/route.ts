@@ -8,7 +8,11 @@ export async function POST(req: Request) {
     const result = await requestPasswordReset(email);
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse({ sent: true });

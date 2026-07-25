@@ -74,7 +74,9 @@ export async function createGroup({
   };
 }
 
-export async function getGroupsForUser(userId: string): Promise<GroupServiceResult<{ groups: unknown[] }>> {
+export async function getGroupsForUser(
+  userId: string
+): Promise<GroupServiceResult<{ groups: unknown[] }>> {
   if (!userId) {
     return {
       ok: false,
@@ -147,7 +149,10 @@ export async function leaveGroup({
   };
 }
 
-async function ensureGroupAdmin(groupId: string, userId: string): Promise<GroupServiceResult<{ participant: unknown }>> {
+async function ensureGroupAdmin(
+  groupId: string,
+  userId: string
+): Promise<GroupServiceResult<{ participant: unknown }>> {
   const membership = await getParticipantByGroupAndUserId(groupId, userId);
 
   if (!membership) {
@@ -178,7 +183,10 @@ async function ensureGroupAdmin(groupId: string, userId: string): Promise<GroupS
   };
 }
 
-export async function getParticipantsForGroup(groupId: string, userId: string): Promise<GroupServiceResult<{ participants: unknown[] }>> {
+export async function getParticipantsForGroup(
+  groupId: string,
+  userId: string
+): Promise<GroupServiceResult<{ participants: unknown[] }>> {
   if (!groupId || !userId) {
     return {
       ok: false,

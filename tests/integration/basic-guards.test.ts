@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { getExpenseById } from '../../lib/repositories/expenseRepository';
 import { getParticipantsByGroupId } from '../../lib/repositories/participantRepository';
 import { getGroupBalances } from '../../lib/services/balanceService';
-import { createExpense, deleteExpenseForGroup } from '../../lib/services/expenseService';
+import {
+  createExpense,
+  deleteExpenseForGroup,
+} from '../../lib/services/expenseService';
 import {
   addParticipantToGroup,
   createGroup,
@@ -64,17 +67,28 @@ async function seedGroupWithOwnerMemberAndViewer() {
     throw new Error(`Failed to create viewer: ${viewerResult.error.code}`);
   }
 
-  const participantsResult = await getParticipantsForGroup(group.id, ownerUserId);
+  const participantsResult = await getParticipantsForGroup(
+    group.id,
+    ownerUserId
+  );
 
   if (!participantsResult.ok) {
-    throw new Error(`Failed to list participants: ${participantsResult.error.code}`);
+    throw new Error(
+      `Failed to list participants: ${participantsResult.error.code}`
+    );
   }
 
   const participants = participantsResult.data.participants as Participant[];
 
-  const owner = participants.find((participant) => participant.userId === ownerUserId);
-  const member = participants.find((participant) => participant.userId === memberUserId);
-  const viewer = participants.find((participant) => participant.userId === viewerUserId);
+  const owner = participants.find(
+    (participant) => participant.userId === ownerUserId
+  );
+  const member = participants.find(
+    (participant) => participant.userId === memberUserId
+  );
+  const viewer = participants.find(
+    (participant) => participant.userId === viewerUserId
+  );
 
   if (!owner || !member || !viewer) {
     throw new Error('Failed to resolve seeded participants');
@@ -246,7 +260,9 @@ describe('integration: basic permission and lifecycle guards', () => {
 
     expect(deleteParticipantResult.ok).toBe(false);
     if (deleteParticipantResult.ok) {
-      throw new Error('Expected participant deletion with linked expenses to fail');
+      throw new Error(
+        'Expected participant deletion with linked expenses to fail'
+      );
     }
 
     expect(deleteParticipantResult.error).toEqual({

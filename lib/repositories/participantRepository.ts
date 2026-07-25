@@ -37,7 +37,17 @@ export async function createParticipant({
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
-    args: [id, groupId, displayName, userId ?? null, role, status, now, now, now],
+    args: [
+      id,
+      groupId,
+      displayName,
+      userId ?? null,
+      role,
+      status,
+      now,
+      now,
+      now,
+    ],
   });
 
   return {
@@ -71,7 +81,10 @@ export async function linkParticipantToUser({
   });
 }
 
-export async function getParticipantByGroupAndUserId(groupId: string, userId: string) {
+export async function getParticipantByGroupAndUserId(
+  groupId: string,
+  userId: string
+) {
   const result = await db.execute({
     sql: `
       SELECT *
@@ -173,7 +186,15 @@ export async function participantHasLinkedExpenses(participantId: string) {
   return result.rows.length > 0;
 }
 
-export async function updateParticipantById(participantId: string, updates: { displayName?: string; role?: 'owner' | 'admin' | 'member' | 'viewer'; status?: 'active' | 'invited' | 'left'; userId?: string | null }) {
+export async function updateParticipantById(
+  participantId: string,
+  updates: {
+    displayName?: string;
+    role?: 'owner' | 'admin' | 'member' | 'viewer';
+    status?: 'active' | 'invited' | 'left';
+    userId?: string | null;
+  }
+) {
   const fields = [] as string[];
   const args: Array<string | null> = [];
 
@@ -222,7 +243,10 @@ export async function deleteParticipantById(participantId: string) {
   await cleanupEmptyGroups();
 }
 
-export async function removeParticipantByGroupAndUserId(groupId: string, userId: string) {
+export async function removeParticipantByGroupAndUserId(
+  groupId: string,
+  userId: string
+) {
   await db.execute(
     `
       DELETE FROM group_participants

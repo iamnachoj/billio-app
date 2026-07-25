@@ -1,6 +1,9 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/services/authService';
-import { addParticipantToGroup, getParticipantsForGroup } from '@/lib/services/groupService';
+import {
+  addParticipantToGroup,
+  getParticipantsForGroup,
+} from '@/lib/services/groupService';
 
 export async function POST(
   req: Request,
@@ -26,7 +29,11 @@ export async function POST(
     });
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data.participant, 201);
@@ -53,7 +60,11 @@ export async function GET(
     const result = await getParticipantsForGroup(groupId, currentUser.id);
 
     if (!result.ok) {
-      return errorResponse(result.error.code, result.error.message, result.error.status);
+      return errorResponse(
+        result.error.code,
+        result.error.message,
+        result.error.status
+      );
     }
 
     return successResponse(result.data.participants);

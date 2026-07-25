@@ -25,7 +25,9 @@ describe('balanceService', () => {
   });
 
   it('calculates balances and settlements for a group', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue({
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
       id: 'participant-a',
       groupId: 'group-1',
       displayName: 'Ana',
@@ -37,41 +39,43 @@ describe('balanceService', () => {
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     });
 
-    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue([
-      {
-        id: 'participant-a',
-        groupId: 'group-1',
-        displayName: 'Ana',
-        userId: 'user-a',
-        role: 'owner',
-        status: 'active',
-        joinedAt: new Date('2024-01-01T00:00:00.000Z'),
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
-      },
-      {
-        id: 'participant-b',
-        groupId: 'group-1',
-        displayName: 'Beto',
-        userId: 'user-b',
-        role: 'member',
-        status: 'active',
-        joinedAt: new Date('2024-01-01T00:00:00.000Z'),
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
-      },
-      {
-        id: 'participant-c',
-        groupId: 'group-1',
-        displayName: 'Carla',
-        userId: null as unknown as string,
-        role: 'member',
-        status: 'left',
-        joinedAt: new Date('2024-01-01T00:00:00.000Z'),
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
-      },
-    ] as never);
+    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
+      [
+        {
+          id: 'participant-a',
+          groupId: 'group-1',
+          displayName: 'Ana',
+          userId: 'user-a',
+          role: 'owner',
+          status: 'active',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+        {
+          id: 'participant-b',
+          groupId: 'group-1',
+          displayName: 'Beto',
+          userId: 'user-b',
+          role: 'member',
+          status: 'active',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+        {
+          id: 'participant-c',
+          groupId: 'group-1',
+          displayName: 'Carla',
+          userId: null as unknown as string,
+          role: 'member',
+          status: 'left',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ] as never
+    );
 
     vi.mocked(expenseRepository.getExpensesByGroupId).mockResolvedValue([
       {
@@ -110,7 +114,10 @@ describe('balanceService', () => {
       },
     ] as never);
 
-    const result = await getGroupBalances({ groupId: 'group-1', userId: 'user-a' });
+    const result = await getGroupBalances({
+      groupId: 'group-1',
+      userId: 'user-a',
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
@@ -174,10 +181,15 @@ describe('balanceService', () => {
   });
 
   it('returns not found when user is not in group and group is missing', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue(null);
     vi.mocked(groupRepository.getGroupById).mockResolvedValue(null);
 
-    const result = await getGroupBalances({ groupId: 'group-404', userId: 'user-a' });
+    const result = await getGroupBalances({
+      groupId: 'group-404',
+      userId: 'user-a',
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) {
@@ -188,7 +200,9 @@ describe('balanceService', () => {
   });
 
   it('returns forbidden when user is not in group but group exists', async () => {
-    vi.mocked(participantRepository.getParticipantByGroupAndUserId).mockResolvedValue(null);
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue(null);
     vi.mocked(groupRepository.getGroupById).mockResolvedValue({
       id: 'group-1',
       name: 'Trip',
@@ -198,7 +212,10 @@ describe('balanceService', () => {
       createdBy: 'user-z',
     } as never);
 
-    const result = await getGroupBalances({ groupId: 'group-1', userId: 'user-a' });
+    const result = await getGroupBalances({
+      groupId: 'group-1',
+      userId: 'user-a',
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) {

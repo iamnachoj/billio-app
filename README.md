@@ -271,10 +271,7 @@ Example when changing payer or split distribution:
   "paidByParticipantId": "participant-id-that-paid",
   "split": {
     "mode": "selected",
-    "participantIds": [
-      "participant-id-1",
-      "participant-id-2"
-    ]
+    "participantIds": ["participant-id-1", "participant-id-2"]
   }
 }
 ```
@@ -305,10 +302,7 @@ For `selected`, the frontend sends the participant ids that should be included i
   "paidByParticipantId": "participant-id-that-paid",
   "split": {
     "mode": "selected",
-    "participantIds": [
-      "participant-id-1",
-      "participant-id-2"
-    ]
+    "participantIds": ["participant-id-1", "participant-id-2"]
   }
 }
 ```

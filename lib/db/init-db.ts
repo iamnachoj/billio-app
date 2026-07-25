@@ -63,9 +63,9 @@ export async function initDB() {
   `);
 
   const inviteTableInfo = await db.execute('PRAGMA table_info(group_invites);');
-  const participantIdColumn = (inviteTableInfo.rows as Record<string, unknown>[]).find(
-    (row) => row.name === 'participant_id'
-  );
+  const participantIdColumn = (
+    inviteTableInfo.rows as Record<string, unknown>[]
+  ).find((row) => row.name === 'participant_id');
 
   if (Number(participantIdColumn?.notnull ?? 0) === 1) {
     await db.execute(`
@@ -151,9 +151,14 @@ export async function initDB() {
   `);
 
   const expensesInfo = await db.execute('PRAGMA table_info(expenses);');
-  const expensesColumns = (expensesInfo.rows as Record<string, unknown>[]).map((row) => String(row.name));
+  const expensesColumns = (expensesInfo.rows as Record<string, unknown>[]).map(
+    (row) => String(row.name)
+  );
 
-  if (expensesColumns.includes('paid_by_user_id') || expensesColumns.includes('created_by_user_id')) {
+  if (
+    expensesColumns.includes('paid_by_user_id') ||
+    expensesColumns.includes('created_by_user_id')
+  ) {
     await db.execute('DROP TABLE IF EXISTS expenses_new;');
 
     await db.execute(`
@@ -213,23 +218,34 @@ export async function initDB() {
     await db.execute('ALTER TABLE expenses_new RENAME TO expenses;');
   }
 
-  const refreshedExpensesInfo = await db.execute('PRAGMA table_info(expenses);');
-  const refreshedExpensesColumns = (refreshedExpensesInfo.rows as Record<string, unknown>[]).map((row) =>
-    String(row.name)
+  const refreshedExpensesInfo = await db.execute(
+    'PRAGMA table_info(expenses);'
   );
+  const refreshedExpensesColumns = (
+    refreshedExpensesInfo.rows as Record<string, unknown>[]
+  ).map((row) => String(row.name));
 
   if (!refreshedExpensesColumns.includes('last_edited_at')) {
     await db.execute('ALTER TABLE expenses ADD COLUMN last_edited_at TEXT;');
   }
 
   if (!refreshedExpensesColumns.includes('last_edited_by_participant_id')) {
-    await db.execute('ALTER TABLE expenses ADD COLUMN last_edited_by_participant_id TEXT;');
+    await db.execute(
+      'ALTER TABLE expenses ADD COLUMN last_edited_by_participant_id TEXT;'
+    );
   }
 
-  const expenseSplitsInfo = await db.execute('PRAGMA table_info(expense_splits);');
-  const expenseSplitsColumns = (expenseSplitsInfo.rows as Record<string, unknown>[]).map((row) => String(row.name));
+  const expenseSplitsInfo = await db.execute(
+    'PRAGMA table_info(expense_splits);'
+  );
+  const expenseSplitsColumns = (
+    expenseSplitsInfo.rows as Record<string, unknown>[]
+  ).map((row) => String(row.name));
 
-  if (expenseSplitsColumns.includes('user_id') || expenseSplitsColumns.includes('owed_to_user_id')) {
+  if (
+    expenseSplitsColumns.includes('user_id') ||
+    expenseSplitsColumns.includes('owed_to_user_id')
+  ) {
     await db.execute('DROP TABLE IF EXISTS expense_splits_new;');
 
     await db.execute(`
@@ -269,7 +285,9 @@ export async function initDB() {
     `);
 
     await db.execute('DROP TABLE expense_splits;');
-    await db.execute('ALTER TABLE expense_splits_new RENAME TO expense_splits;');
+    await db.execute(
+      'ALTER TABLE expense_splits_new RENAME TO expense_splits;'
+    );
   }
 
   await db.execute(`

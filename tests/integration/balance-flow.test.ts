@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { getGroupBalances } from '../../lib/services/balanceService';
-import { createExpense, updateExpenseForGroup } from '../../lib/services/expenseService';
+import {
+  createExpense,
+  updateExpenseForGroup,
+} from '../../lib/services/expenseService';
 import {
   addParticipantToGroup,
   createGroup,
@@ -43,7 +46,9 @@ async function seedGroupWithThreeParticipants() {
   });
 
   if (!secondParticipant.ok) {
-    throw new Error(`Failed to add linked member: ${secondParticipant.error.code}`);
+    throw new Error(
+      `Failed to add linked member: ${secondParticipant.error.code}`
+    );
   }
 
   const thirdParticipant = await addParticipantToGroup({
@@ -55,25 +60,38 @@ async function seedGroupWithThreeParticipants() {
   });
 
   if (!thirdParticipant.ok) {
-    throw new Error(`Failed to add unlinked member: ${thirdParticipant.error.code}`);
+    throw new Error(
+      `Failed to add unlinked member: ${thirdParticipant.error.code}`
+    );
   }
 
-  const participantsResult = await getParticipantsForGroup(group.id, ownerUserId);
+  const participantsResult = await getParticipantsForGroup(
+    group.id,
+    ownerUserId
+  );
 
   if (!participantsResult.ok) {
-    throw new Error(`Failed to list participants: ${participantsResult.error.code}`);
+    throw new Error(
+      `Failed to list participants: ${participantsResult.error.code}`
+    );
   }
 
   const participants = participantsResult.data.participants as Participant[];
 
-  const ownerParticipant = participants.find((participant) => participant.userId === ownerUserId);
-  const linkedMember = participants.find((participant) => participant.userId === memberUserId);
+  const ownerParticipant = participants.find(
+    (participant) => participant.userId === ownerUserId
+  );
+  const linkedMember = participants.find(
+    (participant) => participant.userId === memberUserId
+  );
   const unlinkedMember = participants.find(
     (participant) => participant.displayName === 'Member unlinked'
   );
 
   if (!ownerParticipant || !linkedMember || !unlinkedMember) {
-    throw new Error('Failed to resolve participant identities for integration setup');
+    throw new Error(
+      'Failed to resolve participant identities for integration setup'
+    );
   }
 
   return {
@@ -102,7 +120,9 @@ describe('integration: balances from real DB data', () => {
 
     expect(createResult.ok).toBe(true);
     if (!createResult.ok) {
-      throw new Error(`Expected expense creation to succeed: ${createResult.error.code}`);
+      throw new Error(
+        `Expected expense creation to succeed: ${createResult.error.code}`
+      );
     }
 
     const balancesResult = await getGroupBalances({
@@ -112,10 +132,14 @@ describe('integration: balances from real DB data', () => {
 
     expect(balancesResult.ok).toBe(true);
     if (!balancesResult.ok) {
-      throw new Error(`Expected balances to succeed: ${balancesResult.error.code}`);
+      throw new Error(
+        `Expected balances to succeed: ${balancesResult.error.code}`
+      );
     }
 
-    const eur = balancesResult.data.currencies.find((currency) => currency.currency === 'EUR');
+    const eur = balancesResult.data.currencies.find(
+      (currency) => currency.currency === 'EUR'
+    );
 
     expect(eur).toBeDefined();
     if (!eur) {
@@ -163,13 +187,18 @@ describe('integration: balances from real DB data', () => {
       paidByParticipantId: seeded.ownerParticipantId,
       split: {
         mode: 'selected',
-        participantIds: [seeded.ownerParticipantId, seeded.linkedMemberParticipantId],
+        participantIds: [
+          seeded.ownerParticipantId,
+          seeded.linkedMemberParticipantId,
+        ],
       },
     });
 
     expect(createResult.ok).toBe(true);
     if (!createResult.ok) {
-      throw new Error(`Expected expense creation to succeed: ${createResult.error.code}`);
+      throw new Error(
+        `Expected expense creation to succeed: ${createResult.error.code}`
+      );
     }
 
     const createdExpense = createResult.data.expense as { id: string };
@@ -181,13 +210,18 @@ describe('integration: balances from real DB data', () => {
       amount: 1200,
       split: {
         mode: 'selected',
-        participantIds: [seeded.ownerParticipantId, seeded.linkedMemberParticipantId],
+        participantIds: [
+          seeded.ownerParticipantId,
+          seeded.linkedMemberParticipantId,
+        ],
       },
     });
 
     expect(updateResult.ok).toBe(true);
     if (!updateResult.ok) {
-      throw new Error(`Expected expense update to succeed: ${updateResult.error.code}`);
+      throw new Error(
+        `Expected expense update to succeed: ${updateResult.error.code}`
+      );
     }
 
     const balancesResult = await getGroupBalances({
@@ -197,10 +231,14 @@ describe('integration: balances from real DB data', () => {
 
     expect(balancesResult.ok).toBe(true);
     if (!balancesResult.ok) {
-      throw new Error(`Expected balances to succeed: ${balancesResult.error.code}`);
+      throw new Error(
+        `Expected balances to succeed: ${balancesResult.error.code}`
+      );
     }
 
-    const eur = balancesResult.data.currencies.find((currency) => currency.currency === 'EUR');
+    const eur = balancesResult.data.currencies.find(
+      (currency) => currency.currency === 'EUR'
+    );
 
     expect(eur).toBeDefined();
     if (!eur) {

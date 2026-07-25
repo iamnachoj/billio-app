@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+
 import './globals.css';
+import Header from '@/components/layout/Header';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -13,22 +15,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Billio',
+  title: {
+    default: 'Billio',
+    template: '%s | Billio',
+  },
   description:
-    'Balance your bills with ease and clarity. Billio helps you manage shared expenses, track payments, and settle debts effortlessly. Simplify your financial interactions with friends, family, or roommates.',
+    'Track shared expenses, settle balances and manage group finances effortlessly.',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+type RootLayoutProps = Readonly<{
   children: React.ReactNode;
-}>) {
+}>;
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <Header user={null} />
+        {children}
+      </body>
     </html>
   );
 }
