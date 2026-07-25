@@ -15,7 +15,6 @@ export default defineConfig({
     setupFiles: ['tests/integration/setup.ts'],
     fileParallelism: false,
     maxWorkers: 1,
-    minWorkers: 1,
     sequence: {
       concurrent: false,
     },
