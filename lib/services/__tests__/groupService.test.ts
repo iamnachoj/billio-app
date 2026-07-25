@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
-import { addParticipantToGroup, createGroup, deleteParticipant, getGroupsForUser, leaveGroup, linkParticipantToUser } from './groupService';
+import { addParticipantToGroup, createGroup, deleteParticipant, getGroupsForUser, leaveGroup, linkParticipantToUser } from '../groupService';
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
   createGroup: vi.fn(),

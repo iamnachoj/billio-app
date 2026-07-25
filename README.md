@@ -177,11 +177,20 @@ The current API surface is split by feature and keeps each handler thin.
 - `PATCH /api/groups/[groupId]/expenses/[expenseId]` - edit an expense
 - `DELETE /api/groups/[groupId]/expenses/[expenseId]` - delete an expense (owner/admin only)
 
+### Balances
+
+- `GET /api/groups/[groupId]/balances` - compute group balances and settlement suggestions on demand
+
 ### Invites
 
 - `POST /api/groups/[groupId]/invites` - create a reusable invite link for a group
 - `GET /api/invites/[token]` - preview an invite by token
 - `POST /api/invites/[token]` - accept an invite by claiming a participant or creating one
+
+## API Contract
+
+The versioned API contract has been moved to [docs/api-contract-v1.md](docs/api-contract-v1.md).
+Use that file as the source of truth for frontend integration.
 
 ## Invite Flow
 

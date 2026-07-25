@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as groupInviteRepository from '@/lib/repositories/groupInviteRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
-import { acceptInvite, createGroupInvite, getInviteByToken } from './inviteService';
+import { acceptInvite, createGroupInvite, getInviteByToken } from '../inviteService';
 
 vi.mock('crypto', () => ({
   default: {

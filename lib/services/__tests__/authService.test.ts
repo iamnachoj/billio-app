@@ -8,7 +8,7 @@ import {
   loginUser,
   registerUser,
   updateUserAccount,
-} from './authService';
+} from '../authService';
 import { cookies } from 'next/headers';
 import { generateToken, verifyToken } from '@/lib/utils/jwt';
 

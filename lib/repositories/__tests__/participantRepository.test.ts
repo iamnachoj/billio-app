@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { db } from '@/lib/db/db';
-import { cleanupEmptyGroups } from './groupRepository';
+import { cleanupEmptyGroups } from '../groupRepository';
 import {
   createParticipant,
   deleteParticipantById,
@@ -12,7 +12,7 @@ import {
   linkParticipantToUser,
   removeParticipantByGroupAndUserId,
   updateParticipantById,
-} from './participantRepository';
+} from '../participantRepository';
 
 vi.mock('@/lib/db/db', () => ({
   db: {
@@ -20,7 +20,7 @@ vi.mock('@/lib/db/db', () => ({
   },
 }));
 
-vi.mock('./groupRepository', () => ({
+vi.mock('../groupRepository', () => ({
   cleanupEmptyGroups: vi.fn(),
 }));
 

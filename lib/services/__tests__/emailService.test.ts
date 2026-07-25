@@ -10,7 +10,7 @@ vi.mock('resend', () => ({
   },
 }));
 
-import { sendPasswordResetEmail } from './emailService';
+import { sendPasswordResetEmail } from '../emailService';
 
 describe('emailService', () => {
   beforeEach(() => {

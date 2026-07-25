@@ -199,6 +199,21 @@ export async function getExpenseSplitsByExpenseId(expenseId: string) {
   return result.rows.map((row) => mapExpenseSplitRow(row as Record<string, unknown>));
 }
 
+export async function getExpenseSplitsByGroupId(groupId: string) {
+  const result = await db.execute({
+    sql: `
+      SELECT s.*
+      FROM expense_splits s
+      INNER JOIN expenses e ON e.id = s.expense_id
+      WHERE e.group_id = ?
+      ORDER BY s.created_at ASC
+    `,
+    args: [groupId],
+  });
+
+  return result.rows.map((row) => mapExpenseSplitRow(row as Record<string, unknown>));
+}
+
 export async function deleteExpenseById(expenseId: string) {
   await db.execute('BEGIN');
 

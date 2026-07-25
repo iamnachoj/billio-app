@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as userRepository from '@/lib/repositories/userRepository';
 import * as passwordResetRepository from '@/lib/repositories/passwordResetRepository';
 import bcrypt from 'bcryptjs';
-import { requestPasswordReset, resetPassword } from './passwordResetService';
-import { sendPasswordResetEmail } from './emailService';
+import { requestPasswordReset, resetPassword } from '../passwordResetService';
+import { sendPasswordResetEmail } from '../emailService';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -27,7 +27,7 @@ vi.mock('@/lib/repositories/passwordResetRepository', () => ({
   getRecentPasswordResetRequests: vi.fn(),
 }));
 
-vi.mock('./emailService', () => ({
+vi.mock('../emailService', () => ({
   sendPasswordResetEmail: vi.fn(),
 }));
 

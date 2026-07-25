@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { db } from '@/lib/db/db';
-import { cleanupEmptyGroups } from './groupRepository';
+import { cleanupEmptyGroups } from '../groupRepository';
 
 vi.mock('@/lib/db/db', () => ({
   db: {

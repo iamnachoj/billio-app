@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as expenseRepository from '@/lib/repositories/expenseRepository';
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
-import { createExpense, deleteExpenseForGroup, updateExpenseForGroup } from './expenseService';
+import { createExpense, deleteExpenseForGroup, updateExpenseForGroup } from '../expenseService';
 
 vi.mock('@/lib/repositories/expenseRepository', () => ({
   createExpenseWithSplits: vi.fn(),
