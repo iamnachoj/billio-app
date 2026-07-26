@@ -5,6 +5,9 @@ import { Group } from '@/lib/models/group';
 
 import GroupCard from './GroupCard';
 import Button from '../ui/Button';
+import { useState } from 'react';
+import Modal from '../ui/Modal';
+import CreateGroupForm from '../groups/CreateGroupForm';
 
 type User = {
   id: string;
@@ -18,6 +21,8 @@ type Props = {
 };
 
 export default function Dashboard({ user, groups }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const { activeGroups, archivedGroups, showArchived, toggleArchived } =
     useDashboard(groups);
 
@@ -27,7 +32,14 @@ export default function Dashboard({ user, groups }: Props) {
         <h1 className="text-2xl lg:text-4xl font-bold text-gray-800">
           Hello {user.name} 👋
         </h1>
-        <Button>Add new Group</Button>
+        <Button onClick={() => setIsOpen(true)}>Add new Group</Button>
+        <Modal
+          open={isOpen}
+          title="Create group"
+          onClose={() => setIsOpen(false)}
+        >
+          <CreateGroupForm onSuccess={() => setIsOpen(false)} />
+        </Modal>
       </header>
       <hr className="my-4 border-gray-300" />
       <section>
