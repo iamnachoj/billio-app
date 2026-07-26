@@ -13,6 +13,7 @@ import {
   linkParticipantToUser as linkParticipantToUserInRepository,
   updateParticipantById as updateParticipantByIdInRepository,
 } from '@/lib/repositories/participantRepository';
+import { Group } from '../models/group';
 
 export type GroupServiceResult<T> =
   | { ok: true; data: T }
@@ -30,7 +31,7 @@ export async function createGroup({
   description,
   createdBy,
   creatorName,
-}: CreateGroupInput): Promise<GroupServiceResult<{ group: unknown }>> {
+}: CreateGroupInput): Promise<GroupServiceResult<{ group: Group }>> {
   if (!name?.trim()) {
     return {
       ok: false,
@@ -76,7 +77,7 @@ export async function createGroup({
 
 export async function getGroupsForUser(
   userId: string
-): Promise<GroupServiceResult<{ groups: unknown[] }>> {
+): Promise<GroupServiceResult<{ groups: Group[] }>> {
   if (!userId) {
     return {
       ok: false,
