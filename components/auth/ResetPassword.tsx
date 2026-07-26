@@ -51,7 +51,9 @@ export default function ResetPassword({ token }: { token: string | null }) {
             </Alert>
           )}
 
-          <Button loading={loading}>Reset password</Button>
+          <Button loading={loading} fullWidth>
+            Reset password
+          </Button>
         </form>
 
         <div className="mt-8 text-center text-sm text-gray-500">

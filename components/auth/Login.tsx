@@ -135,7 +135,7 @@ export default function Login({ initialMode }: Props) {
               </div>
             )}
 
-            <Button loading={loading}>
+            <Button loading={loading} fullWidth>
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </Button>
           </form>

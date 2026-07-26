@@ -36,7 +36,7 @@ export default function Dashboard({ user, groups }: Props) {
 
           <button
             onClick={toggleArchived}
-            className="text-teal-600 hover:underline"
+            className="text-white hover:text-gray-300 font-semibold cursor-pointer"
           >
             {showArchived ? 'Hide archived' : 'Show archived'}
           </button>
