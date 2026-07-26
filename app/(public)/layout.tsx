@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
-import './globals.css';
-import Header from '@/components/layout/Header';
+import '../globals.css';
+import PublicHeader from '@/components/layout/PublicHeader';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,7 +27,7 @@ type RootLayoutProps = Readonly<{
   children: React.ReactNode;
 }>;
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background text-foreground antialiased">
-        <Header user={null} />
+        <PublicHeader />
         {children}
       </body>
     </html>

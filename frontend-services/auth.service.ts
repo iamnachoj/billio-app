@@ -66,3 +66,11 @@ export async function resetPassword({
 
   return response.json();
 }
+
+export async function logout() {
+  const response = await fetch('/api/auth/logout', {
+    method: 'POST',
+  });
+
+  return response.json();
+}
