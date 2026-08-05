@@ -19,6 +19,11 @@ export function useGroup(props: GroupPageProps) {
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [isExpenseDetailsModalOpen, setIsExpenseDetailsModalOpen] =
+    useState(false);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(
+    null
+  );
   const [isLeaveConfirmModalOpen, setIsLeaveConfirmModalOpen] = useState(false);
   const [groupName, setGroupName] = useState(props.group.name);
   const [groupDescription, setGroupDescription] = useState(
@@ -248,6 +253,8 @@ export function useGroup(props: GroupPageProps) {
     isParticipantsModalOpen,
     isSettingsModalOpen,
     isAddExpenseModalOpen,
+    isExpenseDetailsModalOpen,
+    selectedExpenseId,
     isLeaveConfirmModalOpen,
     isSavingSettings,
     isLeavingGroup,
@@ -276,6 +283,14 @@ export function useGroup(props: GroupPageProps) {
     requestLeaveGroup,
     cancelLeaveGroup,
     confirmLeaveGroup,
+    openExpenseDetailsModal: (expenseId: string) => {
+      setSelectedExpenseId(expenseId);
+      setIsExpenseDetailsModalOpen(true);
+    },
+    closeExpenseDetailsModal: () => {
+      setIsExpenseDetailsModalOpen(false);
+      setSelectedExpenseId(null);
+    },
     openAddExpenseModal: () => setIsAddExpenseModalOpen(true),
     closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
     openParticipantsModal: () => setIsParticipantsModalOpen(true),

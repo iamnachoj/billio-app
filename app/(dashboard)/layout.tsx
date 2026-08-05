@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from 'next/font/google';
+import type { Metadata } from 'next';
 import '../globals.css';
 import AuthenticatedHeader from '@/components/layout/AuthenticatedHeader';
 
@@ -15,6 +16,15 @@ const geistMono = Geist_Mono({
 type DashboardLayoutProps = Readonly<{
   children: React.ReactNode;
 }>;
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Billio',
+    template: '%s | Billio',
+  },
+  description:
+    'Track shared expenses, settle balances and manage group finances effortlessly.',
+};
 
 export default async function DashboardLayout({
   children,

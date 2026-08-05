@@ -10,6 +10,7 @@ import AddExpenseModal from '@/components/groups/AddExpenseModal';
 import GroupHeader from '@/components/groups/GroupHeader';
 import GroupParticipantsModal from '@/components/groups/GroupParticipantsModal';
 import LeaveGroupConfirmModal from '@/components/groups/LeaveGroupConfirmModal';
+import ExpenseDetailsModal from './Expenses/ExpenseDetailsModal';
 import GroupSettingsModal from './GroupSettingsModal';
 import { useGroup } from './hooks/useGroup';
 
@@ -52,6 +53,7 @@ export default function GroupPage(props: GroupPageProps) {
         expenses={group.expensesSorted}
         participantNameById={group.participantNameById}
         onOpenAddExpenseModal={group.openAddExpenseModal}
+        onOpenExpenseDetailsModal={group.openExpenseDetailsModal}
         canCreateExpense={group.canCreateExpense}
       />
 
@@ -96,6 +98,16 @@ export default function GroupPage(props: GroupPageProps) {
         participants={group.participants}
         currencies={group.availableCurrencies}
         defaultCurrency={group.selectedCurrency}
+      />
+
+      <ExpenseDetailsModal
+        open={group.isExpenseDetailsModalOpen}
+        onClose={group.closeExpenseDetailsModal}
+        groupId={group.group.id}
+        expenseId={group.selectedExpenseId}
+        participants={group.participants}
+        currencies={group.availableCurrencies}
+        canEdit={group.canCreateExpense}
       />
     </main>
   );

@@ -11,6 +11,7 @@ type ExpenseListProps = {
   expenses: Expense[];
   participantNameById: Map<string, string>;
   onOpenAddExpenseModal: () => void;
+  onOpenExpenseDetailsModal: (expenseId: string) => void;
   canCreateExpense: boolean;
 };
 
@@ -18,6 +19,7 @@ export default function ExpenseList({
   expenses,
   participantNameById,
   onOpenAddExpenseModal,
+  onOpenExpenseDetailsModal,
   canCreateExpense,
 }: ExpenseListProps) {
   const {
@@ -76,6 +78,7 @@ export default function ExpenseList({
                 key={expense.id}
                 expense={expense}
                 payerName={payerName}
+                onOpenDetails={() => onOpenExpenseDetailsModal(expense.id)}
               />
             );
           })}
