@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
+  addParticipantToGroup,
   leaveGroup,
   updateGroupName,
 } from '@/frontend-services/groups.service';
@@ -38,6 +39,12 @@ export function useGroup(props: GroupPageProps) {
   const [settingsError, setSettingsError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isLeavingGroup, setIsLeavingGroup] = useState(false);
+  const [newParticipantNameDraft, setNewParticipantNameDraft] = useState('');
+  const [newParticipantRoleDraft, setNewParticipantRoleDraft] = useState<
+    'owner' | 'admin' | 'member' | 'viewer'
+  >('member');
+  const [addParticipantError, setAddParticipantError] = useState('');
+  const [isAddingParticipant, setIsAddingParticipant] = useState(false);
 
   useEffect(() => {
     setGroupName(props.group.name);
@@ -128,6 +135,42 @@ export function useGroup(props: GroupPageProps) {
 
     setIsSettingsModalOpen(false);
     setSettingsError('');
+  }
+
+  async function addParticipantFromParticipantsModal() {
+    if (!canEditGroupName || isAddingParticipant || isSavingSettings) {
+      return;
+    }
+
+    const nextDisplayName = newParticipantNameDraft.trim();
+    if (!nextDisplayName) {
+      setAddParticipantError('Participant name is required.');
+      return;
+    }
+
+    try {
+      setAddParticipantError('');
+      setIsAddingParticipant(true);
+
+      const response = await addParticipantToGroup(props.group.id, {
+        displayName: nextDisplayName,
+        role: newParticipantRoleDraft,
+        status: 'active',
+      });
+
+      if (!response.success) {
+        setAddParticipantError(
+          response.error?.message ?? 'Unable to add participant.'
+        );
+        return;
+      }
+
+      setNewParticipantNameDraft('');
+      setNewParticipantRoleDraft('member');
+      router.refresh();
+    } finally {
+      setIsAddingParticipant(false);
+    }
   }
 
   async function submitSettings(event: FormEvent) {
@@ -258,12 +301,16 @@ export function useGroup(props: GroupPageProps) {
     isLeaveConfirmModalOpen,
     isSavingSettings,
     isLeavingGroup,
+    isAddingParticipant,
     groupName,
     groupDescription,
     groupNameDraft,
     groupDescriptionDraft,
     settingsCurrencyDraft,
     settingsError,
+    addParticipantError,
+    newParticipantNameDraft,
+    newParticipantRoleDraft,
     canEditGroupName,
     canCreateExpense,
     canLeaveGroup,
@@ -277,9 +324,12 @@ export function useGroup(props: GroupPageProps) {
     setGroupNameDraft,
     setGroupDescriptionDraft,
     setSettingsCurrencyDraft,
+    setNewParticipantNameDraft,
+    setNewParticipantRoleDraft,
     openSettingsModal,
     closeSettingsModal,
     submitSettings,
+    addParticipantFromParticipantsModal,
     requestLeaveGroup,
     cancelLeaveGroup,
     confirmLeaveGroup,
@@ -293,8 +343,16 @@ export function useGroup(props: GroupPageProps) {
     },
     openAddExpenseModal: () => setIsAddExpenseModalOpen(true),
     closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
-    openParticipantsModal: () => setIsParticipantsModalOpen(true),
-    closeParticipantsModal: () => setIsParticipantsModalOpen(false),
+    openParticipantsModal: () => {
+      setAddParticipantError('');
+      setIsParticipantsModalOpen(true);
+    },
+    closeParticipantsModal: () => {
+      setAddParticipantError('');
+      setNewParticipantNameDraft('');
+      setNewParticipantRoleDraft('member');
+      setIsParticipantsModalOpen(false);
+    },
     toggleArchived: () => setShowArchived((v) => !v),
   };
 }

@@ -57,3 +57,26 @@ export async function leaveGroup(groupId: string) {
 
   return response.json();
 }
+
+type AddParticipantInput = {
+  displayName: string;
+  role?: 'owner' | 'admin' | 'member' | 'viewer';
+  status?: 'active' | 'invited' | 'left';
+  userId?: string;
+};
+
+export async function addParticipantToGroup(
+  groupId: string,
+  body: AddParticipantInput
+) {
+  const response = await fetch(`/api/groups/${groupId}/participants`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response.json();
+}

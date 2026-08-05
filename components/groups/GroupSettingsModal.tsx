@@ -101,7 +101,7 @@ export default function GroupSettingsModal({
 
         {error ? <p className="text-sm text-rose-700">{error}</p> : null}
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-start sm:items-center justify-between gap-2">
           {canLeaveGroup ? (
             <button
               type="button"
@@ -115,7 +115,7 @@ export default function GroupSettingsModal({
             <div />
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end sm:flex-row sm:items-center gap-2">
             <button
               type="button"
               onClick={onClose}

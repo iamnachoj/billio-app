@@ -1,13 +1,26 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import Modal from '@/components/ui/Modal';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
+import Button from '../ui/Button';
 
 type GroupParticipantsModalProps = {
   open: boolean;
   onClose: () => void;
   participants: GroupParticipant[];
   currentUserId: string;
+  canAddParticipants: boolean;
+  isAddingParticipant: boolean;
+  addParticipantError: string;
+  newParticipantNameDraft: string;
+  setNewParticipantNameDraft: (value: string) => void;
+  newParticipantRoleDraft: 'owner' | 'admin' | 'member' | 'viewer';
+  setNewParticipantRoleDraft: (
+    value: 'owner' | 'admin' | 'member' | 'viewer'
+  ) => void;
+  onAddParticipant: () => void;
 };
 
 function formatDate(date: Date) {
@@ -49,15 +62,38 @@ export default function GroupParticipantsModal({
   onClose,
   participants,
   currentUserId,
+  canAddParticipants,
+  isAddingParticipant,
+  addParticipantError,
+  newParticipantNameDraft,
+  setNewParticipantNameDraft,
+  newParticipantRoleDraft,
+  setNewParticipantRoleDraft,
+  onAddParticipant,
 }: GroupParticipantsModalProps) {
   const sortedParticipants = [...participants].sort(byRoleThenName);
+  const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setIsAddParticipantOpen(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (addParticipantError) {
+      setIsAddParticipantOpen(true);
+    }
+  }, [addParticipantError]);
 
   return (
     <Modal open={open} onClose={onClose} title="Participants" size="lg">
       <div className="space-y-4">
-        <p className="text-sm text-slate-600">
-          {participants.length} total participants
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-slate-600">
+            {participants.length} total participants
+          </p>
+        </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
@@ -99,7 +135,76 @@ export default function GroupParticipantsModal({
               })}
             </tbody>
           </table>
+          <Button
+            onClick={() => setIsAddParticipantOpen((current) => !current)}
+            className="text-sm mt-4"
+          >
+            {isAddParticipantOpen
+              ? 'Close add participant'
+              : 'Add new participant'}
+          </Button>
         </div>
+        {isAddParticipantOpen ? (
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-800">
+              Add participant
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+              <input
+                value={newParticipantNameDraft}
+                onChange={(event) =>
+                  setNewParticipantNameDraft(event.target.value)
+                }
+                maxLength={80}
+                placeholder="Participant name"
+                disabled={!canAddParticipants || isAddingParticipant}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
+              />
+
+              <select
+                value={newParticipantRoleDraft}
+                onChange={(event) =>
+                  setNewParticipantRoleDraft(
+                    event.target.value as
+                      | 'owner'
+                      | 'admin'
+                      | 'member'
+                      | 'viewer'
+                  )
+                }
+                disabled={!canAddParticipants || isAddingParticipant}
+                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
+              >
+                <option value="member">Member</option>
+                <option value="viewer">Viewer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              {!canAddParticipants ? (
+                <p className="text-xs text-slate-500">
+                  Only owners and admins can add participants.
+                </p>
+              ) : (
+                <div />
+              )}
+
+              {addParticipantError ? (
+                <p className="text-sm text-rose-700">{addParticipantError}</p>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={onAddParticipant}
+                disabled={!canAddParticipants || isAddingParticipant}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isAddingParticipant ? 'Adding...' : 'Add participant'}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </Modal>
   );

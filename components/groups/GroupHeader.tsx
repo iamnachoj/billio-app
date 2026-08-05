@@ -58,9 +58,9 @@ export default function GroupHeader({
             <button
               type="button"
               onClick={onOpenParticipantsModal}
-              className="font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
+              className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
             >
-              {participantsCount} participants
+              {participantsCount} participants (+ add more)
             </button>{' '}
             · {expensesCount} expenses
           </p>

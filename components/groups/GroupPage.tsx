@@ -62,6 +62,14 @@ export default function GroupPage(props: GroupPageProps) {
         onClose={group.closeParticipantsModal}
         participants={group.participants}
         currentUserId={group.user.id}
+        canAddParticipants={group.canEditGroupName}
+        isAddingParticipant={group.isAddingParticipant}
+        addParticipantError={group.addParticipantError}
+        newParticipantNameDraft={group.newParticipantNameDraft}
+        setNewParticipantNameDraft={group.setNewParticipantNameDraft}
+        newParticipantRoleDraft={group.newParticipantRoleDraft}
+        setNewParticipantRoleDraft={group.setNewParticipantRoleDraft}
+        onAddParticipant={group.addParticipantFromParticipantsModal}
       />
 
       <GroupSettingsModal
