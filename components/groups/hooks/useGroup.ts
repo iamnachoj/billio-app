@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 
 import {
   addParticipantToGroup,
+  deleteParticipantFromGroup,
   leaveGroup,
   updateGroupName,
 } from '@/frontend-services/groups.service';
@@ -46,6 +47,10 @@ export function useGroup(props: GroupPageProps) {
   >('member');
   const [addParticipantError, setAddParticipantError] = useState('');
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
+  const [removeParticipantError, setRemoveParticipantError] = useState('');
+  const [removingParticipantId, setRemovingParticipantId] = useState<
+    string | null
+  >(null);
   const [inviteEmailDraft, setInviteEmailDraft] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
@@ -145,6 +150,20 @@ export function useGroup(props: GroupPageProps) {
     setSettingsError('');
   }
 
+  function resetParticipantsModalState() {
+    setAddParticipantError('');
+    setRemoveParticipantError('');
+    setInviteError('');
+    setNewParticipantNameDraft('');
+    setNewParticipantRoleDraft('member');
+    setInviteEmailDraft('');
+  }
+
+  function closeParticipantsModal() {
+    resetParticipantsModalState();
+    setIsParticipantsModalOpen(false);
+  }
+
   async function addParticipantFromParticipantsModal() {
     if (!canEditGroupName || isAddingParticipant || isSavingSettings) {
       return;
@@ -178,6 +197,33 @@ export function useGroup(props: GroupPageProps) {
       router.refresh();
     } finally {
       setIsAddingParticipant(false);
+    }
+  }
+
+  async function removeParticipantFromParticipantsModal(participantId: string) {
+    if (!canEditGroupName || !participantId || removingParticipantId) {
+      return;
+    }
+
+    try {
+      setRemoveParticipantError('');
+      setRemovingParticipantId(participantId);
+
+      const response = await deleteParticipantFromGroup(
+        props.group.id,
+        participantId
+      );
+
+      if (!response.success) {
+        setRemoveParticipantError(
+          response.error?.message ?? 'Unable to remove participant.'
+        );
+        return;
+      }
+
+      router.refresh();
+    } finally {
+      setRemovingParticipantId(null);
     }
   }
 
@@ -356,6 +402,7 @@ export function useGroup(props: GroupPageProps) {
     settingsCurrencyDraft,
     settingsError,
     addParticipantError,
+    removeParticipantError,
     inviteError,
     newParticipantNameDraft,
     newParticipantRoleDraft,
@@ -363,6 +410,7 @@ export function useGroup(props: GroupPageProps) {
     generatedInviteLink,
     generatedInviteEmail,
     generatedInviteExpiresAt,
+    removingParticipantId,
     canEditGroupName,
     canCreateExpense,
     canLeaveGroup,
@@ -383,6 +431,7 @@ export function useGroup(props: GroupPageProps) {
     closeSettingsModal,
     submitSettings,
     addParticipantFromParticipantsModal,
+    removeParticipantFromParticipantsModal,
     generateInviteFromParticipantsModal,
     requestLeaveGroup,
     cancelLeaveGroup,
@@ -398,18 +447,10 @@ export function useGroup(props: GroupPageProps) {
     openAddExpenseModal: () => setIsAddExpenseModalOpen(true),
     closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
     openParticipantsModal: () => {
-      setAddParticipantError('');
-      setInviteError('');
+      resetParticipantsModalState();
       setIsParticipantsModalOpen(true);
     },
-    closeParticipantsModal: () => {
-      setAddParticipantError('');
-      setInviteError('');
-      setNewParticipantNameDraft('');
-      setNewParticipantRoleDraft('member');
-      setInviteEmailDraft('');
-      setIsParticipantsModalOpen(false);
-    },
+    closeParticipantsModal,
     closeInviteLinkModal: () => {
       setIsInviteLinkModalOpen(false);
       setGeneratedInviteLink('');

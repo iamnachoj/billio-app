@@ -80,3 +80,18 @@ export async function addParticipantToGroup(
 
   return response.json();
 }
+
+export async function deleteParticipantFromGroup(
+  groupId: string,
+  participantId: string
+) {
+  const response = await fetch(
+    `/api/groups/${groupId}/participants/${participantId}`,
+    {
+      method: 'DELETE',
+      credentials: 'include',
+    }
+  );
+
+  return response.json();
+}

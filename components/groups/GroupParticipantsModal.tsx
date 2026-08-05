@@ -26,6 +26,9 @@ type GroupParticipantsModalProps = {
   inviteError: string;
   isGeneratingInvite: boolean;
   onGenerateInvite: () => void;
+  removeParticipantError: string;
+  removingParticipantId: string | null;
+  onRemoveParticipant: (participantId: string) => void;
 };
 
 function formatDate(date: Date) {
@@ -80,15 +83,21 @@ export default function GroupParticipantsModal({
   inviteError,
   isGeneratingInvite,
   onGenerateInvite,
+  removeParticipantError,
+  removingParticipantId,
+  onRemoveParticipant,
 }: GroupParticipantsModalProps) {
   const sortedParticipants = [...participants].sort(byRoleThenName);
   const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
   const [isGenerateInviteOpen, setIsGenerateInviteOpen] = useState(false);
+  const [pendingRemovalParticipantId, setPendingRemovalParticipantId] =
+    useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setIsAddParticipantOpen(false);
       setIsGenerateInviteOpen(false);
+      setPendingRemovalParticipantId(null);
     }
   }, [open]);
 
@@ -103,6 +112,12 @@ export default function GroupParticipantsModal({
       setIsGenerateInviteOpen(true);
     }
   }, [inviteError]);
+
+  useEffect(() => {
+    if (removeParticipantError) {
+      setPendingRemovalParticipantId(null);
+    }
+  }, [removeParticipantError]);
 
   return (
     <Modal open={open} onClose={onClose} title="Participants" size="lg">
@@ -176,11 +191,24 @@ export default function GroupParticipantsModal({
                 <th className="px-3 py-2 font-semibold">Status</th>
                 <th className="px-3 py-2 font-semibold">Linked User</th>
                 <th className="px-3 py-2 font-semibold">Joined</th>
+                {canAddParticipants ? (
+                  <th className="px-3 py-2 font-semibold text-right">
+                    Actions
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
               {sortedParticipants.map((participant) => {
                 const isCurrentUser = participant.userId === currentUserId;
+                const canRemoveParticipant =
+                  canAddParticipants &&
+                  participant.role !== 'owner' &&
+                  participant.role !== 'admin';
+                const isConfirmingRemoval =
+                  pendingRemovalParticipantId === participant.id;
+                const isRemovingParticipant =
+                  removingParticipantId === participant.id;
 
                 return (
                   <tr key={participant.id}>
@@ -202,11 +230,61 @@ export default function GroupParticipantsModal({
                     <td className="px-3 py-3">
                       {formatDate(participant.joinedAt)}
                     </td>
+                    {canAddParticipants ? (
+                      <td className="px-3 py-3 text-right">
+                        {canRemoveParticipant ? (
+                          isConfirmingRemoval ? (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPendingRemovalParticipantId(null)
+                                }
+                                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onRemoveParticipant(participant.id)
+                                }
+                                disabled={!!removingParticipantId}
+                                className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {isRemovingParticipant
+                                  ? 'Removing...'
+                                  : 'Confirm remove'}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPendingRemovalParticipantId(participant.id)
+                              }
+                              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-100"
+                            >
+                              Remove
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
             </tbody>
           </table>
+
+          {removeParticipantError ? (
+            <p className="mt-3 text-sm text-rose-700">
+              {removeParticipantError}
+            </p>
+          ) : null}
+
           <Button
             onClick={() => setIsAddParticipantOpen((current) => !current)}
             className="text-sm my-4"

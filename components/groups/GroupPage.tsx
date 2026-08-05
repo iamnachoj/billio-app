@@ -76,6 +76,9 @@ export default function GroupPage(props: GroupPageProps) {
         inviteError={group.inviteError}
         isGeneratingInvite={group.isGeneratingInvite}
         onGenerateInvite={group.generateInviteFromParticipantsModal}
+        removeParticipantError={group.removeParticipantError}
+        removingParticipantId={group.removingParticipantId}
+        onRemoveParticipant={group.removeParticipantFromParticipantsModal}
       />
 
       <GroupSettingsModal
