@@ -1,4 +1,5 @@
 import {
+  cleanupEmptyGroups,
   createGroup as createGroupInRepository,
   getGroupById,
   getGroupsByUserId,
@@ -145,6 +146,8 @@ export async function leaveGroup({
     userId: null,
   });
 
+  await cleanupEmptyGroups();
+
   return {
     ok: true,
     data: { success: true },
@@ -155,10 +158,12 @@ export async function updateGroupName({
   groupId,
   userId,
   name,
+  description,
 }: {
   groupId: string;
   userId: string;
   name: string;
+  description?: string;
 }): Promise<GroupServiceResult<{ success: true }>> {
   if (!groupId || !userId) {
     return {
@@ -201,6 +206,7 @@ export async function updateGroupName({
 
   await updateGroupByIdInRepository(groupId, {
     name: name.trim(),
+    description: description?.trim() || null,
   });
 
   return {

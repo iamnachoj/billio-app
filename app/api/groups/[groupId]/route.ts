@@ -20,6 +20,7 @@ export async function PATCH(
       groupId,
       userId: currentUser.id,
       name: body?.name,
+      description: body?.description,
     });
 
     if (!result.ok) {

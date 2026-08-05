@@ -49,45 +49,49 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/50 p-3 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={() => {
         if (closeOnOverlayClick) {
           onClose();
         }
       }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={clsx(
-          'relative w-full rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200',
+      <div className="flex min-h-full w-full items-end justify-center sm:items-center">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className={clsx(
+            'relative flex w-full max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-3rem)]',
 
-          {
-            'max-w-sm': size === 'sm',
-            'max-w-xl': size === 'md',
-            'max-w-3xl': size === 'lg',
-          }
-        )}
-      >
-        <div className="flex items-center justify-between border-b border-gray-200 px-8 py-6">
-          {title ? (
-            <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
-          ) : (
-            <div />
+            {
+              'max-w-sm': size === 'sm',
+              'max-w-xl': size === 'md',
+              'max-w-3xl': size === 'lg',
+            }
           )}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-4 sm:px-8 sm:py-6">
+            {title ? (
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+                {title}
+              </h2>
+            ) : (
+              <div />
+            )}
 
-          {showCloseButton && (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="cursor-pointer rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-            >
-              ✕
-            </button>
-          )}
+            {showCloseButton && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close modal"
+                className="cursor-pointer rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="overflow-y-auto p-4 sm:p-8">{children}</div>
         </div>
-
-        <div className="p-8">{children}</div>
       </div>
     </div>
   );

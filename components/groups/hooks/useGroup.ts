@@ -1,7 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { updateGroupName } from '@/frontend-services/groups.service';
+import {
+  leaveGroup,
+  updateGroupName,
+} from '@/frontend-services/groups.service';
 
 import type { GroupPageProps } from '../GroupPage';
 
@@ -15,17 +18,28 @@ export function useGroup(props: GroupPageProps) {
   const [showArchived, setShowArchived] = useState(false);
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [isLeaveConfirmModalOpen, setIsLeaveConfirmModalOpen] = useState(false);
   const [groupName, setGroupName] = useState(props.group.name);
+  const [groupDescription, setGroupDescription] = useState(
+    props.group.description ?? ''
+  );
   const [groupNameDraft, setGroupNameDraft] = useState(props.group.name);
+  const [groupDescriptionDraft, setGroupDescriptionDraft] = useState(
+    props.group.description ?? ''
+  );
   const [settingsCurrencyDraft, setSettingsCurrencyDraft] =
     useState<string>('EUR');
   const [settingsError, setSettingsError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isLeavingGroup, setIsLeavingGroup] = useState(false);
 
   useEffect(() => {
     setGroupName(props.group.name);
+    setGroupDescription(props.group.description ?? '');
     setGroupNameDraft(props.group.name);
-  }, [props.group.id, props.group.name]);
+    setGroupDescriptionDraft(props.group.description ?? '');
+  }, [props.group.id, props.group.name, props.group.description]);
 
   const participantNameById = useMemo(() => {
     return new Map(
@@ -91,9 +105,12 @@ export function useGroup(props: GroupPageProps) {
 
   const canEditGroupName =
     myParticipant?.role === 'owner' || myParticipant?.role === 'admin';
+  const canCreateExpense = !!myParticipant && myParticipant.role !== 'viewer';
+  const canLeaveGroup = !!myParticipant;
 
   function openSettingsModal() {
     setGroupNameDraft(groupName);
+    setGroupDescriptionDraft(groupDescription);
     setSettingsCurrencyDraft(selectedCurrency);
     setSettingsError('');
     setIsSettingsModalOpen(true);
@@ -114,6 +131,7 @@ export function useGroup(props: GroupPageProps) {
     setSettingsError('');
 
     const nextName = groupNameDraft.trim();
+    const nextDescription = groupDescriptionDraft.trim();
     const nextCurrency = settingsCurrencyDraft;
 
     if (!nextCurrency) {
@@ -127,9 +145,15 @@ export function useGroup(props: GroupPageProps) {
     }
 
     const shouldUpdateName = canEditGroupName && nextName !== groupName;
+    const shouldUpdateDescription =
+      canEditGroupName && nextDescription !== groupDescription;
     const shouldUpdateCurrency = nextCurrency !== selectedCurrency;
 
-    if (!shouldUpdateName && !shouldUpdateCurrency) {
+    if (
+      !shouldUpdateName &&
+      !shouldUpdateDescription &&
+      !shouldUpdateCurrency
+    ) {
       setIsSettingsModalOpen(false);
       return;
     }
@@ -137,9 +161,10 @@ export function useGroup(props: GroupPageProps) {
     try {
       setIsSavingSettings(true);
 
-      if (shouldUpdateName) {
+      if (shouldUpdateName || shouldUpdateDescription) {
         const response = await updateGroupName(props.group.id, {
           name: nextName,
+          description: nextDescription,
         });
 
         if (!response.success) {
@@ -150,6 +175,7 @@ export function useGroup(props: GroupPageProps) {
         }
 
         setGroupName(nextName);
+        setGroupDescription(nextDescription);
       }
 
       if (shouldUpdateCurrency) {
@@ -157,14 +183,62 @@ export function useGroup(props: GroupPageProps) {
       }
 
       setGroupNameDraft(nextName);
+      setGroupDescriptionDraft(nextDescription);
       setIsSettingsModalOpen(false);
       setSettingsError('');
 
-      if (shouldUpdateName) {
+      if (shouldUpdateName || shouldUpdateDescription) {
         router.refresh();
       }
     } finally {
       setIsSavingSettings(false);
+    }
+  }
+
+  function requestLeaveGroup() {
+    if (!canLeaveGroup || isLeavingGroup) {
+      return;
+    }
+
+    setSettingsError('');
+    setIsSettingsModalOpen(false);
+    setIsLeaveConfirmModalOpen(true);
+  }
+
+  function cancelLeaveGroup() {
+    if (isLeavingGroup) {
+      return;
+    }
+
+    setIsLeaveConfirmModalOpen(false);
+  }
+
+  async function confirmLeaveGroup() {
+    if (!canLeaveGroup || isLeavingGroup) {
+      return;
+    }
+
+    try {
+      setSettingsError('');
+      setIsLeavingGroup(true);
+
+      const response = await leaveGroup(props.group.id);
+
+      if (!response.success) {
+        setSettingsError(
+          response.error?.message ?? 'Unable to leave the group.'
+        );
+        setIsLeaveConfirmModalOpen(false);
+        setIsSettingsModalOpen(true);
+        return;
+      }
+
+      setIsLeaveConfirmModalOpen(false);
+      setIsSettingsModalOpen(false);
+      router.push('/dashboard');
+      router.refresh();
+    } finally {
+      setIsLeavingGroup(false);
     }
   }
 
@@ -173,12 +247,19 @@ export function useGroup(props: GroupPageProps) {
     showArchived,
     isParticipantsModalOpen,
     isSettingsModalOpen,
+    isAddExpenseModalOpen,
+    isLeaveConfirmModalOpen,
     isSavingSettings,
+    isLeavingGroup,
     groupName,
+    groupDescription,
     groupNameDraft,
+    groupDescriptionDraft,
     settingsCurrencyDraft,
     settingsError,
     canEditGroupName,
+    canCreateExpense,
+    canLeaveGroup,
     selectedCurrency,
     availableCurrencies,
     myNetBalanceCents,
@@ -187,10 +268,16 @@ export function useGroup(props: GroupPageProps) {
     participantNameById,
     setSelectedCurrency,
     setGroupNameDraft,
+    setGroupDescriptionDraft,
     setSettingsCurrencyDraft,
     openSettingsModal,
     closeSettingsModal,
     submitSettings,
+    requestLeaveGroup,
+    cancelLeaveGroup,
+    confirmLeaveGroup,
+    openAddExpenseModal: () => setIsAddExpenseModalOpen(true),
+    closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
     openParticipantsModal: () => setIsParticipantsModalOpen(true),
     closeParticipantsModal: () => setIsParticipantsModalOpen(false),
     toggleArchived: () => setShowArchived((v) => !v),

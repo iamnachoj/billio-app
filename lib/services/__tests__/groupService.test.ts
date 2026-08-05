@@ -13,6 +13,7 @@ import {
 } from '../groupService';
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
+  cleanupEmptyGroups: vi.fn(),
   createGroup: vi.fn(),
   getGroupById: vi.fn(),
   getGroupsByUserId: vi.fn(),
@@ -161,6 +162,7 @@ describe('groupService', () => {
         userId: null,
       }
     );
+    expect(groupRepository.cleanupEmptyGroups).toHaveBeenCalledTimes(1);
   });
 
   it('returns not found when leaving a nonexistent group', async () => {
@@ -499,6 +501,7 @@ describe('groupService', () => {
 
     expect(groupRepository.updateGroupById).toHaveBeenCalledWith('group-1', {
       name: 'New name',
+      description: null,
     });
   });
 

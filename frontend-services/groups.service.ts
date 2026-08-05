@@ -26,6 +26,7 @@ export async function createGroup(body: CreateGroupInput) {
 
 type UpdateGroupNameInput = {
   name: string;
+  description?: string;
 };
 
 export async function updateGroupName(
@@ -39,6 +40,19 @@ export async function updateGroupName(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+  });
+
+  return response.json();
+}
+
+export async function leaveGroup(groupId: string) {
+  const response = await fetch('/api/groups', {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ groupId }),
   });
 
   return response.json();
