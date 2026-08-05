@@ -81,3 +81,12 @@ export async function updateExpense(
 
   return response.json() as Promise<ApiResult<ExpenseDetailsData>>;
 }
+
+export async function deleteExpense(groupId: string, expenseId: string) {
+  const response = await fetch(`/api/groups/${groupId}/expenses/${expenseId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  return response.json() as Promise<ApiResult<{ success: true }>>;
+}

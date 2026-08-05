@@ -43,13 +43,55 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
                 splitSummaryRows={model.splitSummaryRows}
                 participantNameById={model.participantNameById}
               />
-              <div className="flex flex-row justify-end gap-2">
-                {props.canEdit ? (
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={model.startEditing}>
-                      Edit expense
+              {model.isDeleteConfirmOpen ? (
+                <div className="space-y-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="text-sm font-semibold text-rose-900">
+                    Delete this expense?
+                  </p>
+                  <p className="text-sm text-rose-700">
+                    This permanently removes the expense and its splits. It will
+                    disappear from history and stop counting in balances.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={model.cancelDeleteConfirm}
+                      disabled={model.isDeleting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      onClick={model.confirmDeleteExpense}
+                      loading={model.isDeleting}
+                    >
+                      Delete expense
                     </Button>
                   </div>
+                </div>
+              ) : null}
+              <div className="flex flex-row justify-end gap-2">
+                {props.canEdit ? (
+                  <>
+                    {!model.isDeleteConfirmOpen ? (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={model.openDeleteConfirm}
+                          className="cursor-pointer rounded-xl border border-rose-200 bg-transparent px-4 py-3 font-semibold text-rose-700 transition-colors duration-200 hover:bg-rose-50"
+                        >
+                          Delete expense
+                        </button>
+                      </div>
+                    ) : null}
+                    <div className="flex justify-end">
+                      <Button type="button" onClick={model.startEditing}>
+                        Edit expense
+                      </Button>
+                    </div>
+                  </>
                 ) : null}
 
                 <div className="flex items-center justify-end gap-2">

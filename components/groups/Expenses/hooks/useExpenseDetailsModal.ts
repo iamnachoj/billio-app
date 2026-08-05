@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
+  deleteExpense,
   getExpenseById,
   updateExpense,
   type CreateExpenseSplitInput,
@@ -240,7 +241,9 @@ export function useExpenseDetailsModal({
   const [details, setDetails] = useState<ExpenseDetailsData | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [error, setError] = useState('');
 
   const [title, setTitle] = useState('');
@@ -279,6 +282,8 @@ export function useExpenseDetailsModal({
     setIsEditing(false);
     setIsFetching(false);
     setIsSaving(false);
+    setIsDeleting(false);
+    setIsDeleteConfirmOpen(false);
     setDetails(null);
     setInitialSnapshot(null);
     setSplitSummaryRows([]);
@@ -386,7 +391,7 @@ export function useExpenseDetailsModal({
   }, [open, expenseId, groupId, activeParticipants]);
 
   function closeModal() {
-    if (isSaving) {
+    if (isSaving || isDeleting) {
       return;
     }
 
@@ -394,11 +399,12 @@ export function useExpenseDetailsModal({
   }
 
   function startEditing() {
-    if (!canEdit || !details) {
+    if (!canEdit || !details || isDeleting) {
       return;
     }
 
     setError('');
+    setIsDeleteConfirmOpen(false);
     setIsEditing(true);
   }
 
@@ -410,6 +416,23 @@ export function useExpenseDetailsModal({
     hydrateFormFromDetails(details);
     setError('');
     setIsEditing(false);
+  }
+
+  function openDeleteConfirm() {
+    if (!canEdit || !details || isEditing || isDeleting) {
+      return;
+    }
+
+    setError('');
+    setIsDeleteConfirmOpen(true);
+  }
+
+  function cancelDeleteConfirm() {
+    if (isDeleting) {
+      return;
+    }
+
+    setIsDeleteConfirmOpen(false);
   }
 
   function toggleSelectedParticipant(participantId: string) {
@@ -623,11 +646,37 @@ export function useExpenseDetailsModal({
     }
   }
 
+  async function confirmDeleteExpense() {
+    if (!expenseId || !details || !canEdit || isDeleting || isSaving) {
+      return;
+    }
+
+    try {
+      setError('');
+      setIsDeleting(true);
+
+      const response = await deleteExpense(groupId, expenseId);
+
+      if (!response.success) {
+        setError(response.error?.message ?? 'Unable to delete expense.');
+        return;
+      }
+
+      setIsDeleteConfirmOpen(false);
+      onClose();
+      router.refresh();
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return {
     details,
     isFetching,
     isSaving,
+    isDeleting,
     isEditing,
+    isDeleteConfirmOpen,
     error,
     title,
     description,
@@ -654,6 +703,9 @@ export function useExpenseDetailsModal({
     closeModal,
     startEditing,
     cancelEditing,
+    openDeleteConfirm,
+    cancelDeleteConfirm,
+    confirmDeleteExpense,
     handleSubmit,
   };
 }
