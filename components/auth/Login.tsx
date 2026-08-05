@@ -11,9 +11,10 @@ import { useLogin } from './hooks/useLogin';
 
 type Props = {
   initialMode: 'login' | 'register';
+  redirectTo?: string;
 };
 
-export default function Login({ initialMode }: Props) {
+export default function Login({ initialMode, redirectTo }: Props) {
   const {
     mode,
     loading,
@@ -30,7 +31,7 @@ export default function Login({ initialMode }: Props) {
     setAcceptTerms,
     toggleMode,
     handleSubmit,
-  } = useLogin(initialMode);
+  } = useLogin(initialMode, redirectTo);
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">

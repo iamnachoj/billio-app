@@ -6,6 +6,7 @@ import {
   leaveGroup,
   updateGroupName,
 } from '@/frontend-services/groups.service';
+import { createGroupInvite } from '@/frontend-services/invites.service';
 
 import type { GroupPageProps } from '../GroupPage';
 
@@ -45,6 +46,13 @@ export function useGroup(props: GroupPageProps) {
   >('member');
   const [addParticipantError, setAddParticipantError] = useState('');
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
+  const [inviteEmailDraft, setInviteEmailDraft] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+  const [isInviteLinkModalOpen, setIsInviteLinkModalOpen] = useState(false);
+  const [generatedInviteLink, setGeneratedInviteLink] = useState('');
+  const [generatedInviteEmail, setGeneratedInviteEmail] = useState('');
+  const [generatedInviteExpiresAt, setGeneratedInviteExpiresAt] = useState('');
 
   useEffect(() => {
     setGroupName(props.group.name);
@@ -170,6 +178,43 @@ export function useGroup(props: GroupPageProps) {
       router.refresh();
     } finally {
       setIsAddingParticipant(false);
+    }
+  }
+
+  async function generateInviteFromParticipantsModal() {
+    if (!canEditGroupName || isGeneratingInvite) {
+      return;
+    }
+
+    try {
+      setInviteError('');
+      setIsGeneratingInvite(true);
+
+      const email = inviteEmailDraft.trim();
+      const response = await createGroupInvite(props.group.id, {
+        email: email || undefined,
+      });
+
+      if (!response.success) {
+        setInviteError(response.error?.message ?? 'Unable to generate invite.');
+        return;
+      }
+
+      const invitePath = `/invites/${response.data.token}`;
+      const inviteUrl =
+        typeof window === 'undefined'
+          ? invitePath
+          : `${window.location.origin}${invitePath}`;
+
+      setGeneratedInviteLink(inviteUrl);
+      setGeneratedInviteEmail(response.data.email ?? email);
+      setGeneratedInviteExpiresAt(String(response.data.expiresAt));
+      setInviteEmailDraft('');
+      setInviteError('');
+      closeParticipantsModal();
+      setIsInviteLinkModalOpen(true);
+    } finally {
+      setIsGeneratingInvite(false);
     }
   }
 
@@ -302,6 +347,8 @@ export function useGroup(props: GroupPageProps) {
     isSavingSettings,
     isLeavingGroup,
     isAddingParticipant,
+    isGeneratingInvite,
+    isInviteLinkModalOpen,
     groupName,
     groupDescription,
     groupNameDraft,
@@ -309,8 +356,13 @@ export function useGroup(props: GroupPageProps) {
     settingsCurrencyDraft,
     settingsError,
     addParticipantError,
+    inviteError,
     newParticipantNameDraft,
     newParticipantRoleDraft,
+    inviteEmailDraft,
+    generatedInviteLink,
+    generatedInviteEmail,
+    generatedInviteExpiresAt,
     canEditGroupName,
     canCreateExpense,
     canLeaveGroup,
@@ -326,10 +378,12 @@ export function useGroup(props: GroupPageProps) {
     setSettingsCurrencyDraft,
     setNewParticipantNameDraft,
     setNewParticipantRoleDraft,
+    setInviteEmailDraft,
     openSettingsModal,
     closeSettingsModal,
     submitSettings,
     addParticipantFromParticipantsModal,
+    generateInviteFromParticipantsModal,
     requestLeaveGroup,
     cancelLeaveGroup,
     confirmLeaveGroup,
@@ -345,13 +399,22 @@ export function useGroup(props: GroupPageProps) {
     closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
     openParticipantsModal: () => {
       setAddParticipantError('');
+      setInviteError('');
       setIsParticipantsModalOpen(true);
     },
     closeParticipantsModal: () => {
       setAddParticipantError('');
+      setInviteError('');
       setNewParticipantNameDraft('');
       setNewParticipantRoleDraft('member');
+      setInviteEmailDraft('');
       setIsParticipantsModalOpen(false);
+    },
+    closeInviteLinkModal: () => {
+      setIsInviteLinkModalOpen(false);
+      setGeneratedInviteLink('');
+      setGeneratedInviteEmail('');
+      setGeneratedInviteExpiresAt('');
     },
     toggleArchived: () => setShowArchived((v) => !v),
   };

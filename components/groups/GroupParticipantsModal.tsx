@@ -21,6 +21,11 @@ type GroupParticipantsModalProps = {
     value: 'owner' | 'admin' | 'member' | 'viewer'
   ) => void;
   onAddParticipant: () => void;
+  inviteEmailDraft: string;
+  setInviteEmailDraft: (value: string) => void;
+  inviteError: string;
+  isGeneratingInvite: boolean;
+  onGenerateInvite: () => void;
 };
 
 function formatDate(date: Date) {
@@ -70,13 +75,20 @@ export default function GroupParticipantsModal({
   newParticipantRoleDraft,
   setNewParticipantRoleDraft,
   onAddParticipant,
+  inviteEmailDraft,
+  setInviteEmailDraft,
+  inviteError,
+  isGeneratingInvite,
+  onGenerateInvite,
 }: GroupParticipantsModalProps) {
   const sortedParticipants = [...participants].sort(byRoleThenName);
   const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
+  const [isGenerateInviteOpen, setIsGenerateInviteOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setIsAddParticipantOpen(false);
+      setIsGenerateInviteOpen(false);
     }
   }, [open]);
 
@@ -86,6 +98,12 @@ export default function GroupParticipantsModal({
     }
   }, [addParticipantError]);
 
+  useEffect(() => {
+    if (inviteError) {
+      setIsGenerateInviteOpen(true);
+    }
+  }, [inviteError]);
+
   return (
     <Modal open={open} onClose={onClose} title="Participants" size="lg">
       <div className="space-y-4">
@@ -93,7 +111,61 @@ export default function GroupParticipantsModal({
           <p className="text-sm text-slate-600">
             {participants.length} total participants
           </p>
+          <Button
+            onClick={() => setIsGenerateInviteOpen((current) => !current)}
+            variant="secondary"
+            className="px-3 py-2 text-sm"
+          >
+            {isGenerateInviteOpen
+              ? 'Close invite link'
+              : 'Generate invite link'}
+          </Button>
         </div>
+
+        {isGenerateInviteOpen ? (
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-800">
+              Generate invite link
+            </p>
+            <div className="space-y-2">
+              <input
+                type="email"
+                value={inviteEmailDraft}
+                onChange={(event) => setInviteEmailDraft(event.target.value)}
+                maxLength={120}
+                placeholder="friend@example.com (optional)"
+                disabled={!canAddParticipants || isGeneratingInvite}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
+              />
+              <p className="text-xs text-slate-500">
+                Leave empty to create a reusable link for anyone.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              {!canAddParticipants ? (
+                <p className="text-xs text-slate-500">
+                  Only owners and admins can generate invite links.
+                </p>
+              ) : (
+                <div />
+              )}
+
+              {inviteError ? (
+                <p className="text-sm text-rose-700">{inviteError}</p>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={onGenerateInvite}
+                disabled={!canAddParticipants || isGeneratingInvite}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isGeneratingInvite ? 'Generating...' : 'Generate link'}
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
@@ -137,7 +209,7 @@ export default function GroupParticipantsModal({
           </table>
           <Button
             onClick={() => setIsAddParticipantOpen((current) => !current)}
-            className="text-sm mt-4"
+            className="text-sm my-4"
           >
             {isAddParticipantOpen
               ? 'Close add participant'

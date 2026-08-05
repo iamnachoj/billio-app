@@ -8,6 +8,7 @@ import { GroupBalances } from '@/lib/services/balanceService';
 import ExpenseList from '@/components/groups/Expenses/ExpenseList';
 import AddExpenseModal from '@/components/groups/AddExpenseModal';
 import GroupHeader from '@/components/groups/GroupHeader';
+import InviteLinkModal from '@/components/groups/InviteLinkModal';
 import GroupParticipantsModal from '@/components/groups/GroupParticipantsModal';
 import LeaveGroupConfirmModal from '@/components/groups/LeaveGroupConfirmModal';
 import GroupSettingsModal from './GroupSettingsModal';
@@ -70,6 +71,11 @@ export default function GroupPage(props: GroupPageProps) {
         newParticipantRoleDraft={group.newParticipantRoleDraft}
         setNewParticipantRoleDraft={group.setNewParticipantRoleDraft}
         onAddParticipant={group.addParticipantFromParticipantsModal}
+        inviteEmailDraft={group.inviteEmailDraft}
+        setInviteEmailDraft={group.setInviteEmailDraft}
+        inviteError={group.inviteError}
+        isGeneratingInvite={group.isGeneratingInvite}
+        onGenerateInvite={group.generateInviteFromParticipantsModal}
       />
 
       <GroupSettingsModal
@@ -116,6 +122,14 @@ export default function GroupPage(props: GroupPageProps) {
         participants={group.participants}
         currencies={group.availableCurrencies}
         canEdit={group.canCreateExpense}
+      />
+
+      <InviteLinkModal
+        open={group.isInviteLinkModalOpen}
+        onClose={group.closeInviteLinkModal}
+        inviteUrl={group.generatedInviteLink}
+        email={group.generatedInviteEmail || undefined}
+        expiresAt={group.generatedInviteExpiresAt || undefined}
       />
     </main>
   );

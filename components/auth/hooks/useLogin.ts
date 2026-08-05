@@ -11,7 +11,10 @@ type AlertState = {
   message: string;
 };
 
-export function useLogin(initialMode: 'login' | 'register') {
+export function useLogin(
+  initialMode: 'login' | 'register',
+  redirectTo?: string
+) {
   const router = useRouter();
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
@@ -89,7 +92,23 @@ export function useLogin(initialMode: 'login' | 'register') {
         return;
       }
 
-      router.push('/dashboard');
+      if (mode === 'register') {
+        const loginResponse = await login(email, password);
+
+        if (!loginResponse.success) {
+          setAlert({
+            variant: 'error',
+            title: 'Account created',
+            message:
+              loginResponse.error?.message ??
+              'Your account was created, but automatic sign-in failed.',
+          });
+
+          return;
+        }
+      }
+
+      router.push(redirectTo || '/dashboard');
     } catch {
       setAlert({
         variant: 'error',

@@ -5,6 +5,7 @@ import {
   createParticipant as createParticipantInRepository,
   getParticipantByGroupAndUserId,
   getParticipantById,
+  getParticipantsByGroupId,
   linkParticipantToUser,
   updateParticipantById,
 } from '@/lib/repositories/participantRepository';
@@ -17,6 +18,21 @@ import {
 export type InviteResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: { code: string; message: string; status: number } };
+
+type InvitePreview = {
+  invite: unknown;
+  group: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  claimableParticipants: Array<{
+    id: string;
+    displayName: string;
+    role: 'owner' | 'admin' | 'member' | 'viewer';
+    status: 'active' | 'invited' | 'left';
+  }>;
+};
 
 type CreateInviteInput = {
   groupId: string;
@@ -125,7 +141,7 @@ export async function createGroupInvite({
 
 export async function getInviteByToken(
   token: string
-): Promise<InviteResult<{ invite: unknown }>> {
+): Promise<InviteResult<InvitePreview>> {
   if (!token) {
     return {
       ok: false,
@@ -163,9 +179,41 @@ export async function getInviteByToken(
     };
   }
 
+  const group = await getGroupById(invite.groupId);
+  if (!group) {
+    return {
+      ok: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Group not found',
+        status: 404,
+      },
+    };
+  }
+
+  const participants = await getParticipantsByGroupId(invite.groupId);
+  const claimableParticipants = participants
+    .filter(
+      (participant) => !participant.userId && participant.status !== 'left'
+    )
+    .map((participant) => ({
+      id: participant.id,
+      displayName: participant.displayName,
+      role: participant.role,
+      status: participant.status,
+    }));
+
   return {
     ok: true,
-    data: { invite },
+    data: {
+      invite,
+      group: {
+        id: group.id,
+        name: group.name,
+        description: group.description,
+      },
+      claimableParticipants,
+    },
   };
 }
 

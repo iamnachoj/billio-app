@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/utils/jwt';
 
+function resolveSafeNextPath(request: NextRequest) {
+  const next = request.nextUrl.searchParams.get('next');
+
+  if (!next || !next.startsWith('/')) {
+    return null;
+  }
+
+  return next;
+}
+
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -15,7 +25,11 @@ export function proxy(request: NextRequest) {
     try {
       verifyToken(token);
 
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      const nextPath = resolveSafeNextPath(request);
+
+      return NextResponse.redirect(
+        new URL(nextPath || '/dashboard', request.url)
+      );
     } catch {
       // invalid token -> ignore
     }
@@ -24,13 +38,19 @@ export function proxy(request: NextRequest) {
   // User accessing dashboard
   if (pathname.startsWith('/dashboard')) {
     if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`);
+
+      return NextResponse.redirect(loginUrl);
     }
 
     try {
       verifyToken(token);
     } catch {
-      return NextResponse.redirect(new URL('/login', request.url));
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`);
+
+      return NextResponse.redirect(loginUrl);
     }
   }
 

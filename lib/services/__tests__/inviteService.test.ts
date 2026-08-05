@@ -22,6 +22,7 @@ vi.mock('@/lib/repositories/groupRepository', () => ({
 vi.mock('@/lib/repositories/participantRepository', () => ({
   getParticipantByGroupAndUserId: vi.fn(),
   getParticipantById: vi.fn(),
+  getParticipantsByGroupId: vi.fn(),
   updateParticipantById: vi.fn(),
   linkParticipantToUser: vi.fn(),
   createParticipant: vi.fn(),
@@ -109,6 +110,29 @@ describe('inviteService', () => {
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
       createdBy: 'user-1',
     });
+    vi.mocked(groupRepository.getGroupById).mockResolvedValue({
+      id: 'group-1',
+      name: 'Trip',
+      description: 'Weekend trip',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
+      [
+        {
+          id: 'participant-1',
+          groupId: 'group-1',
+          displayName: 'Guest',
+          userId: undefined,
+          role: 'member',
+          status: 'invited',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ]
+    );
     vi.mocked(participantRepository.getParticipantById).mockResolvedValue({
       id: 'participant-1',
       groupId: 'group-1',
@@ -159,6 +183,29 @@ describe('inviteService', () => {
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
       createdBy: 'user-1',
     });
+    vi.mocked(groupRepository.getGroupById).mockResolvedValue({
+      id: 'group-1',
+      name: 'Trip',
+      description: 'Weekend trip',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
+      [
+        {
+          id: 'participant-1',
+          groupId: 'group-1',
+          displayName: 'Guest',
+          userId: undefined,
+          role: 'member',
+          status: 'invited',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ]
+    );
 
     const result = await acceptInvite({
       token: 'invite-token',
@@ -196,6 +243,40 @@ describe('inviteService', () => {
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
       createdBy: 'user-1',
     });
+    vi.mocked(groupRepository.getGroupById).mockResolvedValue({
+      id: 'group-1',
+      name: 'Trip',
+      description: 'Weekend trip',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
+      [
+        {
+          id: 'participant-1',
+          groupId: 'group-1',
+          displayName: 'Guest',
+          userId: undefined,
+          role: 'member',
+          status: 'invited',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+        {
+          id: 'participant-2',
+          groupId: 'group-1',
+          displayName: 'Linked user',
+          userId: 'user-2',
+          role: 'member',
+          status: 'active',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ]
+    );
 
     const result = await getInviteByToken('invite-token');
 
@@ -210,5 +291,18 @@ describe('inviteService', () => {
         groupId: 'group-1',
       })
     );
+    expect(result.data.group).toEqual({
+      id: 'group-1',
+      name: 'Trip',
+      description: 'Weekend trip',
+    });
+    expect(result.data.claimableParticipants).toEqual([
+      {
+        id: 'participant-1',
+        displayName: 'Guest',
+        role: 'member',
+        status: 'invited',
+      },
+    ]);
   });
 });
