@@ -590,13 +590,10 @@ export async function createExpense({
   };
 }
 
-export async function getExpensesForGroup({
-  groupId,
-  userId,
-}: {
-  groupId: string;
-  userId: string;
-}): Promise<ExpenseServiceResult<{ expenses: unknown[] }>> {
+export async function getExpensesForGroup(
+  groupId: string,
+  userId: string
+): Promise<ExpenseServiceResult<{ expenses: unknown[] }>> {
   if (!groupId || !userId) {
     return {
       ok: false,

@@ -115,3 +115,39 @@ export async function getGroupsByUserId(userId: string) {
     createdBy: row.created_by as string,
   }));
 }
+
+export async function updateGroupById(
+  groupId: string,
+  updates: {
+    name?: string;
+    description?: string | null;
+  }
+) {
+  const fields = [] as string[];
+  const args: Array<string | null> = [];
+
+  if (updates.name !== undefined) {
+    fields.push('name = ?');
+    args.push(updates.name);
+  }
+
+  if (updates.description !== undefined) {
+    fields.push('description = ?');
+    args.push(updates.description);
+  }
+
+  if (fields.length === 0) {
+    return;
+  }
+
+  args.push(new Date().toISOString(), groupId);
+
+  await db.execute(
+    `
+      UPDATE groups
+      SET ${fields.join(', ')}, updated_at = ?
+      WHERE id = ?
+    `,
+    args
+  );
+}

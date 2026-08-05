@@ -10,7 +10,9 @@ export default async function Header() {
     <header className="bg-gray-800 text-white p-4 lg:py-4 lg:px-16">
       {user ? (
         <div className="flex justify-between">
-          <BillioLogo />
+          <Link href="/">
+            <BillioLogo />
+          </Link>
           <nav className="mt-2 flex lg:gap-4">
             <Link href="/settings" className="mr-4 hover:text-teal-400">
               Settings

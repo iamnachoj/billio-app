@@ -47,7 +47,7 @@ export default function ForgotPassword() {
             </Alert>
           )}
 
-          <Button loading={loading} type="submit">
+          <Button loading={loading} type="submit" fullWidth>
             Send reset link
           </Button>
         </form>

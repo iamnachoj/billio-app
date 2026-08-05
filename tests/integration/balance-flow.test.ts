@@ -111,7 +111,7 @@ describe('integration: balances from real DB data', () => {
       groupId: seeded.groupId,
       userId: seeded.ownerUserId,
       title: 'Dinner',
-      category: 'food',
+      category: 'eating_out',
       amount: 1235,
       currency: 'EUR',
       paidByParticipantId: seeded.linkedMemberParticipantId,

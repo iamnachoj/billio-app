@@ -9,12 +9,14 @@ import {
   getGroupsForUser,
   leaveGroup,
   linkParticipantToUser,
+  updateGroupName,
 } from '../groupService';
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
   createGroup: vi.fn(),
   getGroupById: vi.fn(),
   getGroupsByUserId: vi.fn(),
+  updateGroupById: vi.fn(),
 }));
 
 vi.mock('@/lib/repositories/participantRepository', () => ({
@@ -459,5 +461,104 @@ describe('groupService', () => {
       status: 403,
     });
     expect(participantRepository.deleteParticipantById).not.toHaveBeenCalled();
+  });
+
+  it('updates a group name when requested by an admin participant', async () => {
+    vi.mocked(groupRepository.getGroupById).mockResolvedValue({
+      id: 'group-1',
+      name: 'Old name',
+      description: 'Trip',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
+      id: 'participant-1',
+      groupId: 'group-1',
+      displayName: 'Owner',
+      userId: 'user-1',
+      role: 'owner',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+
+    const result = await updateGroupName({
+      groupId: 'group-1',
+      userId: 'user-1',
+      name: '  New name  ',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error('Expected update to succeed');
+    }
+
+    expect(groupRepository.updateGroupById).toHaveBeenCalledWith('group-1', {
+      name: 'New name',
+    });
+  });
+
+  it('rejects empty group names on update', async () => {
+    const result = await updateGroupName({
+      groupId: 'group-1',
+      userId: 'user-1',
+      name: '   ',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected update to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'INVALID_INPUT',
+      message: 'Group name is required',
+      status: 400,
+    });
+  });
+
+  it('rejects group name updates from non-admin participants', async () => {
+    vi.mocked(groupRepository.getGroupById).mockResolvedValue({
+      id: 'group-1',
+      name: 'Old name',
+      description: 'Trip',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(
+      participantRepository.getParticipantByGroupAndUserId
+    ).mockResolvedValue({
+      id: 'participant-2',
+      groupId: 'group-1',
+      displayName: 'Member',
+      userId: 'user-2',
+      role: 'member',
+      status: 'active',
+      joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    });
+
+    const result = await updateGroupName({
+      groupId: 'group-1',
+      userId: 'user-2',
+      name: 'New name',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected update to fail');
+    }
+
+    expect(result.error).toEqual({
+      code: 'FORBIDDEN',
+      message: 'Admin privileges required',
+      status: 403,
+    });
   });
 });

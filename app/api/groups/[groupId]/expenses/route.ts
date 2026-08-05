@@ -60,10 +60,7 @@ export async function GET(
 
     const { groupId } = await params;
 
-    const result = await getExpensesForGroup({
-      groupId,
-      userId: currentUser.id,
-    });
+    const result = await getExpensesForGroup(groupId, currentUser.id);
 
     if (!result.ok) {
       return errorResponse(

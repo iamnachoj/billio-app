@@ -7,6 +7,9 @@ import {
   getParticipantByGroupAndUserId,
   getParticipantsByGroupId,
 } from '@/lib/repositories/participantRepository';
+import { Expense } from '@/lib/models/expense';
+import { ExpenseSplit } from '@/lib/models/expenseSplit';
+import { GroupParticipant } from '@/lib/models/groupParticipant';
 
 export type BalanceServiceResult<T> =
   | { ok: true; data: T }
@@ -119,54 +122,19 @@ function buildSettlements(
   return settlements;
 }
 
-export async function getGroupBalances({
+export function calculateGroupBalancesFromData({
   groupId,
-  userId,
+  myParticipantId,
+  participants,
+  expenses,
+  splits,
 }: {
   groupId: string;
-  userId: string;
-}): Promise<BalanceServiceResult<GroupBalances>> {
-  if (!groupId || !userId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_INPUT',
-        message: 'Group ID and user ID are required',
-        status: 400,
-      },
-    };
-  }
-
-  const membership = await getParticipantByGroupAndUserId(groupId, userId);
-  if (!membership) {
-    const group = await getGroupById(groupId);
-    if (!group) {
-      return {
-        ok: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: 'Group not found',
-          status: 404,
-        },
-      };
-    }
-
-    return {
-      ok: false,
-      error: {
-        code: 'FORBIDDEN',
-        message: 'You are not a member of this group',
-        status: 403,
-      },
-    };
-  }
-
-  const [participants, expenses, splits] = await Promise.all([
-    getParticipantsByGroupId(groupId),
-    getExpensesByGroupId(groupId),
-    getExpenseSplitsByGroupId(groupId),
-  ]);
-
+  myParticipantId: string;
+  participants: GroupParticipant[];
+  expenses: Expense[];
+  splits: ExpenseSplit[];
+}): GroupBalances {
   const participantInfos: ParticipantInfo[] = participants.map(
     (participant) => ({
       id: participant.id,
@@ -273,13 +241,70 @@ export async function getGroupBalances({
   });
 
   return {
+    groupId,
+    calculatedAt: new Date().toISOString(),
+    myParticipantId,
+    participants: participantInfos,
+    currencies: currencySummaries,
+  };
+}
+
+export async function getGroupBalances({
+  groupId,
+  userId,
+}: {
+  groupId: string;
+  userId: string;
+}): Promise<BalanceServiceResult<GroupBalances>> {
+  if (!groupId || !userId) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'Group ID and user ID are required',
+        status: 400,
+      },
+    };
+  }
+
+  const membership = await getParticipantByGroupAndUserId(groupId, userId);
+  if (!membership) {
+    const group = await getGroupById(groupId);
+    if (!group) {
+      return {
+        ok: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Group not found',
+          status: 404,
+        },
+      };
+    }
+
+    return {
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'You are not a member of this group',
+        status: 403,
+      },
+    };
+  }
+
+  const [participants, expenses, splits] = await Promise.all([
+    getParticipantsByGroupId(groupId),
+    getExpensesByGroupId(groupId),
+    getExpenseSplitsByGroupId(groupId),
+  ]);
+
+  return {
     ok: true,
-    data: {
+    data: calculateGroupBalancesFromData({
       groupId,
-      calculatedAt: new Date().toISOString(),
       myParticipantId: membership.id,
-      participants: participantInfos,
-      currencies: currencySummaries,
-    },
+      participants,
+      expenses,
+      splits,
+    }),
   };
 }

@@ -23,3 +23,23 @@ export async function createGroup(body: CreateGroupInput) {
 
   return response.json();
 }
+
+type UpdateGroupNameInput = {
+  name: string;
+};
+
+export async function updateGroupName(
+  groupId: string,
+  body: UpdateGroupNameInput
+) {
+  const response = await fetch(`/api/groups/${groupId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response.json();
+}

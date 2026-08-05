@@ -2,6 +2,7 @@ import {
   createGroup as createGroupInRepository,
   getGroupById,
   getGroupsByUserId,
+  updateGroupById as updateGroupByIdInRepository,
 } from '@/lib/repositories/groupRepository';
 import {
   createParticipant as createParticipantInRepository,
@@ -142,6 +143,64 @@ export async function leaveGroup({
   await updateParticipantByIdInRepository(membership.id, {
     status: 'left',
     userId: null,
+  });
+
+  return {
+    ok: true,
+    data: { success: true },
+  };
+}
+
+export async function updateGroupName({
+  groupId,
+  userId,
+  name,
+}: {
+  groupId: string;
+  userId: string;
+  name: string;
+}): Promise<GroupServiceResult<{ success: true }>> {
+  if (!groupId || !userId) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'Group ID and user ID are required',
+        status: 400,
+      },
+    };
+  }
+
+  if (!name?.trim()) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'Group name is required',
+        status: 400,
+      },
+    };
+  }
+
+  const group = await getGroupById(groupId);
+  if (!group) {
+    return {
+      ok: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Group not found',
+        status: 404,
+      },
+    };
+  }
+
+  const adminResult = await ensureGroupAdmin(groupId, userId);
+  if (!adminResult.ok) {
+    return adminResult;
+  }
+
+  await updateGroupByIdInRepository(groupId, {
+    name: name.trim(),
   });
 
   return {
