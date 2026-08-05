@@ -27,12 +27,14 @@ export default function Dashboard({ user, groups }: Props) {
     useDashboard(groups);
 
   return (
-    <main className="mx-auto max-w-6xl px-8 py-12">
+    <main className="mx-auto max-w-6xl px-4 py-12 md:px-8">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl lg:text-4xl font-bold text-gray-800">
           Hello {user.name} 👋
         </h1>
-        <Button onClick={() => setIsOpen(true)}>Add new Group</Button>
+        <Button className="text-sm p-1" onClick={() => setIsOpen(true)}>
+          Add new Group
+        </Button>
         <Modal
           open={isOpen}
           title="Create group"

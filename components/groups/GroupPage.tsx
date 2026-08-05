@@ -10,9 +10,9 @@ import AddExpenseModal from '@/components/groups/AddExpenseModal';
 import GroupHeader from '@/components/groups/GroupHeader';
 import GroupParticipantsModal from '@/components/groups/GroupParticipantsModal';
 import LeaveGroupConfirmModal from '@/components/groups/LeaveGroupConfirmModal';
-import ExpenseDetailsModal from './Expenses/ExpenseDetailsModal';
 import GroupSettingsModal from './GroupSettingsModal';
 import { useGroup } from './hooks/useGroup';
+import ExpenseDetailsModal from './Expenses/ExpenseDetailsModal';
 
 export type GroupPageUser = {
   id: string;

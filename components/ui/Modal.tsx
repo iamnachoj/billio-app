@@ -56,7 +56,7 @@ export default function Modal({
         }
       }}
     >
-      <div className="flex min-h-full w-full items-end justify-center sm:items-center">
+      <div className="flex min-h-full w-full items-center justify-center pt-2 sm:items-center sm:pt-0">
         <div
           onClick={(e) => e.stopPropagation()}
           className={clsx(
