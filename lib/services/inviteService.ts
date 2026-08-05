@@ -20,7 +20,20 @@ export type InviteResult<T> =
   | { ok: false; error: { code: string; message: string; status: number } };
 
 type InvitePreview = {
-  invite: unknown;
+  invite: {
+    id: string;
+    groupId: string;
+    participantId?: string;
+    token: string;
+    email?: string;
+    status: 'pending' | 'accepted' | 'revoked' | 'expired';
+    expiresAt: Date;
+    acceptedAt?: Date;
+    revokedAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: string;
+  };
   group: {
     id: string;
     name: string;
