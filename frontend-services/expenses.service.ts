@@ -43,6 +43,123 @@ export type ExpenseDetailsData = {
   splits: ExpenseSplit[];
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function normalizeErrorFromPayload(payload: unknown): ApiError | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const error = payload.error;
+  if (!isRecord(error)) {
+    return null;
+  }
+
+  const code = typeof error.code === 'string' ? error.code : 'UNKNOWN_ERROR';
+  const message =
+    typeof error.message === 'string'
+      ? error.message
+      : 'Request failed unexpectedly';
+
+  return { code, message };
+}
+
+async function readResponsePayload(response: Response): Promise<unknown> {
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (contentType.includes('application/json')) {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const rawText = await response.text();
+    if (!rawText.trim()) {
+      return null;
+    }
+
+    return JSON.parse(rawText);
+  } catch {
+    return null;
+  }
+}
+
+async function parseApiResult<T>(
+  response: Response,
+  options?: { successFallbackData?: T }
+): Promise<ApiResult<T>> {
+  const payload = await readResponsePayload(response);
+
+  if (isRecord(payload) && typeof payload.success === 'boolean') {
+    if (payload.success) {
+      return {
+        success: true,
+        data: (payload.data ?? options?.successFallbackData) as T,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        normalizeErrorFromPayload(payload) ??
+        ({
+          code: 'UNKNOWN_ERROR',
+          message: 'Request failed unexpectedly',
+        } satisfies ApiError),
+    };
+  }
+
+  // Backward-compatibility with environments still returning { ok, data, error }.
+  if (isRecord(payload) && typeof payload.ok === 'boolean') {
+    if (payload.ok) {
+      return {
+        success: true,
+        data: (payload.data ?? options?.successFallbackData) as T,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        normalizeErrorFromPayload(payload) ??
+        ({
+          code: 'UNKNOWN_ERROR',
+          message: 'Request failed unexpectedly',
+        } satisfies ApiError),
+    };
+  }
+
+  if (response.ok) {
+    if (options && 'successFallbackData' in options) {
+      return {
+        success: true,
+        data: options.successFallbackData as T,
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        code: 'INVALID_RESPONSE',
+        message: 'Server returned an unexpected success response',
+      },
+    };
+  }
+
+  return {
+    success: false,
+    error: normalizeErrorFromPayload(payload) ?? {
+      code: `HTTP_${response.status}`,
+      message: `Request failed with status ${response.status}`,
+    },
+  };
+}
+
 export async function createExpense(groupId: string, body: CreateExpenseInput) {
   const response = await fetch(`/api/groups/${groupId}/expenses`, {
     method: 'POST',
@@ -53,7 +170,12 @@ export async function createExpense(groupId: string, body: CreateExpenseInput) {
     body: JSON.stringify(body),
   });
 
-  return response.json() as Promise<ApiResult<ExpenseDetailsData>>;
+  return parseApiResult<ExpenseDetailsData>(response, {
+    successFallbackData: {
+      expense: {} as Expense,
+      splits: [],
+    },
+  });
 }
 
 export async function getExpenseById(groupId: string, expenseId: string) {
@@ -62,7 +184,7 @@ export async function getExpenseById(groupId: string, expenseId: string) {
     credentials: 'include',
   });
 
-  return response.json() as Promise<ApiResult<ExpenseDetailsData>>;
+  return parseApiResult<ExpenseDetailsData>(response);
 }
 
 export async function updateExpense(
@@ -79,7 +201,7 @@ export async function updateExpense(
     body: JSON.stringify(body),
   });
 
-  return response.json() as Promise<ApiResult<ExpenseDetailsData>>;
+  return parseApiResult<ExpenseDetailsData>(response);
 }
 
 export async function deleteExpense(groupId: string, expenseId: string) {
@@ -88,5 +210,7 @@ export async function deleteExpense(groupId: string, expenseId: string) {
     credentials: 'include',
   });
 
-  return response.json() as Promise<ApiResult<{ success: true }>>;
+  return parseApiResult<{ success: true }>(response, {
+    successFallbackData: { success: true },
+  });
 }

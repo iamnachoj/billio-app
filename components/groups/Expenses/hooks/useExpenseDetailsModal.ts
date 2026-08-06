@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -289,68 +289,70 @@ export function useExpenseDetailsModal({
     setSplitSummaryRows([]);
   }
 
-  function hydrateFormFromDetails(nextDetails: ExpenseDetailsData) {
-    setDetails(nextDetails);
+  const hydrateFormFromDetails = useCallback(
+    (nextDetails: ExpenseDetailsData) => {
+      setDetails(nextDetails);
 
-    const expense = nextDetails.expense;
-    setTitle(expense.title ?? '');
-    setDescription(expense.description ?? '');
-    setCategory(expense.category);
-    setAmountInput((expense.amount / 100).toFixed(2));
-    setCurrency(expense.currency);
-    setPaidByParticipantId(expense.paidByParticipantId);
+      const expense = nextDetails.expense;
+      setTitle(expense.title ?? '');
+      setDescription(expense.description ?? '');
+      setCategory(expense.category);
+      setAmountInput((expense.amount / 100).toFixed(2));
+      setCurrency(expense.currency);
+      setPaidByParticipantId(expense.paidByParticipantId);
 
-    const inferred = inferSplitState({
-      details: nextDetails,
-      activeParticipants,
-    });
+      const inferred = inferSplitState({
+        details: nextDetails,
+        activeParticipants,
+      });
 
-    setSplitMode(inferred.mode);
-    setSelectedParticipantIds(inferred.selectedParticipantIds);
-    setPercentageByParticipantId(inferred.percentageByParticipantId);
+      setSplitMode(inferred.mode);
+      setSelectedParticipantIds(inferred.selectedParticipantIds);
+      setPercentageByParticipantId(inferred.percentageByParticipantId);
 
-    const summaryRows = activeParticipants
-      .map((participant) => ({
-        participantId: participant.id,
-        amount: inferred.amountByParticipantId[participant.id] ?? 0,
-      }))
-      .filter((row) => row.amount > 0)
-      .sort((a, b) => b.amount - a.amount);
+      const summaryRows = activeParticipants
+        .map((participant) => ({
+          participantId: participant.id,
+          amount: inferred.amountByParticipantId[participant.id] ?? 0,
+        }))
+        .filter((row) => row.amount > 0)
+        .sort((a, b) => b.amount - a.amount);
 
-    setSplitSummaryRows(summaryRows);
+      setSplitSummaryRows(summaryRows);
 
-    const initialSplit: CreateExpenseSplitInput =
-      inferred.mode === 'equal'
-        ? { mode: 'equal' }
-        : inferred.mode === 'selected'
-          ? {
-              mode: 'selected',
-              participantIds: inferred.selectedParticipantIds,
-            }
-          : {
-              mode: 'percentage',
-              shares: activeParticipants.map((participant) => ({
-                participantId: participant.id,
-                percentage: Number(
-                  inferred.percentageByParticipantId[participant.id] ?? '0'
-                ),
-              })),
-            };
+      const initialSplit: CreateExpenseSplitInput =
+        inferred.mode === 'equal'
+          ? { mode: 'equal' }
+          : inferred.mode === 'selected'
+            ? {
+                mode: 'selected',
+                participantIds: inferred.selectedParticipantIds,
+              }
+            : {
+                mode: 'percentage',
+                shares: activeParticipants.map((participant) => ({
+                  participantId: participant.id,
+                  percentage: Number(
+                    inferred.percentageByParticipantId[participant.id] ?? '0'
+                  ),
+                })),
+              };
 
-    setInitialSnapshot({
-      title: expense.title ?? '',
-      description: expense.description ?? '',
-      category: expense.category,
-      amount: expense.amount,
-      currency: expense.currency,
-      paidByParticipantId: expense.paidByParticipantId,
-      split: initialSplit,
-    });
-  }
+      setInitialSnapshot({
+        title: expense.title ?? '',
+        description: expense.description ?? '',
+        category: expense.category,
+        amount: expense.amount,
+        currency: expense.currency,
+        paidByParticipantId: expense.paidByParticipantId,
+        split: initialSplit,
+      });
+    },
+    [activeParticipants]
+  );
 
   useEffect(() => {
     if (!open || !expenseId) {
-      resetTransientState();
       return;
     }
 
@@ -388,13 +390,14 @@ export function useExpenseDetailsModal({
     return () => {
       cancelled = true;
     };
-  }, [open, expenseId, groupId, activeParticipants]);
+  }, [open, expenseId, groupId, hydrateFormFromDetails]);
 
   function closeModal() {
     if (isSaving || isDeleting) {
       return;
     }
 
+    resetTransientState();
     onClose();
   }
 
@@ -662,9 +665,12 @@ export function useExpenseDetailsModal({
         return;
       }
 
+      resetTransientState();
       setIsDeleteConfirmOpen(false);
       onClose();
       router.refresh();
+    } catch {
+      setError('Something went wrong while deleting the expense.');
     } finally {
       setIsDeleting(false);
     }
