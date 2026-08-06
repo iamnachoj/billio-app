@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import Modal from '@/components/ui/Modal';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
@@ -88,46 +88,42 @@ export default function GroupParticipantsModal({
   onRemoveParticipant,
 }: GroupParticipantsModalProps) {
   const sortedParticipants = [...participants].sort(byRoleThenName);
-  const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
-  const [isGenerateInviteOpen, setIsGenerateInviteOpen] = useState(false);
+  const [isAddParticipantOpenManually, setIsAddParticipantOpenManually] =
+    useState(false);
+  const [isGenerateInviteOpenManually, setIsGenerateInviteOpenManually] =
+    useState(false);
   const [pendingRemovalParticipantId, setPendingRemovalParticipantId] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      setIsAddParticipantOpen(false);
-      setIsGenerateInviteOpen(false);
-      setPendingRemovalParticipantId(null);
-    }
-  }, [open]);
+  const isAddParticipantOpen =
+    isAddParticipantOpenManually || Boolean(addParticipantError);
+  const isGenerateInviteOpen =
+    isGenerateInviteOpenManually || Boolean(inviteError);
 
-  useEffect(() => {
-    if (addParticipantError) {
-      setIsAddParticipantOpen(true);
-    }
-  }, [addParticipantError]);
+  const handleClose = () => {
+    setIsAddParticipantOpenManually(false);
+    setIsGenerateInviteOpenManually(false);
+    setPendingRemovalParticipantId(null);
+    onClose();
+  };
 
-  useEffect(() => {
-    if (inviteError) {
-      setIsGenerateInviteOpen(true);
-    }
-  }, [inviteError]);
+  const handleToggleInviteOpen = () => {
+    setIsGenerateInviteOpenManually((current) => !current);
+  };
 
-  useEffect(() => {
-    if (removeParticipantError) {
-      setPendingRemovalParticipantId(null);
-    }
-  }, [removeParticipantError]);
+  const handleToggleAddParticipantOpen = () => {
+    setIsAddParticipantOpenManually((current) => !current);
+  };
 
   return (
-    <Modal open={open} onClose={onClose} title="Participants" size="lg">
+    <Modal open={open} onClose={handleClose} title="Participants" size="lg">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-slate-600">
             {participants.length} total participants
           </p>
           <Button
-            onClick={() => setIsGenerateInviteOpen((current) => !current)}
+            onClick={handleToggleInviteOpen}
             variant="secondary"
             className="px-3 py-2 text-sm"
           >
@@ -206,7 +202,8 @@ export default function GroupParticipantsModal({
                   participant.role !== 'owner' &&
                   participant.role !== 'admin';
                 const isConfirmingRemoval =
-                  pendingRemovalParticipantId === participant.id;
+                  pendingRemovalParticipantId === participant.id &&
+                  !removeParticipantError;
                 const isRemovingParticipant =
                   removingParticipantId === participant.id;
 
@@ -286,7 +283,7 @@ export default function GroupParticipantsModal({
           ) : null}
 
           <Button
-            onClick={() => setIsAddParticipantOpen((current) => !current)}
+            onClick={handleToggleAddParticipantOpen}
             className="text-sm my-4"
           >
             {isAddParticipantOpen
