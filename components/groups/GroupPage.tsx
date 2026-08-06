@@ -115,6 +115,7 @@ export default function GroupPage(props: GroupPageProps) {
         participants={group.participants}
         currencies={group.availableCurrencies}
         defaultCurrency={group.selectedCurrency}
+        onExpenseCreated={group.onExpenseCreated}
       />
 
       <ExpenseDetailsModal
@@ -125,6 +126,8 @@ export default function GroupPage(props: GroupPageProps) {
         participants={group.participants}
         currencies={group.availableCurrencies}
         canEdit={group.canCreateExpense}
+        onExpenseUpdated={group.onExpenseUpdated}
+        onExpenseDeleted={group.onExpenseDeleted}
       />
 
       <InviteLinkModal

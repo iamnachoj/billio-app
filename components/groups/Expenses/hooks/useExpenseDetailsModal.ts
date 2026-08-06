@@ -8,6 +8,7 @@ import {
   type CreateExpenseSplitInput,
   type ExpenseDetailsData,
 } from '@/frontend-services/expenses.service';
+import { Expense } from '@/lib/models/expense';
 import { ExpenseCategories } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 
@@ -36,6 +37,8 @@ type UseExpenseDetailsModalParams = {
   participants: GroupParticipant[];
   currencies: string[];
   canEdit: boolean;
+  onExpenseUpdated?: (expense: Expense) => void;
+  onExpenseDeleted?: (expenseId: string) => void;
 };
 
 function buildEqualPercentageMap(participants: GroupParticipant[]) {
@@ -220,6 +223,8 @@ export function useExpenseDetailsModal({
   participants,
   currencies,
   canEdit,
+  onExpenseUpdated,
+  onExpenseDeleted,
 }: UseExpenseDetailsModalParams) {
   const router = useRouter();
 
@@ -642,6 +647,7 @@ export function useExpenseDetailsModal({
       }
 
       hydrateFormFromDetails(response.data);
+      onExpenseUpdated?.(response.data.expense);
       setIsEditing(false);
       router.refresh();
     } finally {
@@ -665,6 +671,7 @@ export function useExpenseDetailsModal({
         return;
       }
 
+      onExpenseDeleted?.(expenseId);
       resetTransientState();
       setIsDeleteConfirmOpen(false);
       onClose();

@@ -9,6 +9,7 @@ import {
   createExpense,
   type CreateExpenseSplitInput,
 } from '@/frontend-services/expenses.service';
+import { Expense } from '@/lib/models/expense';
 import { ExpenseCategories } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 
@@ -19,6 +20,7 @@ type AddExpenseModalProps = {
   participants: GroupParticipant[];
   currencies: string[];
   defaultCurrency: string;
+  onExpenseCreated?: (expense: Expense) => void;
 };
 
 type SplitMode = 'equal' | 'selected' | 'percentage';
@@ -49,6 +51,7 @@ export default function AddExpenseModal({
   participants,
   currencies,
   defaultCurrency,
+  onExpenseCreated,
 }: AddExpenseModalProps) {
   return (
     <Modal open={open} onClose={onClose} title="Add expense" size="md">
@@ -58,6 +61,7 @@ export default function AddExpenseModal({
           participants={participants}
           currencies={currencies}
           defaultCurrency={defaultCurrency}
+          onExpenseCreated={onExpenseCreated}
           onClose={onClose}
         />
       ) : null}
@@ -70,6 +74,7 @@ type AddExpenseModalFormProps = {
   participants: GroupParticipant[];
   currencies: string[];
   defaultCurrency: string;
+  onExpenseCreated?: (expense: Expense) => void;
   onClose: () => void;
 };
 
@@ -78,6 +83,7 @@ function AddExpenseModalForm({
   participants,
   currencies,
   defaultCurrency,
+  onExpenseCreated,
   onClose,
 }: AddExpenseModalFormProps) {
   const router = useRouter();
@@ -258,6 +264,7 @@ function AddExpenseModalForm({
         return;
       }
 
+      onExpenseCreated?.(response.data.expense);
       onClose();
       router.refresh();
     } catch {

@@ -1,15 +1,15 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
-  addParticipantToGroup,
-  deleteParticipantFromGroup,
   leaveGroup,
   updateGroupName,
 } from '@/frontend-services/groups.service';
-import { createGroupInvite } from '@/frontend-services/invites.service';
+import { Expense } from '@/lib/models/expense';
 
 import type { GroupPageProps } from '../GroupPage';
+import { useGroupParticipantsSection } from './useGroupParticipantsSection';
+import { useOptimisticCollection } from './useOptimisticCollection';
 
 function byNewestExpenseFirst(a: { createdAt: Date }, b: { createdAt: Date }) {
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -19,7 +19,6 @@ export function useGroup(props: GroupPageProps) {
   const router = useRouter();
 
   const [showArchived, setShowArchived] = useState(false);
-  const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isExpenseDetailsModalOpen, setIsExpenseDetailsModalOpen] =
@@ -28,10 +27,6 @@ export function useGroup(props: GroupPageProps) {
     null
   );
   const [isLeaveConfirmModalOpen, setIsLeaveConfirmModalOpen] = useState(false);
-  const [groupName, setGroupName] = useState(props.group.name);
-  const [groupDescription, setGroupDescription] = useState(
-    props.group.description ?? ''
-  );
   const [groupNameDraft, setGroupNameDraft] = useState(props.group.name);
   const [groupDescriptionDraft, setGroupDescriptionDraft] = useState(
     props.group.description ?? ''
@@ -41,52 +36,38 @@ export function useGroup(props: GroupPageProps) {
   const [settingsError, setSettingsError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isLeavingGroup, setIsLeavingGroup] = useState(false);
-  const [newParticipantNameDraft, setNewParticipantNameDraft] = useState('');
-  const [newParticipantRoleDraft, setNewParticipantRoleDraft] = useState<
-    'owner' | 'admin' | 'member' | 'viewer'
-  >('member');
-  const [addParticipantError, setAddParticipantError] = useState('');
-  const [isAddingParticipant, setIsAddingParticipant] = useState(false);
-  const [removeParticipantError, setRemoveParticipantError] = useState('');
-  const [removingParticipantId, setRemovingParticipantId] = useState<
-    string | null
-  >(null);
-  const [inviteEmailDraft, setInviteEmailDraft] = useState('');
-  const [inviteError, setInviteError] = useState('');
-  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
-  const [isInviteLinkModalOpen, setIsInviteLinkModalOpen] = useState(false);
-  const [generatedInviteLink, setGeneratedInviteLink] = useState('');
-  const [generatedInviteEmail, setGeneratedInviteEmail] = useState('');
-  const [generatedInviteExpiresAt, setGeneratedInviteExpiresAt] = useState('');
 
-  useEffect(() => {
-    setGroupName(props.group.name);
-    setGroupDescription(props.group.description ?? '');
-    setGroupNameDraft(props.group.name);
-    setGroupDescriptionDraft(props.group.description ?? '');
-  }, [props.group.id, props.group.name, props.group.description]);
+  const groupName = props.group.name;
+  const groupDescription = props.group.description ?? '';
+
+  const optimisticExpenses = useOptimisticCollection(props.expenses);
+  const expenses = optimisticExpenses.items;
+
+  const optimisticParticipants = useOptimisticCollection(props.participants);
+  const participants = optimisticParticipants.items;
 
   const participantNameById = useMemo(() => {
     return new Map(
-      props.participants.map((participant) => [
+      participants.map((participant) => [
         participant.id,
         participant.displayName,
       ])
     );
-  }, [props.participants]);
+  }, [participants]);
 
   const availableCurrencies = useMemo(() => {
     const fromBalances = props.balances.currencies.map(
       (currencySummary) => currencySummary.currency
     );
+
     if (fromBalances.length > 0) {
       return fromBalances;
     }
 
     return Array.from(
-      new Set(props.expenses.map((expense) => expense.currency))
+      new Set(expenses.map((expense) => expense.currency))
     ).sort();
-  }, [props.balances.currencies, props.expenses]);
+  }, [props.balances.currencies, expenses]);
 
   const [selectedCurrency, setSelectedCurrency] = useState<string>(
     availableCurrencies[0] ?? 'EUR'
@@ -119,19 +100,39 @@ export function useGroup(props: GroupPageProps) {
         : 'You are settled';
 
   const expensesSorted = useMemo(() => {
-    return [...props.expenses].sort(byNewestExpenseFirst);
-  }, [props.expenses]);
+    return [...expenses].sort(byNewestExpenseFirst);
+  }, [expenses]);
 
   const myParticipant = useMemo(() => {
-    return props.participants.find(
+    return participants.find(
       (participant) => participant.userId === props.user.id
     );
-  }, [props.participants, props.user.id]);
+  }, [participants, props.user.id]);
 
   const canEditGroupName =
     myParticipant?.role === 'owner' || myParticipant?.role === 'admin';
   const canCreateExpense = !!myParticipant && myParticipant.role !== 'viewer';
   const canLeaveGroup = !!myParticipant;
+
+  const participantsSection = useGroupParticipantsSection({
+    groupId: props.group.id,
+    canEditGroupName,
+    isSavingSettings,
+    onParticipantCreated: optimisticParticipants.upsert,
+    onParticipantDeleted: optimisticParticipants.remove,
+  });
+
+  function onExpenseCreated(nextExpense: Expense) {
+    optimisticExpenses.upsert(nextExpense);
+  }
+
+  function onExpenseUpdated(nextExpense: Expense) {
+    optimisticExpenses.upsert(nextExpense);
+  }
+
+  function onExpenseDeleted(expenseId: string) {
+    optimisticExpenses.remove(expenseId);
+  }
 
   function openSettingsModal() {
     setGroupNameDraft(groupName);
@@ -148,120 +149,6 @@ export function useGroup(props: GroupPageProps) {
 
     setIsSettingsModalOpen(false);
     setSettingsError('');
-  }
-
-  function resetParticipantsModalState() {
-    setAddParticipantError('');
-    setRemoveParticipantError('');
-    setInviteError('');
-    setNewParticipantNameDraft('');
-    setNewParticipantRoleDraft('member');
-    setInviteEmailDraft('');
-  }
-
-  function closeParticipantsModal() {
-    resetParticipantsModalState();
-    setIsParticipantsModalOpen(false);
-  }
-
-  async function addParticipantFromParticipantsModal() {
-    if (!canEditGroupName || isAddingParticipant || isSavingSettings) {
-      return;
-    }
-
-    const nextDisplayName = newParticipantNameDraft.trim();
-    if (!nextDisplayName) {
-      setAddParticipantError('Participant name is required.');
-      return;
-    }
-
-    try {
-      setAddParticipantError('');
-      setIsAddingParticipant(true);
-
-      const response = await addParticipantToGroup(props.group.id, {
-        displayName: nextDisplayName,
-        role: newParticipantRoleDraft,
-        status: 'active',
-      });
-
-      if (!response.success) {
-        setAddParticipantError(
-          response.error?.message ?? 'Unable to add participant.'
-        );
-        return;
-      }
-
-      setNewParticipantNameDraft('');
-      setNewParticipantRoleDraft('member');
-      router.refresh();
-    } finally {
-      setIsAddingParticipant(false);
-    }
-  }
-
-  async function removeParticipantFromParticipantsModal(participantId: string) {
-    if (!canEditGroupName || !participantId || removingParticipantId) {
-      return;
-    }
-
-    try {
-      setRemoveParticipantError('');
-      setRemovingParticipantId(participantId);
-
-      const response = await deleteParticipantFromGroup(
-        props.group.id,
-        participantId
-      );
-
-      if (!response.success) {
-        setRemoveParticipantError(
-          response.error?.message ?? 'Unable to remove participant.'
-        );
-        return;
-      }
-
-      router.refresh();
-    } finally {
-      setRemovingParticipantId(null);
-    }
-  }
-
-  async function generateInviteFromParticipantsModal() {
-    if (!canEditGroupName || isGeneratingInvite) {
-      return;
-    }
-
-    try {
-      setInviteError('');
-      setIsGeneratingInvite(true);
-
-      const email = inviteEmailDraft.trim();
-      const response = await createGroupInvite(props.group.id, {
-        email: email || undefined,
-      });
-
-      if (!response.success) {
-        setInviteError(response.error?.message ?? 'Unable to generate invite.');
-        return;
-      }
-
-      const invitePath = `/invites/${response.data.token}`;
-      const inviteUrl =
-        typeof window === 'undefined'
-          ? invitePath
-          : `${window.location.origin}${invitePath}`;
-
-      setGeneratedInviteLink(inviteUrl);
-      setGeneratedInviteEmail(response.data.email ?? email);
-      setGeneratedInviteExpiresAt(String(response.data.expiresAt));
-      setInviteEmailDraft('');
-      setInviteError('');
-      closeParticipantsModal();
-      setIsInviteLinkModalOpen(true);
-    } finally {
-      setIsGeneratingInvite(false);
-    }
   }
 
   async function submitSettings(event: FormEvent) {
@@ -312,9 +199,6 @@ export function useGroup(props: GroupPageProps) {
           );
           return;
         }
-
-        setGroupName(nextName);
-        setGroupDescription(nextDescription);
       }
 
       if (shouldUpdateCurrency) {
@@ -383,8 +267,10 @@ export function useGroup(props: GroupPageProps) {
 
   return {
     ...props,
+    participants,
+    expenses,
+    ...participantsSection,
     showArchived,
-    isParticipantsModalOpen,
     isSettingsModalOpen,
     isAddExpenseModalOpen,
     isExpenseDetailsModalOpen,
@@ -392,25 +278,12 @@ export function useGroup(props: GroupPageProps) {
     isLeaveConfirmModalOpen,
     isSavingSettings,
     isLeavingGroup,
-    isAddingParticipant,
-    isGeneratingInvite,
-    isInviteLinkModalOpen,
     groupName,
     groupDescription,
     groupNameDraft,
     groupDescriptionDraft,
     settingsCurrencyDraft,
     settingsError,
-    addParticipantError,
-    removeParticipantError,
-    inviteError,
-    newParticipantNameDraft,
-    newParticipantRoleDraft,
-    inviteEmailDraft,
-    generatedInviteLink,
-    generatedInviteEmail,
-    generatedInviteExpiresAt,
-    removingParticipantId,
     canEditGroupName,
     canCreateExpense,
     canLeaveGroup,
@@ -424,15 +297,12 @@ export function useGroup(props: GroupPageProps) {
     setGroupNameDraft,
     setGroupDescriptionDraft,
     setSettingsCurrencyDraft,
-    setNewParticipantNameDraft,
-    setNewParticipantRoleDraft,
-    setInviteEmailDraft,
     openSettingsModal,
     closeSettingsModal,
     submitSettings,
-    addParticipantFromParticipantsModal,
-    removeParticipantFromParticipantsModal,
-    generateInviteFromParticipantsModal,
+    onExpenseCreated,
+    onExpenseUpdated,
+    onExpenseDeleted,
     requestLeaveGroup,
     cancelLeaveGroup,
     confirmLeaveGroup,
@@ -446,17 +316,6 @@ export function useGroup(props: GroupPageProps) {
     },
     openAddExpenseModal: () => setIsAddExpenseModalOpen(true),
     closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
-    openParticipantsModal: () => {
-      resetParticipantsModalState();
-      setIsParticipantsModalOpen(true);
-    },
-    closeParticipantsModal,
-    closeInviteLinkModal: () => {
-      setIsInviteLinkModalOpen(false);
-      setGeneratedInviteLink('');
-      setGeneratedInviteEmail('');
-      setGeneratedInviteExpiresAt('');
-    },
-    toggleArchived: () => setShowArchived((v) => !v),
+    toggleArchived: () => setShowArchived((value) => !value),
   };
 }
