@@ -73,47 +73,44 @@ export async function createExpenseWithSplits({
   const expenseId = randomUUID();
   const now = new Date().toISOString();
 
-  await db.execute('BEGIN');
-
-  try {
-    await db.execute({
-      sql: `
-        INSERT INTO expenses (
-          id,
-          title,
-          description,
-          amount,
-          category,
-          currency,
-          group_id,
-          paid_by_participant_id,
-          created_by_participant_id,
-          last_edited_at,
-          last_edited_by_participant_id,
-          created_at,
-          updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      args: [
-        expenseId,
-        expense.title,
-        expense.description ?? null,
-        expense.amount,
-        expense.category ?? null,
-        expense.currency,
-        expense.groupId,
-        expense.paidByParticipantId,
-        expense.createdByParticipantId,
-        null,
-        null,
-        now,
-        now,
-      ],
-    });
-
-    for (const split of splits) {
-      await db.execute({
+  await db.batch(
+    [
+      {
+        sql: `
+          INSERT INTO expenses (
+            id,
+            title,
+            description,
+            amount,
+            category,
+            currency,
+            group_id,
+            paid_by_participant_id,
+            created_by_participant_id,
+            last_edited_at,
+            last_edited_by_participant_id,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        args: [
+          expenseId,
+          expense.title,
+          expense.description ?? null,
+          expense.amount,
+          expense.category ?? null,
+          expense.currency,
+          expense.groupId,
+          expense.paidByParticipantId,
+          expense.createdByParticipantId,
+          null,
+          null,
+          now,
+          now,
+        ],
+      },
+      ...splits.map((split) => ({
         sql: `
           INSERT INTO expense_splits (
             id,
@@ -135,14 +132,10 @@ export async function createExpenseWithSplits({
           now,
           now,
         ],
-      });
-    }
-
-    await db.execute('COMMIT');
-  } catch (error) {
-    await db.execute('ROLLBACK');
-    throw error;
-  }
+      })),
+    ],
+    'write'
+  );
 
   const createdExpense: Expense = {
     id: expenseId,
@@ -230,32 +223,27 @@ export async function getExpenseSplitsByGroupId(groupId: string) {
 }
 
 export async function deleteExpenseById(expenseId: string) {
-  await db.execute('BEGIN');
+  const [, deletedExpense] = await db.batch(
+    [
+      {
+        sql: `
+          DELETE FROM expense_splits
+          WHERE expense_id = ?
+        `,
+        args: [expenseId],
+      },
+      {
+        sql: `
+          DELETE FROM expenses
+          WHERE id = ?
+        `,
+        args: [expenseId],
+      },
+    ],
+    'write'
+  );
 
-  try {
-    await db.execute({
-      sql: `
-        DELETE FROM expense_splits
-        WHERE expense_id = ?
-      `,
-      args: [expenseId],
-    });
-
-    const deletedExpense = await db.execute({
-      sql: `
-        DELETE FROM expenses
-        WHERE id = ?
-      `,
-      args: [expenseId],
-    });
-
-    await db.execute('COMMIT');
-
-    return deletedExpense.rowsAffected > 0;
-  } catch (error) {
-    await db.execute('ROLLBACK');
-    throw error;
-  }
+  return deletedExpense.rowsAffected > 0;
 }
 
 export async function updateExpenseById({
@@ -313,47 +301,43 @@ export async function updateExpenseWithSplits({
 }) {
   const now = new Date().toISOString();
 
-  await db.execute('BEGIN');
-
-  try {
-    await db.execute({
-      sql: `
-        UPDATE expenses
-        SET title = ?,
-            description = ?,
-            amount = ?,
-            category = ?,
-            currency = ?,
-            paid_by_participant_id = ?,
-            last_edited_at = ?,
-            last_edited_by_participant_id = ?,
-            updated_at = ?
-        WHERE id = ?
-      `,
-      args: [
-        expense.title,
-        expense.description ?? null,
-        expense.amount,
-        expense.category ?? null,
-        expense.currency,
-        expense.paidByParticipantId,
-        now,
-        editedByParticipantId,
-        now,
-        expenseId,
-      ],
-    });
-
-    await db.execute({
-      sql: `
-        DELETE FROM expense_splits
-        WHERE expense_id = ?
-      `,
-      args: [expenseId],
-    });
-
-    for (const split of splits) {
-      await db.execute({
+  await db.batch(
+    [
+      {
+        sql: `
+          UPDATE expenses
+          SET title = ?,
+              description = ?,
+              amount = ?,
+              category = ?,
+              currency = ?,
+              paid_by_participant_id = ?,
+              last_edited_at = ?,
+              last_edited_by_participant_id = ?,
+              updated_at = ?
+          WHERE id = ?
+        `,
+        args: [
+          expense.title,
+          expense.description ?? null,
+          expense.amount,
+          expense.category ?? null,
+          expense.currency,
+          expense.paidByParticipantId,
+          now,
+          editedByParticipantId,
+          now,
+          expenseId,
+        ],
+      },
+      {
+        sql: `
+          DELETE FROM expense_splits
+          WHERE expense_id = ?
+        `,
+        args: [expenseId],
+      },
+      ...splits.map((split) => ({
         sql: `
           INSERT INTO expense_splits (
             id,
@@ -375,14 +359,10 @@ export async function updateExpenseWithSplits({
           now,
           now,
         ],
-      });
-    }
-
-    await db.execute('COMMIT');
-  } catch (error) {
-    await db.execute('ROLLBACK');
-    throw error;
-  }
+      })),
+    ],
+    'write'
+  );
 
   return now;
 }
