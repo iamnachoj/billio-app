@@ -2,8 +2,8 @@
 
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
-import { Expense } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
+import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
 
 import ExpenseDetailsView from './ExpenseDetailsView';
 import ExpenseEditForm from './ExpenseEditForm';
@@ -17,8 +17,11 @@ type ExpenseDetailsModalProps = {
   participants: GroupParticipant[];
   currencies: string[];
   canEdit: boolean;
-  onExpenseUpdated?: (expense: Expense) => void;
-  onExpenseDeleted?: (expenseId: string) => void;
+  onExpenseUpdated?: (payload: {
+    previous: ExpenseDetailsData;
+    next: ExpenseDetailsData;
+  }) => void;
+  onExpenseDeleted?: (details: ExpenseDetailsData) => void;
 };
 
 export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {

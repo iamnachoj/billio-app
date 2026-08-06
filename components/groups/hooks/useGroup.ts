@@ -5,7 +5,7 @@ import {
   leaveGroup,
   updateGroupName,
 } from '@/frontend-services/groups.service';
-import { Expense } from '@/lib/models/expense';
+import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
 
 import type { GroupPageProps } from '../GroupPage';
 import { useGroupParticipantsSection } from './useGroupParticipantsSection';
@@ -13,6 +13,44 @@ import { useOptimisticCollection } from './useOptimisticCollection';
 
 function byNewestExpenseFirst(a: { createdAt: Date }, b: { createdAt: Date }) {
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
+type PendingBalanceAdjustment = {
+  expenseId: string;
+  currency: string;
+  deltaCents: number;
+  kind: 'create' | 'update' | 'delete';
+  targetUpdatedAtMs?: number;
+};
+
+function parseDateToMs(value: unknown) {
+  const timestamp = new Date(value as string | number | Date).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function computeMyExpenseNetDeltaCents(
+  details: ExpenseDetailsData,
+  myParticipantId: string
+) {
+  let deltaCents = 0;
+
+  for (const split of details.splits) {
+    if (
+      split.owedToParticipantId === myParticipantId &&
+      split.participantId !== myParticipantId
+    ) {
+      deltaCents += split.amount;
+    }
+
+    if (
+      split.participantId === myParticipantId &&
+      split.owedToParticipantId !== myParticipantId
+    ) {
+      deltaCents -= split.amount;
+    }
+  }
+
+  return deltaCents;
 }
 
 export function useGroup(props: GroupPageProps) {
@@ -33,6 +71,10 @@ export function useGroup(props: GroupPageProps) {
   );
   const [settingsCurrencyDraft, setSettingsCurrencyDraft] =
     useState<string>('EUR');
+  const [
+    pendingBalanceAdjustmentsByExpenseId,
+    setPendingBalanceAdjustmentsByExpenseId,
+  ] = useState<Record<string, PendingBalanceAdjustment>>({});
   const [settingsError, setSettingsError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isLeavingGroup, setIsLeavingGroup] = useState(false);
@@ -89,8 +131,54 @@ export function useGroup(props: GroupPageProps) {
         participantBalance.participantId === props.balances.myParticipantId
     );
 
-    return myBalance?.netBalanceCents ?? 0;
-  }, [activeCurrencySummary, props.balances.myParticipantId]);
+    const baseNetCents = myBalance?.netBalanceCents ?? 0;
+
+    const optimisticDeltaCents = Object.values(
+      pendingBalanceAdjustmentsByExpenseId
+    ).reduce((sum, adjustment) => {
+      if (adjustment.currency !== selectedCurrency) {
+        return sum;
+      }
+
+      const serverExpense = props.expenses.find(
+        (expense) => expense.id === adjustment.expenseId
+      );
+
+      if (adjustment.kind === 'create') {
+        return serverExpense ? sum : sum + adjustment.deltaCents;
+      }
+
+      if (adjustment.kind === 'delete') {
+        return serverExpense ? sum + adjustment.deltaCents : sum;
+      }
+
+      if (!serverExpense) {
+        return sum;
+      }
+
+      const serverUpdatedAtMs = parseDateToMs(serverExpense.updatedAt);
+      if (serverUpdatedAtMs === null) {
+        return sum;
+      }
+
+      if (
+        adjustment.targetUpdatedAtMs !== undefined &&
+        serverUpdatedAtMs >= adjustment.targetUpdatedAtMs
+      ) {
+        return sum;
+      }
+
+      return sum + adjustment.deltaCents;
+    }, 0);
+
+    return baseNetCents + optimisticDeltaCents;
+  }, [
+    activeCurrencySummary,
+    pendingBalanceAdjustmentsByExpenseId,
+    props.balances.myParticipantId,
+    props.expenses,
+    selectedCurrency,
+  ]);
 
   const summaryLabel =
     myNetBalanceCents > 0
@@ -122,16 +210,99 @@ export function useGroup(props: GroupPageProps) {
     onParticipantDeleted: optimisticParticipants.remove,
   });
 
-  function onExpenseCreated(nextExpense: Expense) {
-    optimisticExpenses.upsert(nextExpense);
+  function onExpenseCreated(nextDetails: ExpenseDetailsData) {
+    optimisticExpenses.upsert(nextDetails.expense);
+
+    const myParticipantId = props.balances.myParticipantId;
+    if (!myParticipantId) {
+      return;
+    }
+
+    const deltaCents = computeMyExpenseNetDeltaCents(
+      nextDetails,
+      myParticipantId
+    );
+
+    if (deltaCents === 0) {
+      return;
+    }
+
+    setPendingBalanceAdjustmentsByExpenseId((current) => ({
+      ...current,
+      [nextDetails.expense.id]: {
+        expenseId: nextDetails.expense.id,
+        currency: nextDetails.expense.currency,
+        deltaCents,
+        kind: 'create',
+      },
+    }));
   }
 
-  function onExpenseUpdated(nextExpense: Expense) {
-    optimisticExpenses.upsert(nextExpense);
+  function onExpenseUpdated(payload: {
+    previous: ExpenseDetailsData;
+    next: ExpenseDetailsData;
+  }) {
+    optimisticExpenses.upsert(payload.next.expense);
+
+    const myParticipantId = props.balances.myParticipantId;
+    if (!myParticipantId) {
+      return;
+    }
+
+    const previousDeltaCents = computeMyExpenseNetDeltaCents(
+      payload.previous,
+      myParticipantId
+    );
+    const nextDeltaCents = computeMyExpenseNetDeltaCents(
+      payload.next,
+      myParticipantId
+    );
+    const deltaCents = nextDeltaCents - previousDeltaCents;
+
+    setPendingBalanceAdjustmentsByExpenseId((current) => {
+      const next = { ...current };
+
+      if (deltaCents === 0) {
+        delete next[payload.next.expense.id];
+        return next;
+      }
+
+      next[payload.next.expense.id] = {
+        expenseId: payload.next.expense.id,
+        currency: payload.next.expense.currency,
+        deltaCents,
+        kind: 'update',
+        targetUpdatedAtMs:
+          parseDateToMs(payload.next.expense.updatedAt) ?? undefined,
+      };
+
+      return next;
+    });
   }
 
-  function onExpenseDeleted(expenseId: string) {
-    optimisticExpenses.remove(expenseId);
+  function onExpenseDeleted(details: ExpenseDetailsData) {
+    optimisticExpenses.remove(details.expense.id);
+
+    const myParticipantId = props.balances.myParticipantId;
+    if (!myParticipantId) {
+      return;
+    }
+
+    const deltaCents = -computeMyExpenseNetDeltaCents(details, myParticipantId);
+
+    if (deltaCents === 0) {
+      return;
+    }
+
+    setPendingBalanceAdjustmentsByExpenseId((current) => ({
+      ...current,
+      [details.expense.id]: {
+        expenseId: details.expense.id,
+        currency: details.expense.currency,
+        deltaCents,
+        kind: 'delete',
+      },
+    }));
   }
 
   function openSettingsModal() {

@@ -7,9 +7,9 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import {
   createExpense,
+  type ExpenseDetailsData,
   type CreateExpenseSplitInput,
 } from '@/frontend-services/expenses.service';
-import { Expense } from '@/lib/models/expense';
 import { ExpenseCategories } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 
@@ -20,7 +20,7 @@ type AddExpenseModalProps = {
   participants: GroupParticipant[];
   currencies: string[];
   defaultCurrency: string;
-  onExpenseCreated?: (expense: Expense) => void;
+  onExpenseCreated?: (details: ExpenseDetailsData) => void;
 };
 
 type SplitMode = 'equal' | 'selected' | 'percentage';
@@ -74,7 +74,7 @@ type AddExpenseModalFormProps = {
   participants: GroupParticipant[];
   currencies: string[];
   defaultCurrency: string;
-  onExpenseCreated?: (expense: Expense) => void;
+  onExpenseCreated?: (details: ExpenseDetailsData) => void;
   onClose: () => void;
 };
 
@@ -264,7 +264,7 @@ function AddExpenseModalForm({
         return;
       }
 
-      onExpenseCreated?.(response.data.expense);
+      onExpenseCreated?.(response.data);
       onClose();
       router.refresh();
     } catch {
