@@ -42,18 +42,53 @@ export async function createGroup({
 }
 
 export async function cleanupEmptyGroups() {
-  await db.execute({
-    sql: `
-      DELETE FROM groups
-      WHERE id IN (
-        SELECT g.id
-        FROM groups g
-        LEFT JOIN group_participants gp ON gp.group_id = g.id
-        GROUP BY g.id
-        HAVING COUNT(CASE WHEN gp.user_id IS NOT NULL THEN 1 END) = 0
-      )
-    `,
-  });
+  const emptyGroupsSubquery = `
+    SELECT g.id
+    FROM groups g
+    LEFT JOIN group_participants gp ON gp.group_id = g.id
+    GROUP BY g.id
+    HAVING COUNT(CASE WHEN gp.user_id IS NOT NULL THEN 1 END) = 0
+  `;
+
+  await db.batch(
+    [
+      {
+        sql: `
+          DELETE FROM expense_splits
+          WHERE expense_id IN (
+            SELECT e.id
+            FROM expenses e
+            WHERE e.group_id IN (${emptyGroupsSubquery})
+          )
+        `,
+      },
+      {
+        sql: `
+          DELETE FROM expenses
+          WHERE group_id IN (${emptyGroupsSubquery})
+        `,
+      },
+      {
+        sql: `
+          DELETE FROM group_invites
+          WHERE group_id IN (${emptyGroupsSubquery})
+        `,
+      },
+      {
+        sql: `
+          DELETE FROM group_participants
+          WHERE group_id IN (${emptyGroupsSubquery})
+        `,
+      },
+      {
+        sql: `
+          DELETE FROM groups
+          WHERE id IN (${emptyGroupsSubquery})
+        `,
+      },
+    ],
+    'write'
+  );
 }
 
 export async function removeUserFromAllGroups(userId: string) {
