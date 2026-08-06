@@ -11,9 +11,10 @@ import GroupHeader from '@/components/groups/GroupHeader';
 import InviteLinkModal from '@/components/groups/InviteLinkModal';
 import GroupParticipantsModal from '@/components/groups/GroupParticipantsModal';
 import LeaveGroupConfirmModal from '@/components/groups/LeaveGroupConfirmModal';
+import GroupTotalsModal from '@/components/groups/GroupTotalsModal';
 import GroupSettingsModal from './GroupSettingsModal';
-import { useGroup } from './hooks/useGroup';
 import ExpenseDetailsModal from './Expenses/ExpenseDetailsModal';
+import { useGroup } from './hooks/useGroup';
 
 export type GroupPageUser = {
   id: string;
@@ -48,6 +49,7 @@ export default function GroupPage(props: GroupPageProps) {
         myNetBalanceCents={group.myNetBalanceCents}
         onOpenParticipantsModal={group.openParticipantsModal}
         onOpenSettingsModal={group.openSettingsModal}
+        onOpenTotalsModal={group.openTotalsModal}
       />
 
       <ExpenseList
@@ -136,6 +138,14 @@ export default function GroupPage(props: GroupPageProps) {
         inviteUrl={group.generatedInviteLink}
         email={group.generatedInviteEmail || undefined}
         expiresAt={group.generatedInviteExpiresAt || undefined}
+      />
+
+      <GroupTotalsModal
+        open={group.isTotalsModalOpen}
+        onClose={group.closeTotalsModal}
+        balances={group.balances}
+        selectedCurrency={group.selectedCurrency}
+        participantNameById={group.participantNameById}
       />
     </main>
   );

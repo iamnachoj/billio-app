@@ -61,6 +61,7 @@ export function useGroup(props: GroupPageProps) {
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isExpenseDetailsModalOpen, setIsExpenseDetailsModalOpen] =
     useState(false);
+  const [isTotalsModalOpen, setIsTotalsModalOpen] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(
     null
   );
@@ -445,6 +446,7 @@ export function useGroup(props: GroupPageProps) {
     isSettingsModalOpen,
     isAddExpenseModalOpen,
     isExpenseDetailsModalOpen,
+    isTotalsModalOpen,
     selectedExpenseId,
     isLeaveConfirmModalOpen,
     isSavingSettings,
@@ -487,6 +489,8 @@ export function useGroup(props: GroupPageProps) {
     },
     openAddExpenseModal: () => setIsAddExpenseModalOpen(true),
     closeAddExpenseModal: () => setIsAddExpenseModalOpen(false),
+    openTotalsModal: () => setIsTotalsModalOpen(true),
+    closeTotalsModal: () => setIsTotalsModalOpen(false),
     toggleArchived: () => setShowArchived((value) => !value),
   };
 }

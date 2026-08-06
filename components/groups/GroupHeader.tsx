@@ -10,6 +10,7 @@ type GroupHeaderProps = {
   myNetBalanceCents: number;
   onOpenParticipantsModal: () => void;
   onOpenSettingsModal: () => void;
+  onOpenTotalsModal: () => void;
 };
 
 function formatMoney(amountCents: number, currency: string) {
@@ -31,6 +32,7 @@ export default function GroupHeader({
   myNetBalanceCents,
   onOpenParticipantsModal,
   onOpenSettingsModal,
+  onOpenTotalsModal,
 }: GroupHeaderProps) {
   return (
     <header className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 md:p-8 shadow-sm">
@@ -63,6 +65,15 @@ export default function GroupHeader({
               {participantsCount} participants (+ add more)
             </button>{' '}
             · {expensesCount} expenses
+          </p>
+          <p className="text-sm text-slate-500">
+            <button
+              type="button"
+              onClick={onOpenTotalsModal}
+              className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
+            >
+              View totals and settlements
+            </button>
           </p>
         </div>
 
