@@ -55,28 +55,6 @@ export default function GroupTotalsModal({
               )}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-              Total lent
-            </p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
-              {formatMoney(
-                currencySummary.totals.totalLentCents,
-                currencySummary.currency
-              )}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-              Total borrowed
-            </p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
-              {formatMoney(
-                currencySummary.totals.totalBorrowedCents,
-                currencySummary.currency
-              )}
-            </p>
-          </div>
         </div>
 
         <div className="space-y-2">

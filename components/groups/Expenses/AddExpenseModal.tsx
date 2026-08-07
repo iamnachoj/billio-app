@@ -94,24 +94,18 @@ function AddExpenseModalForm({
 }: AddExpenseModalFormProps) {
   const router = useRouter();
 
-  const activeParticipants = useMemo(() => {
-    return participants.filter(
-      (participant) => participant.status === 'active'
-    );
-  }, [participants]);
-
   const currencyOptions = useMemo(() => {
     const base = currencies.length > 0 ? currencies : [defaultCurrency, 'EUR'];
     return Array.from(new Set(base.filter(Boolean))).sort();
   }, [currencies, defaultCurrency]);
 
   const defaultPaidByParticipantId = useMemo(() => {
-    const ownParticipant = activeParticipants.find(
+    const ownParticipant = participants.find(
       (participant) => participant.userId === user.id
     );
 
-    return ownParticipant?.id ?? activeParticipants[0]?.id ?? '';
-  }, [activeParticipants, user.id]);
+    return ownParticipant?.id ?? participants[0]?.id ?? '';
+  }, [participants, user.id]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -126,15 +120,15 @@ function AddExpenseModalForm({
   const [splitMode, setSplitMode] = useState<SplitMode>('equal');
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<
     string[]
-  >(() => activeParticipants.map((participant) => participant.id));
+  >(() => participants.map((participant) => participant.id));
   const [percentageByParticipantId, setPercentageByParticipantId] = useState<
     Record<string, string>
-  >(() => buildEqualPercentageMap(activeParticipants));
+  >(() => buildEqualPercentageMap(participants));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const paidByParticipantIdValue = activeParticipants.some(
+  const paidByParticipantIdValue = participants.some(
     (participant) => participant.id === paidByParticipantId
   )
     ? paidByParticipantId
@@ -185,7 +179,7 @@ function AddExpenseModalForm({
       };
     }
 
-    const shares = activeParticipants.map((participant) => {
+    const shares = participants.map((participant) => {
       const raw = percentageByParticipantId[participant.id] ?? '0';
       const percentage = Number(raw);
 
@@ -255,8 +249,8 @@ function AddExpenseModalForm({
       return;
     }
 
-    if (activeParticipants.length === 0) {
-      setError('No active participants are available to split this expense.');
+    if (participants.length === 0) {
+      setError('No participants are available to split this expense.');
       return;
     }
 
@@ -384,7 +378,7 @@ function AddExpenseModalForm({
             onChange={(event) => setPaidByParticipantId(event.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           >
-            {activeParticipants.map((participant) => (
+            {participants.map((participant) => (
               <option key={participant.id} value={participant.id}>
                 {participant.displayName}
               </option>
@@ -437,7 +431,7 @@ function AddExpenseModalForm({
 
         {splitMode === 'equal' ? (
           <p className="text-xs text-slate-600">
-            The amount will be split equally across all active participants.
+            The amount will be split equally across all participants.
           </p>
         ) : null}
 
@@ -447,7 +441,7 @@ function AddExpenseModalForm({
               Choose who shares this expense.
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {activeParticipants.map((participant) => {
+              {participants.map((participant) => {
                 const checked = selectedParticipantIds.includes(participant.id);
 
                 return (
@@ -475,7 +469,7 @@ function AddExpenseModalForm({
               100.
             </p>
             <div className="space-y-2">
-              {activeParticipants.map((participant) => (
+              {participants.map((participant) => (
                 <div
                   key={participant.id}
                   className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2"

@@ -18,8 +18,6 @@ export type ExpenseServiceResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: { code: string; message: string; status: number } };
 
-type SplitMode = 'equal' | 'selected' | 'percentage';
-
 type SplitInput =
   | {
       mode: 'equal';
@@ -192,19 +190,16 @@ async function resolveExpenseSplits({
   }
 
   const allParticipants = await getParticipantsByGroupId(groupId);
-  const activeParticipants = allParticipants.filter(
-    (participant) => participant.status === 'active'
-  );
-  const activeParticipantIds = new Set(
-    activeParticipants.map((participant) => participant.id)
+  const participantIds = new Set(
+    allParticipants.map((participant) => participant.id)
   );
 
-  if (!activeParticipantIds.has(paidByParticipantId)) {
+  if (!participantIds.has(paidByParticipantId)) {
     return {
       ok: false,
       error: {
         code: 'INVALID_INPUT',
-        message: 'Payer must be an active participant in this group',
+        message: 'Payer must be a participant in this group',
         status: 400,
       },
     };
@@ -213,12 +208,12 @@ async function resolveExpenseSplits({
   let shares: Array<{ participantId: string; amount: number }> = [];
 
   if (normalizedSplit.mode === 'equal') {
-    if (activeParticipants.length === 0) {
+    if (allParticipants.length === 0) {
       return {
         ok: false,
         error: {
           code: 'INVALID_INPUT',
-          message: 'No active participants found for equal split',
+          message: 'No participants found for equal split',
           status: 400,
         },
       };
@@ -226,7 +221,7 @@ async function resolveExpenseSplits({
 
     shares = buildEqualShares(
       amount,
-      activeParticipants.map((participant) => participant.id)
+      allParticipants.map((participant) => participant.id)
     );
   }
 
@@ -244,7 +239,7 @@ async function resolveExpenseSplits({
     }
 
     const hasInvalid = selectedIds.some(
-      (participantId) => !activeParticipantIds.has(participantId)
+      (participantId) => !participantIds.has(participantId)
     );
     if (hasInvalid) {
       return {
@@ -287,7 +282,7 @@ async function resolveExpenseSplits({
 
     const hasInvalid = sharesInput.some(
       (share) =>
-        !activeParticipantIds.has(share.participantId) || share.percentage < 0
+        !participantIds.has(share.participantId) || share.percentage < 0
     );
     if (hasInvalid) {
       return {
@@ -428,19 +423,16 @@ export async function createExpense({
   }
 
   const allParticipants = await getParticipantsByGroupId(groupId);
-  const activeParticipants = allParticipants.filter(
-    (participant) => participant.status === 'active'
-  );
-  const activeParticipantIds = new Set(
-    activeParticipants.map((participant) => participant.id)
+  const participantIds = new Set(
+    allParticipants.map((participant) => participant.id)
   );
 
-  if (!activeParticipantIds.has(paidByParticipantId)) {
+  if (!participantIds.has(paidByParticipantId)) {
     return {
       ok: false,
       error: {
         code: 'INVALID_INPUT',
-        message: 'Payer must be an active participant in this group',
+        message: 'Payer must be a participant in this group',
         status: 400,
       },
     };
@@ -449,12 +441,12 @@ export async function createExpense({
   let shares: Array<{ participantId: string; amount: number }> = [];
 
   if (split.mode === 'equal') {
-    if (activeParticipants.length === 0) {
+    if (allParticipants.length === 0) {
       return {
         ok: false,
         error: {
           code: 'INVALID_INPUT',
-          message: 'No active participants found for equal split',
+          message: 'No participants found for equal split',
           status: 400,
         },
       };
@@ -462,7 +454,7 @@ export async function createExpense({
 
     shares = buildEqualShares(
       amount,
-      activeParticipants.map((participant) => participant.id)
+      allParticipants.map((participant) => participant.id)
     );
   }
 
@@ -480,7 +472,7 @@ export async function createExpense({
     }
 
     const hasInvalid = selectedIds.some(
-      (participantId) => !activeParticipantIds.has(participantId)
+      (participantId) => !participantIds.has(participantId)
     );
     if (hasInvalid) {
       return {
@@ -523,7 +515,7 @@ export async function createExpense({
 
     const hasInvalid = sharesInput.some(
       (share) =>
-        !activeParticipantIds.has(share.participantId) || share.percentage < 0
+        !participantIds.has(share.participantId) || share.percentage < 0
     );
     if (hasInvalid) {
       return {
