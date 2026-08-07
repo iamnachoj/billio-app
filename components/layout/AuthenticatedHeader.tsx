@@ -14,7 +14,10 @@ export default async function Header() {
             <BillioLogo />
           </Link>
           <nav className="mt-2 flex lg:gap-4">
-            <Link href="/settings" className="mr-4 hover:text-teal-400">
+            <Link
+              href="/dashboard/settings"
+              className="mr-4 hover:text-teal-400"
+            >
               Settings
             </Link>
             <LogoutButton />
