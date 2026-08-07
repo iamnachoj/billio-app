@@ -12,10 +12,12 @@ import {
 } from '@/frontend-services/expenses.service';
 import { ExpenseCategories } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
+import { type GroupPageUser } from '@/components/groups/GroupPage';
 
 type AddExpenseModalProps = {
   open: boolean;
   onClose: () => void;
+  user: GroupPageUser;
   groupId: string;
   participants: GroupParticipant[];
   currencies: string[];
@@ -47,6 +49,7 @@ function buildEqualPercentageMap(participants: GroupParticipant[]) {
 export default function AddExpenseModal({
   open,
   onClose,
+  user,
   groupId,
   participants,
   currencies,
@@ -57,6 +60,7 @@ export default function AddExpenseModal({
     <Modal open={open} onClose={onClose} title="Add expense" size="md">
       {open ? (
         <AddExpenseModalForm
+          user={user}
           groupId={groupId}
           participants={participants}
           currencies={currencies}
@@ -70,6 +74,7 @@ export default function AddExpenseModal({
 }
 
 type AddExpenseModalFormProps = {
+  user: GroupPageUser;
   groupId: string;
   participants: GroupParticipant[];
   currencies: string[];
@@ -79,6 +84,7 @@ type AddExpenseModalFormProps = {
 };
 
 function AddExpenseModalForm({
+  user,
   groupId,
   participants,
   currencies,
@@ -99,6 +105,14 @@ function AddExpenseModalForm({
     return Array.from(new Set(base.filter(Boolean))).sort();
   }, [currencies, defaultCurrency]);
 
+  const defaultPaidByParticipantId = useMemo(() => {
+    const ownParticipant = activeParticipants.find(
+      (participant) => participant.userId === user.id
+    );
+
+    return ownParticipant?.id ?? activeParticipants[0]?.id ?? '';
+  }, [activeParticipants, user.id]);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>(ExpenseCategories[0]);
@@ -107,7 +121,7 @@ function AddExpenseModalForm({
     () => defaultCurrency || currencyOptions[0] || 'EUR'
   );
   const [paidByParticipantId, setPaidByParticipantId] = useState(
-    () => activeParticipants[0]?.id ?? ''
+    () => defaultPaidByParticipantId
   );
   const [splitMode, setSplitMode] = useState<SplitMode>('equal');
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<
@@ -119,6 +133,12 @@ function AddExpenseModalForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const paidByParticipantIdValue = activeParticipants.some(
+    (participant) => participant.id === paidByParticipantId
+  )
+    ? paidByParticipantId
+    : defaultPaidByParticipantId;
 
   function toggleSelectedParticipant(participantId: string) {
     setSelectedParticipantIds((current) => {
@@ -230,7 +250,7 @@ function AddExpenseModalForm({
       return;
     }
 
-    if (!paidByParticipantId) {
+    if (!paidByParticipantIdValue) {
       setError('Please select who paid.');
       return;
     }
@@ -255,7 +275,7 @@ function AddExpenseModalForm({
         category,
         amount: amountCents,
         currency,
-        paidByParticipantId,
+        paidByParticipantId: paidByParticipantIdValue,
         split: splitInputResult.split,
       });
 
@@ -360,7 +380,7 @@ function AddExpenseModalForm({
             Paid by
           </label>
           <select
-            value={paidByParticipantId}
+            value={paidByParticipantIdValue}
             onChange={(event) => setPaidByParticipantId(event.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           >

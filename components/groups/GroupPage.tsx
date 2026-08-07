@@ -6,7 +6,7 @@ import { GroupParticipant } from '@/lib/models/groupParticipant';
 import { GroupBalances } from '@/lib/services/balanceService';
 
 import ExpenseList from '@/components/groups/Expenses/ExpenseList';
-import AddExpenseModal from '@/components/groups/AddExpenseModal';
+import AddExpenseModal from '@/components/groups/Expenses/AddExpenseModal';
 import GroupHeader from '@/components/groups/GroupHeader';
 import InviteLinkModal from '@/components/groups/InviteLinkModal';
 import GroupParticipantsModal from '@/components/groups/GroupParticipantsModal';
@@ -113,6 +113,7 @@ export default function GroupPage(props: GroupPageProps) {
       <AddExpenseModal
         open={group.isAddExpenseModalOpen}
         onClose={group.closeAddExpenseModal}
+        user={group.user}
         groupId={group.group.id}
         participants={group.participants}
         currencies={group.availableCurrencies}
