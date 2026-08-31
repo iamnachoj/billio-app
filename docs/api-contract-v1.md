@@ -436,26 +436,37 @@ Response `201`:
 
 `GET /api/groups/[groupId]/expenses`
 
+Cursor-paginated. Query params (all optional):
+
+- `limit` — page size, integer 1-100, default 20
+- `cursor` — opaque string from the previous page's `nextCursor`
+- `category` — one of the expense categories (e.g. `food`)
+- `dateFrom` / `dateTo` — ISO date strings, inclusive bounds on `createdAt`
+- `minAmountCents` / `maxAmountCents` — integer bounds on `amount`
+
 Response `200`:
 
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "expense-id",
-      "title": "Dinner",
-      "description": "Optional text",
-      "category": "food",
-      "amount": 1235,
-      "currency": "EUR",
-      "groupId": "group-id",
-      "createdAt": "2026-07-25T10:00:00.000Z",
-      "updatedAt": "2026-07-25T10:00:00.000Z",
-      "paidByParticipantId": "participant-id-that-paid",
-      "createdByParticipantId": "participant-id-that-created"
-    }
-  ]
+  "data": {
+    "expenses": [
+      {
+        "id": "expense-id",
+        "title": "Dinner",
+        "description": "Optional text",
+        "category": "food",
+        "amount": 1235,
+        "currency": "EUR",
+        "groupId": "group-id",
+        "createdAt": "2026-07-25T10:00:00.000Z",
+        "updatedAt": "2026-07-25T10:00:00.000Z",
+        "paidByParticipantId": "participant-id-that-paid",
+        "createdByParticipantId": "participant-id-that-created"
+      }
+    ],
+    "nextCursor": "b3Blbmm...or null when this is the last page"
+  }
 }
 ```
 
@@ -587,6 +598,43 @@ Response `200`:
         }
       }
     ]
+  }
+}
+```
+
+### 7.1 Category stats
+
+`GET /api/groups/[groupId]/stats/categories`
+
+Query params:
+
+- `currency` — required, e.g. `EUR`
+- `dateFrom` / `dateTo` — optional ISO date strings, inclusive bounds; omit both for all-time
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "currency": "EUR",
+    "periodStart": "2026-07-01T00:00:00.000Z",
+    "periodEnd": null,
+    "totalSpentCents": 5000,
+    "categories": [
+      {
+        "category": "groceries",
+        "totalCents": 3000,
+        "expenseCount": 4,
+        "percentageOfTotal": 60
+      }
+    ],
+    "topCategory": {
+      "category": "groceries",
+      "totalCents": 3000,
+      "expenseCount": 4,
+      "percentageOfTotal": 60
+    }
   }
 }
 ```

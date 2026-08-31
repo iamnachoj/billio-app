@@ -300,6 +300,16 @@ export async function initDB() {
       created_at TEXT NOT NULL
     );
   `);
+
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_expenses_group_created ON expenses (group_id, created_at DESC);'
+  );
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_expenses_group_category ON expenses (group_id, category);'
+  );
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_expense_splits_expense_id ON expense_splits (expense_id);'
+  );
 }
 
 initDB()

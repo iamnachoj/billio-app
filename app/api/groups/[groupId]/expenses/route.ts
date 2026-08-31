@@ -48,7 +48,7 @@ export async function POST(
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
@@ -59,8 +59,24 @@ export async function GET(
     }
 
     const { groupId } = await params;
+    const searchParams = new URL(req.url).searchParams;
 
-    const result = await getExpensesForGroup(groupId, currentUser.id);
+    const limitParam = searchParams.get('limit');
+    const minAmountParam = searchParams.get('minAmountCents');
+    const maxAmountParam = searchParams.get('maxAmountCents');
+
+    const result = await getExpensesForGroup({
+      groupId,
+      userId: currentUser.id,
+      limit: limitParam ? Number(limitParam) : undefined,
+      cursor: searchParams.get('cursor') ?? undefined,
+      category: searchParams.get('category') ?? undefined,
+      dateFrom: searchParams.get('dateFrom') ?? undefined,
+      dateTo: searchParams.get('dateTo') ?? undefined,
+      minAmountCents: minAmountParam ? Number(minAmountParam) : undefined,
+      maxAmountCents: maxAmountParam ? Number(maxAmountParam) : undefined,
+      search: searchParams.get('search') ?? undefined,
+    });
 
     if (!result.ok) {
       return errorResponse(
@@ -70,7 +86,10 @@ export async function GET(
       );
     }
 
-    return successResponse(result.data.expenses);
+    return successResponse({
+      expenses: result.data.expenses,
+      nextCursor: result.data.nextCursor,
+    });
   } catch (error) {
     console.error(error);
 

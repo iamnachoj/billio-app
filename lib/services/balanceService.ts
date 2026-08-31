@@ -1,14 +1,14 @@
 import {
-  getExpensesByGroupId,
-  getExpenseSplitsByGroupId,
+  getExpenseSplitTotalsByDebtor,
+  getExpenseSplitTotalsByOwedTo,
+  getExpenseTotalsByPayer,
+  type CurrencyParticipantTotal,
 } from '@/lib/repositories/expenseRepository';
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
   getParticipantByGroupAndUserId,
   getParticipantsByGroupId,
 } from '@/lib/repositories/participantRepository';
-import { Expense } from '@/lib/models/expense';
-import { ExpenseSplit } from '@/lib/models/expenseSplit';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 
 export type BalanceServiceResult<T> =
@@ -122,18 +122,20 @@ function buildSettlements(
   return settlements;
 }
 
-export function calculateGroupBalancesFromData({
+export function calculateGroupBalancesFromAggregates({
   groupId,
   myParticipantId,
   participants,
-  expenses,
-  splits,
+  payerTotals,
+  lentTotals,
+  borrowedTotals,
 }: {
   groupId: string;
   myParticipantId: string;
   participants: GroupParticipant[];
-  expenses: Expense[];
-  splits: ExpenseSplit[];
+  payerTotals: CurrencyParticipantTotal[];
+  lentTotals: CurrencyParticipantTotal[];
+  borrowedTotals: CurrencyParticipantTotal[];
 }): GroupBalances {
   const participantInfos: ParticipantInfo[] = participants.map(
     (participant) => ({
@@ -146,12 +148,12 @@ export function calculateGroupBalancesFromData({
   );
 
   const currencies = Array.from(
-    new Set(expenses.map((expense) => expense.currency))
+    new Set([
+      ...payerTotals.map((total) => total.currency),
+      ...lentTotals.map((total) => total.currency),
+      ...borrowedTotals.map((total) => total.currency),
+    ])
   ).sort();
-
-  const expenseCurrencyById = new Map(
-    expenses.map((expense) => [expense.id, expense.currency])
-  );
 
   const currencySummaries: CurrencySummary[] = currencies.map((currency) => {
     const participantBalancesMap = new Map<string, ParticipantBalance>();
@@ -169,33 +171,38 @@ export function calculateGroupBalancesFromData({
 
     let totalSpentCents = 0;
 
-    for (const expense of expenses) {
-      if (expense.currency !== currency) {
+    for (const total of payerTotals) {
+      if (total.currency !== currency) {
         continue;
       }
 
-      totalSpentCents += expense.amount;
+      totalSpentCents += total.totalCents;
 
-      const payer = participantBalancesMap.get(expense.paidByParticipantId);
+      const payer = participantBalancesMap.get(total.participantId);
       if (payer) {
-        payer.totalSpentCents += expense.amount;
+        payer.totalSpentCents += total.totalCents;
       }
     }
 
-    for (const split of splits) {
-      const splitCurrency = expenseCurrencyById.get(split.expenseId);
-      if (splitCurrency !== currency) {
+    for (const total of lentTotals) {
+      if (total.currency !== currency) {
         continue;
       }
 
-      const owedTo = participantBalancesMap.get(split.owedToParticipantId);
+      const owedTo = participantBalancesMap.get(total.participantId);
       if (owedTo) {
-        owedTo.totalLentCents += split.amount;
+        owedTo.totalLentCents += total.totalCents;
+      }
+    }
+
+    for (const total of borrowedTotals) {
+      if (total.currency !== currency) {
+        continue;
       }
 
-      const debtor = participantBalancesMap.get(split.participantId);
+      const debtor = participantBalancesMap.get(total.participantId);
       if (debtor) {
-        debtor.totalBorrowedCents += split.amount;
+        debtor.totalBorrowedCents += total.totalCents;
       }
     }
 
@@ -291,20 +298,23 @@ export async function getGroupBalances({
     };
   }
 
-  const [participants, expenses, splits] = await Promise.all([
-    getParticipantsByGroupId(groupId),
-    getExpensesByGroupId(groupId),
-    getExpenseSplitsByGroupId(groupId),
-  ]);
+  const [participants, payerTotals, lentTotals, borrowedTotals] =
+    await Promise.all([
+      getParticipantsByGroupId(groupId),
+      getExpenseTotalsByPayer(groupId),
+      getExpenseSplitTotalsByOwedTo(groupId),
+      getExpenseSplitTotalsByDebtor(groupId),
+    ]);
 
   return {
     ok: true,
-    data: calculateGroupBalancesFromData({
+    data: calculateGroupBalancesFromAggregates({
       groupId,
       myParticipantId: membership.id,
       participants,
-      expenses,
-      splits,
+      payerTotals,
+      lentTotals,
+      borrowedTotals,
     }),
   };
 }

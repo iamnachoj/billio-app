@@ -2,10 +2,12 @@ import {
   createExpenseWithSplits,
   deleteExpenseById,
   getExpenseById,
-  getExpensesByGroupId,
+  getExpensesByGroupIdPaginated,
   getExpenseSplitsByExpenseId,
   updateExpenseById,
   updateExpenseWithSplits,
+  type ExpenseListCursor,
+  type ExpenseListFilters,
 } from '@/lib/repositories/expenseRepository';
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
@@ -77,6 +79,49 @@ function normalizeExpenseCategory(category: string): ExpenseCategory {
 
 function isValidExpenseCategory(category: string): category is ExpenseCategory {
   return expenseCategorySet.has(category);
+}
+
+export const DEFAULT_EXPENSE_PAGE_SIZE = 20;
+const MAX_EXPENSE_PAGE_SIZE = 100;
+
+export function encodeExpenseCursor(cursor: ExpenseListCursor): string {
+  return Buffer.from(`${cursor.createdAt}|${cursor.id}`, 'utf8').toString(
+    'base64url'
+  );
+}
+
+function decodeExpenseCursor(raw: string): ExpenseListCursor | null {
+  try {
+    const decoded = Buffer.from(raw, 'base64url').toString('utf8');
+    const separatorIndex = decoded.indexOf('|');
+    if (separatorIndex === -1) {
+      return null;
+    }
+
+    const createdAt = decoded.slice(0, separatorIndex);
+    const id = decoded.slice(separatorIndex + 1);
+
+    if (!createdAt || !id || Number.isNaN(Date.parse(createdAt))) {
+      return null;
+    }
+
+    return { createdAt, id };
+  } catch {
+    return null;
+  }
+}
+
+function parseIsoDateOrUndefined(value?: string): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) {
+    return undefined;
+  }
+
+  return new Date(timestamp).toISOString();
 }
 
 function buildEqualShares(totalAmount: number, participantIds: string[]) {
@@ -582,10 +627,31 @@ export async function createExpense({
   };
 }
 
-export async function getExpensesForGroup(
-  groupId: string,
-  userId: string
-): Promise<ExpenseServiceResult<{ expenses: unknown[] }>> {
+export async function getExpensesForGroup({
+  groupId,
+  userId,
+  limit,
+  cursor,
+  category,
+  dateFrom,
+  dateTo,
+  minAmountCents,
+  maxAmountCents,
+  search,
+}: {
+  groupId: string;
+  userId: string;
+  limit?: number;
+  cursor?: string;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  minAmountCents?: number;
+  maxAmountCents?: number;
+  search?: string;
+}): Promise<
+  ExpenseServiceResult<{ expenses: unknown[]; nextCursor: string | null }>
+> {
   if (!groupId || !userId) {
     return {
       ok: false,
@@ -621,11 +687,136 @@ export async function getExpensesForGroup(
     };
   }
 
-  const expenses = await getExpensesByGroupId(groupId);
+  const pageSize = limit ?? DEFAULT_EXPENSE_PAGE_SIZE;
+  if (
+    !Number.isInteger(pageSize) ||
+    pageSize < 1 ||
+    pageSize > MAX_EXPENSE_PAGE_SIZE
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: `limit must be an integer between 1 and ${MAX_EXPENSE_PAGE_SIZE}`,
+        status: 400,
+      },
+    };
+  }
+
+  let decodedCursor: ExpenseListCursor | undefined;
+  if (cursor) {
+    decodedCursor = decodeExpenseCursor(cursor) ?? undefined;
+    if (!decodedCursor) {
+      return {
+        ok: false,
+        error: {
+          code: 'INVALID_INPUT',
+          message: 'cursor is invalid',
+          status: 400,
+        },
+      };
+    }
+  }
+
+  let normalizedCategory: ExpenseCategory | undefined;
+  if (category) {
+    normalizedCategory = normalizeExpenseCategory(category);
+    if (!isValidExpenseCategory(normalizedCategory)) {
+      return {
+        ok: false,
+        error: {
+          code: 'INVALID_INPUT',
+          message: 'category is invalid',
+          status: 400,
+        },
+      };
+    }
+  }
+
+  const dateFromIso = parseIsoDateOrUndefined(dateFrom);
+  if (dateFrom && !dateFromIso) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'dateFrom must be a valid ISO date',
+        status: 400,
+      },
+    };
+  }
+
+  const dateToIso = parseIsoDateOrUndefined(dateTo);
+  if (dateTo && !dateToIso) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'dateTo must be a valid ISO date',
+        status: 400,
+      },
+    };
+  }
+
+  if (
+    (minAmountCents !== undefined &&
+      (!Number.isInteger(minAmountCents) || minAmountCents < 0)) ||
+    (maxAmountCents !== undefined &&
+      (!Number.isInteger(maxAmountCents) || maxAmountCents < 0))
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message:
+          'minAmountCents and maxAmountCents must be non-negative integers',
+        status: 400,
+      },
+    };
+  }
+
+  if (
+    minAmountCents !== undefined &&
+    maxAmountCents !== undefined &&
+    minAmountCents > maxAmountCents
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'minAmountCents cannot be greater than maxAmountCents',
+        status: 400,
+      },
+    };
+  }
+
+  const filters: ExpenseListFilters = {
+    category: normalizedCategory,
+    dateFromIso,
+    dateToIso,
+    minAmountCents,
+    maxAmountCents,
+    searchTitle: search?.trim() || undefined,
+  };
+
+  const { expenses, hasMore } = await getExpensesByGroupIdPaginated({
+    groupId,
+    limit: pageSize,
+    cursor: decodedCursor,
+    filters,
+  });
+
+  const lastExpense = expenses[expenses.length - 1];
+  const nextCursor =
+    hasMore && lastExpense
+      ? encodeExpenseCursor({
+          createdAt: lastExpense.createdAt.toISOString(),
+          id: lastExpense.id,
+        })
+      : null;
 
   return {
     ok: true,
-    data: { expenses },
+    data: { expenses, nextCursor },
   };
 }
 

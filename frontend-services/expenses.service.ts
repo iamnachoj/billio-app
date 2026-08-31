@@ -89,7 +89,7 @@ async function readResponsePayload(response: Response): Promise<unknown> {
   }
 }
 
-async function parseApiResult<T>(
+export async function parseApiResult<T>(
   response: Response,
   options?: { successFallbackData?: T }
 ): Promise<ApiResult<T>> {
@@ -158,6 +158,54 @@ async function parseApiResult<T>(
       message: `Request failed with status ${response.status}`,
     },
   };
+}
+
+export type ExpenseListParams = {
+  cursor?: string;
+  limit?: number;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  minAmountCents?: number;
+  maxAmountCents?: number;
+  search?: string;
+};
+
+export type ExpenseListData = {
+  expenses: Expense[];
+  nextCursor: string | null;
+};
+
+export async function getExpenses(
+  groupId: string,
+  params: ExpenseListParams = {}
+) {
+  const searchParams = new URLSearchParams();
+
+  if (params.cursor) searchParams.set('cursor', params.cursor);
+  if (params.limit) searchParams.set('limit', String(params.limit));
+  if (params.category) searchParams.set('category', params.category);
+  if (params.dateFrom) searchParams.set('dateFrom', params.dateFrom);
+  if (params.dateTo) searchParams.set('dateTo', params.dateTo);
+  if (params.minAmountCents !== undefined) {
+    searchParams.set('minAmountCents', String(params.minAmountCents));
+  }
+  if (params.maxAmountCents !== undefined) {
+    searchParams.set('maxAmountCents', String(params.maxAmountCents));
+  }
+  if (params.search) searchParams.set('search', params.search);
+
+  const query = searchParams.toString();
+
+  const response = await fetch(
+    `/api/groups/${groupId}/expenses${query ? `?${query}` : ''}`,
+    {
+      method: 'GET',
+      credentials: 'include',
+    }
+  );
+
+  return parseApiResult<ExpenseListData>(response);
 }
 
 export async function createExpense(groupId: string, body: CreateExpenseInput) {

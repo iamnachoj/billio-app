@@ -6,8 +6,9 @@ import * as participantRepository from '@/lib/repositories/participantRepository
 import { getGroupBalances } from '../balanceService';
 
 vi.mock('@/lib/repositories/expenseRepository', () => ({
-  getExpensesByGroupId: vi.fn(),
-  getExpenseSplitsByGroupId: vi.fn(),
+  getExpenseTotalsByPayer: vi.fn(),
+  getExpenseSplitTotalsByOwedTo: vi.fn(),
+  getExpenseSplitTotalsByDebtor: vi.fn(),
 }));
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
@@ -77,40 +78,36 @@ describe('balanceService', () => {
       ] as never
     );
 
-    vi.mocked(expenseRepository.getExpensesByGroupId).mockResolvedValue([
+    vi.mocked(expenseRepository.getExpenseTotalsByPayer).mockResolvedValue([
       {
-        id: 'expense-1',
-        title: 'Dinner',
-        description: undefined,
-        category: 'food',
-        amount: 1235,
         currency: 'EUR',
-        groupId: 'group-1',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
-        paidByParticipantId: 'participant-b',
-        createdByParticipantId: 'participant-a',
+        participantId: 'participant-b',
+        totalCents: 1235,
       },
     ] as never);
 
-    vi.mocked(expenseRepository.getExpenseSplitsByGroupId).mockResolvedValue([
+    vi.mocked(
+      expenseRepository.getExpenseSplitTotalsByOwedTo
+    ).mockResolvedValue([
       {
-        id: 'split-1',
-        expenseId: 'expense-1',
+        currency: 'EUR',
+        participantId: 'participant-b',
+        totalCents: 823,
+      },
+    ] as never);
+
+    vi.mocked(
+      expenseRepository.getExpenseSplitTotalsByDebtor
+    ).mockResolvedValue([
+      {
+        currency: 'EUR',
         participantId: 'participant-a',
-        amount: 412,
-        owedToParticipantId: 'participant-b',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        totalCents: 412,
       },
       {
-        id: 'split-2',
-        expenseId: 'expense-1',
+        currency: 'EUR',
         participantId: 'participant-c',
-        amount: 411,
-        owedToParticipantId: 'participant-b',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        totalCents: 411,
       },
     ] as never);
 

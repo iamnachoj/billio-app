@@ -10,6 +10,7 @@ import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
 import type { GroupPageProps } from '../GroupPage';
 import { useGroupParticipantsSection } from './useGroupParticipantsSection';
 import { useOptimisticCollection } from './useOptimisticCollection';
+import { useExpensesPaginated } from '../Expenses/hooks/useExpensesPaginated';
 
 function byNewestExpenseFirst(a: { createdAt: Date }, b: { createdAt: Date }) {
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -20,7 +21,7 @@ type PendingBalanceAdjustment = {
   currency: string;
   deltaCents: number;
   kind: 'create' | 'update' | 'delete';
-  targetUpdatedAtMs?: number;
+  createdAtMs: number;
 };
 
 function parseDateToMs(value: unknown) {
@@ -83,7 +84,15 @@ export function useGroup(props: GroupPageProps) {
   const groupName = props.group.name;
   const groupDescription = props.group.description ?? '';
 
-  const optimisticExpenses = useOptimisticCollection(props.expenses);
+  const expensesPagination = useExpensesPaginated({
+    groupId: props.group.id,
+    initialExpenses: props.expenses,
+    initialNextCursor: props.expensesNextCursor,
+  });
+
+  const optimisticExpenses = useOptimisticCollection(
+    expensesPagination.expenses
+  );
   const expenses = optimisticExpenses.items;
 
   const optimisticParticipants = useOptimisticCollection(props.participants);
@@ -134,6 +143,9 @@ export function useGroup(props: GroupPageProps) {
 
     const baseNetCents = myBalance?.netBalanceCents ?? 0;
 
+    // Balances computed after a pending edit already reflect it, so drop those adjustments.
+    const balancesCalculatedAtMs = parseDateToMs(props.balances.calculatedAt);
+
     const optimisticDeltaCents = Object.values(
       pendingBalanceAdjustmentsByExpenseId
     ).reduce((sum, adjustment) => {
@@ -141,30 +153,9 @@ export function useGroup(props: GroupPageProps) {
         return sum;
       }
 
-      const serverExpense = props.expenses.find(
-        (expense) => expense.id === adjustment.expenseId
-      );
-
-      if (adjustment.kind === 'create') {
-        return serverExpense ? sum : sum + adjustment.deltaCents;
-      }
-
-      if (adjustment.kind === 'delete') {
-        return serverExpense ? sum + adjustment.deltaCents : sum;
-      }
-
-      if (!serverExpense) {
-        return sum;
-      }
-
-      const serverUpdatedAtMs = parseDateToMs(serverExpense.updatedAt);
-      if (serverUpdatedAtMs === null) {
-        return sum;
-      }
-
       if (
-        adjustment.targetUpdatedAtMs !== undefined &&
-        serverUpdatedAtMs >= adjustment.targetUpdatedAtMs
+        balancesCalculatedAtMs !== null &&
+        balancesCalculatedAtMs >= adjustment.createdAtMs
       ) {
         return sum;
       }
@@ -176,8 +167,8 @@ export function useGroup(props: GroupPageProps) {
   }, [
     activeCurrencySummary,
     pendingBalanceAdjustmentsByExpenseId,
+    props.balances.calculatedAt,
     props.balances.myParticipantId,
-    props.expenses,
     selectedCurrency,
   ]);
 
@@ -235,6 +226,7 @@ export function useGroup(props: GroupPageProps) {
         currency: nextDetails.expense.currency,
         deltaCents,
         kind: 'create',
+        createdAtMs: Date.now(),
       },
     }));
   }
@@ -273,8 +265,7 @@ export function useGroup(props: GroupPageProps) {
         currency: payload.next.expense.currency,
         deltaCents,
         kind: 'update',
-        targetUpdatedAtMs:
-          parseDateToMs(payload.next.expense.updatedAt) ?? undefined,
+        createdAtMs: Date.now(),
       };
 
       return next;
@@ -302,6 +293,7 @@ export function useGroup(props: GroupPageProps) {
         currency: details.expense.currency,
         deltaCents,
         kind: 'delete',
+        createdAtMs: Date.now(),
       },
     }));
   }
@@ -441,6 +433,13 @@ export function useGroup(props: GroupPageProps) {
     ...props,
     participants,
     expenses,
+    expenseFilters: expensesPagination.filters,
+    setExpenseFilters: expensesPagination.setFilters,
+    hasMoreExpenses: expensesPagination.hasMore,
+    isLoadingInitialExpenses: expensesPagination.isLoadingInitial,
+    isLoadingMoreExpenses: expensesPagination.isLoadingMore,
+    expensesLoadError: expensesPagination.error,
+    loadMoreExpenses: expensesPagination.loadMore,
     ...participantsSection,
     showArchived,
     isSettingsModalOpen,

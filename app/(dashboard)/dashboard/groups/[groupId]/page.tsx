@@ -36,6 +36,8 @@ export default async function Page({ params }: Props) {
       group={groupDetails.data.group}
       participants={groupDetails.data.participants}
       expenses={groupDetails.data.expenses}
+      expensesNextCursor={groupDetails.data.expensesNextCursor}
+      expensesTotalCount={groupDetails.data.expensesTotalCount}
       balances={groupDetails.data.balances}
     />
   );

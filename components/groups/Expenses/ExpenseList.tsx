@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
+
 import Button from '@/components/ui/Button';
 import { Expense } from '@/lib/models/expense';
 
 import ExpenseCard from './ExpenseCard';
-import ExpenseSearchPanel from './ExpenseSearchPanel';
-import { useExpenseSearch } from './hooks/useExpenseSearch';
+import ExpenseFilterPanel from './ExpenseFilterPanel';
+import LoadMoreSentinel from './LoadMoreSentinel';
+import type { ExpenseFilters } from './hooks/useExpensesPaginated';
 
 type ExpenseListProps = {
   expenses: Expense[];
@@ -13,6 +16,13 @@ type ExpenseListProps = {
   onOpenAddExpenseModal: () => void;
   onOpenExpenseDetailsModal: (expenseId: string) => void;
   canCreateExpense: boolean;
+  filters: ExpenseFilters;
+  onFiltersChange: (next: ExpenseFilters) => void;
+  hasMore: boolean;
+  isLoadingInitial: boolean;
+  isLoadingMore: boolean;
+  loadError: string;
+  onLoadMore: () => void;
 };
 
 export default function ExpenseList({
@@ -21,14 +31,15 @@ export default function ExpenseList({
   onOpenAddExpenseModal,
   onOpenExpenseDetailsModal,
   canCreateExpense,
+  filters,
+  onFiltersChange,
+  hasMore,
+  isLoadingInitial,
+  isLoadingMore,
+  loadError,
+  onLoadMore,
 }: ExpenseListProps) {
-  const {
-    isSearchOpen,
-    searchQuery,
-    filteredExpenses,
-    setSearchQuery,
-    toggleSearch,
-  } = useExpenseSearch(expenses);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
   return (
     <section className="space-y-4 rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50 p-4 md:p-6">
@@ -39,10 +50,10 @@ export default function ExpenseList({
           </h2>
           <button
             type="button"
-            onClick={toggleSearch}
+            onClick={() => setIsFilterPanelOpen((open) => !open)}
             className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
           >
-            {isSearchOpen ? '🔎 Close search' : '🔎 Search'}
+            {isFilterPanelOpen ? '🔎 Close filters' : '🔎 Search & filter'}
           </button>
         </div>
 
@@ -56,33 +67,49 @@ export default function ExpenseList({
         ) : null}
       </div>
 
-      {isSearchOpen ? (
-        <ExpenseSearchPanel value={searchQuery} onChange={setSearchQuery} />
+      {isFilterPanelOpen ? (
+        <ExpenseFilterPanel filters={filters} onChange={onFiltersChange} />
       ) : null}
 
-      {filteredExpenses.length === 0 ? (
+      {loadError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          {loadError}
+        </div>
+      ) : null}
+
+      {isLoadingInitial ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500 animate-pulse">
+          Loading expenses…
+        </div>
+      ) : expenses.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-          {expenses.length === 0
-            ? 'No expenses yet.'
-            : 'No expenses match your search.'}
+          No expenses match your filters.
         </div>
       ) : (
-        <ul className="space-y-3">
-          {filteredExpenses.map((expense) => {
-            const payerName =
-              participantNameById.get(expense.paidByParticipantId) ??
-              'Unknown participant';
+        <>
+          <ul className="space-y-3">
+            {expenses.map((expense) => {
+              const payerName =
+                participantNameById.get(expense.paidByParticipantId) ??
+                'Unknown participant';
 
-            return (
-              <ExpenseCard
-                key={expense.id}
-                expense={expense}
-                payerName={payerName}
-                onOpenDetails={() => onOpenExpenseDetailsModal(expense.id)}
-              />
-            );
-          })}
-        </ul>
+              return (
+                <ExpenseCard
+                  key={expense.id}
+                  expense={expense}
+                  payerName={payerName}
+                  onOpenDetails={() => onOpenExpenseDetailsModal(expense.id)}
+                />
+              );
+            })}
+          </ul>
+
+          <LoadMoreSentinel
+            enabled={hasMore}
+            isLoading={isLoadingMore}
+            onIntersect={onLoadMore}
+          />
+        </>
       )}
     </section>
   );

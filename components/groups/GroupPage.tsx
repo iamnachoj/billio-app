@@ -31,6 +31,8 @@ export type GroupPageProps = {
   group: Group;
   participants: GroupParticipant[];
   expenses: Expense[];
+  expensesNextCursor: string | null;
+  expensesTotalCount: number;
   balances: GroupBalances;
 };
 
@@ -43,7 +45,7 @@ export default function GroupPage(props: GroupPageProps) {
         groupName={group.groupName}
         description={group.groupDescription}
         participantsCount={group.participants.length}
-        expensesCount={group.expenses.length}
+        expensesCount={group.expensesTotalCount}
         selectedCurrency={group.selectedCurrency}
         summaryLabel={group.summaryLabel}
         myNetBalanceCents={group.myNetBalanceCents}
@@ -58,6 +60,13 @@ export default function GroupPage(props: GroupPageProps) {
         onOpenAddExpenseModal={group.openAddExpenseModal}
         onOpenExpenseDetailsModal={group.openExpenseDetailsModal}
         canCreateExpense={group.canCreateExpense}
+        filters={group.expenseFilters}
+        onFiltersChange={group.setExpenseFilters}
+        hasMore={group.hasMoreExpenses}
+        isLoadingInitial={group.isLoadingInitialExpenses}
+        isLoadingMore={group.isLoadingMoreExpenses}
+        loadError={group.expensesLoadError}
+        onLoadMore={group.loadMoreExpenses}
       />
 
       <GroupParticipantsModal
@@ -144,6 +153,7 @@ export default function GroupPage(props: GroupPageProps) {
       <GroupTotalsModal
         open={group.isTotalsModalOpen}
         onClose={group.closeTotalsModal}
+        groupId={group.group.id}
         balances={group.balances}
         selectedCurrency={group.selectedCurrency}
         participantNameById={group.participantNameById}

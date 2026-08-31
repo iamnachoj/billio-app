@@ -1,6 +1,9 @@
 import {
-  getExpensesByGroupId,
-  getExpenseSplitsByGroupId,
+  countExpensesByGroupId,
+  getExpensesByGroupIdPaginated,
+  getExpenseSplitTotalsByDebtor,
+  getExpenseSplitTotalsByOwedTo,
+  getExpenseTotalsByPayer,
 } from '@/lib/repositories/expenseRepository';
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
@@ -8,10 +11,14 @@ import {
   getParticipantsByGroupId,
 } from '@/lib/repositories/participantRepository';
 import {
-  calculateGroupBalancesFromData,
+  calculateGroupBalancesFromAggregates,
   type GroupBalances,
   type BalanceServiceResult,
 } from './balanceService';
+import {
+  DEFAULT_EXPENSE_PAGE_SIZE,
+  encodeExpenseCursor,
+} from './expenseService';
 import { Group } from '@/lib/models/group';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 import { Expense } from '@/lib/models/expense';
@@ -20,6 +27,8 @@ export type GroupDetails = {
   group: Group;
   participants: GroupParticipant[];
   expenses: Expense[];
+  expensesNextCursor: string | null;
+  expensesTotalCount: number;
   balances: GroupBalances;
 };
 
@@ -64,11 +73,25 @@ export async function getGroupDetails(
     };
   }
 
-  const [group, participants, expenses, splits] = await Promise.all([
+  const [
+    group,
+    participants,
+    firstExpensePage,
+    expensesTotalCount,
+    payerTotals,
+    lentTotals,
+    borrowedTotals,
+  ] = await Promise.all([
     getGroupById(groupId),
     getParticipantsByGroupId(groupId),
-    getExpensesByGroupId(groupId),
-    getExpenseSplitsByGroupId(groupId),
+    getExpensesByGroupIdPaginated({
+      groupId,
+      limit: DEFAULT_EXPENSE_PAGE_SIZE,
+    }),
+    countExpensesByGroupId(groupId),
+    getExpenseTotalsByPayer(groupId),
+    getExpenseSplitTotalsByOwedTo(groupId),
+    getExpenseSplitTotalsByDebtor(groupId),
   ]);
 
   if (!group) {
@@ -82,20 +105,33 @@ export async function getGroupDetails(
     };
   }
 
-  const balances = calculateGroupBalancesFromData({
+  const balances = calculateGroupBalancesFromAggregates({
     groupId,
     myParticipantId: membership.id,
     participants,
-    expenses,
-    splits,
+    payerTotals,
+    lentTotals,
+    borrowedTotals,
   });
+
+  const lastExpense =
+    firstExpensePage.expenses[firstExpensePage.expenses.length - 1];
+  const expensesNextCursor =
+    firstExpensePage.hasMore && lastExpense
+      ? encodeExpenseCursor({
+          createdAt: lastExpense.createdAt.toISOString(),
+          id: lastExpense.id,
+        })
+      : null;
 
   return {
     ok: true,
     data: {
       group,
       participants,
-      expenses,
+      expenses: firstExpensePage.expenses,
+      expensesNextCursor,
+      expensesTotalCount,
       balances,
     },
   };
