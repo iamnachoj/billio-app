@@ -35,7 +35,7 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
       size="lg"
     >
       {model.isFetching ? (
-        <div className="py-8 text-center text-sm text-slate-500">
+        <div className="py-8 text-center text-sm text-slate-500 animate-pulse">
           Loading expense...
         </div>
       ) : null}
