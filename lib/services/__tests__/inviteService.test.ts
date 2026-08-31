@@ -32,6 +32,7 @@ vi.mock('@/lib/repositories/groupInviteRepository', () => ({
   cleanupExpiredGroupInvites: vi.fn(),
   createGroupInvite: vi.fn(),
   getGroupInviteByToken: vi.fn(),
+  markGroupInviteAsAccepted: vi.fn(),
 }));
 
 describe('inviteService', () => {
@@ -166,6 +167,9 @@ describe('inviteService', () => {
       participantId: 'participant-1',
       userId: 'user-2',
     });
+    expect(
+      groupInviteRepository.markGroupInviteAsAccepted
+    ).toHaveBeenCalledWith('invite-1-a-b-c-d');
   });
 
   it('accepts a link invite by creating a new participant', async () => {
@@ -226,6 +230,65 @@ describe('inviteService', () => {
       status: 'active',
       createdBy: 'user-2',
     });
+    expect(
+      groupInviteRepository.markGroupInviteAsAccepted
+    ).toHaveBeenCalledWith('invite-1-a-b-c-d');
+  });
+
+  it('allows re-joining a previously left but unlinked participant', async () => {
+    vi.mocked(groupInviteRepository.getGroupInviteByToken).mockResolvedValue({
+      id: 'invite-1-a-b-c-d',
+      groupId: 'group-1',
+      participantId: undefined,
+      token: 'invite-token',
+      email: undefined,
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 60_000),
+      acceptedAt: undefined,
+      revokedAt: undefined,
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(groupRepository.getGroupById).mockResolvedValue({
+      id: 'group-1',
+      name: 'Trip',
+      description: 'Weekend trip',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      createdBy: 'user-1',
+    });
+    vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
+      [
+        {
+          id: 'participant-old',
+          groupId: 'group-1',
+          displayName: 'Old Guest',
+          userId: undefined,
+          role: 'member',
+          status: 'left',
+          joinedAt: new Date('2024-01-01T00:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ]
+    );
+
+    const result = await getInviteByToken('invite-token');
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error('Expected invite lookup to succeed');
+    }
+
+    expect(result.data.claimableParticipants).toEqual([
+      {
+        id: 'participant-old',
+        displayName: 'Old Guest',
+        role: 'member',
+        status: 'left',
+      },
+    ]);
   });
 
   it('returns an invite when the token is valid', async () => {

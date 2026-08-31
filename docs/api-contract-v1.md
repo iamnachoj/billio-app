@@ -91,6 +91,23 @@ Cookie side effect:
 - `maxAge: 7 days`
 - `secure: true` in production
 
+`POST /api/auth/logout`
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "loggedOut": true
+  }
+}
+```
+
+Cookie side effect:
+
+- clears the `token` cookie immediately
+
 `POST /api/auth/forgot-password`
 
 Request:
@@ -586,6 +603,25 @@ Request (optional email lock):
 }
 ```
 
+Response `201`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "invite-id",
+    "groupId": "group-id",
+    "token": "invite-token",
+    "email": "friend@example.com",
+    "status": "pending",
+    "expiresAt": "2026-07-25T10:00:00.000Z",
+    "createdBy": "user-id",
+    "createdAt": "2026-07-25T10:00:00.000Z",
+    "updatedAt": "2026-07-25T10:00:00.000Z"
+  }
+}
+```
+
 `GET /api/invites/[token]`
 
 Response `200`:
@@ -594,8 +630,30 @@ Response `200`:
 {
   "success": true,
   "data": {
-    "token": "invite-token",
-    "groupId": "group-id"
+    "invite": {
+      "id": "invite-id",
+      "groupId": "group-id",
+      "token": "invite-token",
+      "email": "friend@example.com",
+      "status": "pending",
+      "expiresAt": "2026-07-25T10:00:00.000Z",
+      "createdBy": "user-id",
+      "createdAt": "2026-07-25T10:00:00.000Z",
+      "updatedAt": "2026-07-25T10:00:00.000Z"
+    },
+    "group": {
+      "id": "group-id",
+      "name": "Trip to Lisbon",
+      "description": "Weekend with friends"
+    },
+    "claimableParticipants": [
+      {
+        "id": "participant-id",
+        "displayName": "Ana",
+        "role": "member",
+        "status": "active"
+      }
+    ]
   }
 }
 ```
@@ -628,3 +686,10 @@ Response `200`:
   }
 }
 ```
+
+Notes:
+
+- the invite is reusable until expiration unless it is marked revoked/expired
+- if `email` is set, the signed-in user must match that email
+- `participantId` and `displayName` are mutually exclusive; one of them is required
+- when a participant is claimed, it is set active and linked to the user when needed

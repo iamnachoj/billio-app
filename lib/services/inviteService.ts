@@ -13,6 +13,7 @@ import {
   cleanupExpiredGroupInvites,
   createGroupInvite as createGroupInviteInRepository,
   getGroupInviteByToken,
+  markGroupInviteAsAccepted,
 } from '@/lib/repositories/groupInviteRepository';
 
 export type InviteResult<T> =
@@ -206,9 +207,7 @@ export async function getInviteByToken(
 
   const participants = await getParticipantsByGroupId(invite.groupId);
   const claimableParticipants = participants
-    .filter(
-      (participant) => !participant.userId && participant.status !== 'left'
-    )
+    .filter((participant) => !participant.userId)
     .map((participant) => ({
       id: participant.id,
       displayName: participant.displayName,
@@ -335,6 +334,8 @@ export async function acceptInvite({
       createdBy: userId,
     });
   }
+
+  await markGroupInviteAsAccepted(invite.id);
 
   return {
     ok: true,

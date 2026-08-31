@@ -2,261 +2,178 @@
 
 ## Introduction
 
-The Billio frontend is built using **Next.js App Router** and follows a **domain-driven component architecture**.
+The project uses Next.js App Router and a lightweight layered frontend structure built around the actual app routes and domain features.
 
-The main goal is to keep the application:
+The overall goal is to keep the app easy to work on without over-engineering it:
 
-- Easy to understand
-- Easy to scale
-- Easy to maintain
-- Easy for multiple developers to work on simultaneously
-
-Rather than organizing the code by technical concerns only, the project is primarily organized around **business domains** (authentication, groups, expenses, balances, etc.).
+- each route has a clear purpose
+- business logic stays in the backend services and repository layer
+- the frontend mainly composes UI and calls the API through dedicated service wrappers
+- shared components remain reusable and mostly presentational
 
 ---
 
-# High-Level Architecture
+# High-level structure
 
-```
-src
-│
-├── app
-├── components
-├── hooks
-├── frontend-services
-├── lib
-└── styles
+```text
+app/
+├── (public)/
+├── api/
+├── globals.css
+├── layout.tsx
+├── page.tsx
+components/
+├── auth/
+├── dashboard/
+├── groups/
+├── invites/
+├── layout/
+├── ui/
+frontend-services/
+├── auth.service.ts
+├── expenses.service.ts
+├── groups.service.ts
+├── invites.service.ts
+├── me.service.ts
+lib/
+├── api/
+├── db/
+├── mappers/
+├── models/
+├── repositories/
+├── services/
+├── utils/
+└── ...
 ```
 
-Every folder has a single responsibility.
+This is the actual structure of the repository today, not a generic `src` setup.
 
 ---
 
 # app/
 
-The `app` directory is **not** where most of the UI lives.
+The `app` folder contains the routing tree and server-side route handlers for the API.
 
-Instead, it defines the application's routing structure using the Next.js App Router.
+The main groups are:
 
-Each folder represents a route.
+- `app/(public)` for marketing/public pages such as login, reset-password and invite acceptance
+- `app/api` for the backend endpoints consumed by the frontend
+- `app/layout.tsx` for the root shell and global styling
 
-Example:
+Example routes in the project today:
 
-```
+```text
 app/
-    page.tsx
-    login/
-        page.tsx
-    groups/
-        page.tsx
+  (public)/
+    login/page.tsx
+    forgot-password/page.tsx
+    reset-password/page.tsx
+    invites/[token]/page.tsx
+  api/
+    auth/login/route.ts
+    auth/register/route.ts
+    auth/logout/route.ts
+    groups/[groupId]/invites/route.ts
+    invites/[token]/route.ts
 ```
 
-becomes
-
-```
-/
-/login
-/groups
-```
-
-Pages should remain as small as possible.
-
-Their job is mainly to:
-
-- fetch data
-- compose components
-- connect the route to the UI
-
-Example:
-
-```tsx
-export default async function GroupsPage() {
-  const groups = await getGroups();
-
-  return <GroupList groups={groups} />;
-}
-```
-
-Notice that almost all of the UI lives inside reusable components.
-
----
-
-# layouts
-
-Next.js layouts allow sharing UI across multiple pages.
-
-For example:
-
-```
-groups/
-    layout.tsx
-
-    page.tsx
-
-    [groupId]/
-        page.tsx
-```
-
-Every page under `/groups` automatically receives the same layout.
-
-Typical responsibilities include:
-
-- navigation
-- sidebar
-- user information
-- breadcrumbs
-- providers
-
-The root `layout.tsx` should only contain global concerns such as:
-
-- fonts
-- metadata
-- theme provider
-- toast provider
-- global CSS
+The App Router keeps page and route logic close to the URL structure, while the business logic remains in the `lib` layer.
 
 ---
 
 # components/
 
-Almost all visual logic should live inside `components`.
+The UI is organized by feature domain rather than by one giant flat folder.
 
-Components are grouped by business domain.
+Current domains include:
 
-```
+```text
 components/
-    auth/
-    groups/
-    expenses/
-    balances/
-    layout/
-    ui/
+  auth/
+  dashboard/
+  groups/
+  invites/
+  layout/
+  ui/
 ```
 
-This keeps related code together.
+Responsibilities:
 
-Instead of having hundreds of unrelated components inside a single folder, developers immediately know where to look.
+- `auth/`: login, register, password recovery forms
+- `groups/`: group cards, forms and group-related screens
+- `invites/`: invite preview and acceptance UI
+- `layout/`: shared shell, navigation and page wrappers
+- `ui/`: reusable presentational primitives such as buttons, cards and inputs
+
+Components should stay mostly presentational; API calls and business rules live outside the component tree.
 
 ---
 
-## ui/
+# frontend-services/
 
-Contains reusable presentational components.
+This folder is the frontend-facing boundary with the backend.
+
+Its job is to wrap HTTP calls and translate them into typed results for UI code.
 
 Examples:
 
-```
-Button
-Input
-Card
-Modal
-Spinner
-Avatar
-Badge
+```text
+frontend-services/
+  auth.service.ts
+  groups.service.ts
+  invites.service.ts
+  expenses.service.ts
+  me.service.ts
 ```
 
-These components should contain **no business logic**.
-
-They are intended to become the project's small Design System.
+This keeps the route/page components from mixing fetch logic, headers and request formatting with rendering code.
 
 ---
 
-## auth/
+# lib/
 
-Authentication-related components.
+The `lib` directory is the backend/core layer of the application.
 
-Examples:
+It contains:
 
-```
-LoginForm
-RegisterForm
-ForgotPasswordForm
-ResetPasswordForm
-```
+- `api/`: shared response helpers
+- `db/`: connection and initialization logic
+- `models/`: domain entities such as user, group, expense, participant and invite models
+- `repositories/`: SQL/data access logic
+- `services/`: use cases and validation rules
+- `utils/`: shared helpers such as JWT utilities
 
----
-
-## groups/
-
-Everything related to groups.
-
-Examples:
-
-```
-GroupCard
-GroupList
-CreateGroupModal
-DeleteGroupModal
-```
+This is the place where most of the actual app logic lives.
 
 ---
 
-## expenses/
+# testing strategy
 
-Expense-related UI.
+The project includes both unit and integration checks.
 
-Examples:
-
+```text
+tests/
+  integration/
+    balance-flow.test.ts
+    basic-guards.test.ts
+    setup.ts
 ```
-ExpenseCard
-ExpenseDetails
-ExpenseForm
-SplitEditor
-```
+
+The integration suite is intentionally separated from the main app database and uses its own test database configuration.
 
 ---
 
-## balances/
+# design principles
 
-Responsible for displaying balances and settlements.
+The current architecture follows these principles:
 
-Examples:
+1. route handlers stay thin
+2. business rules live in services
+3. repositories encapsulate persistence details
+4. models represent the domain, not UI concerns
+5. frontend service wrappers isolate API contracts from UI components
 
-```
-BalanceCard
-SettlementList
-```
-
----
-
-## layout/
-
-Reusable layout components.
-
-Examples:
-
-```
-Navbar
-Sidebar
-Footer
-```
-
----
-
-# hooks/
-
-Global reusable hooks.
-
-Only hooks that are useful across the entire application belong here.
-
-Examples:
-
-```
-useDebounce
-useClickOutside
-useMediaQuery
-```
-
-Hooks that are tightly coupled to a specific component should live next to that component.
-
-Example:
-
-```
-components/
-    expenses/
-        ExpenseForm.tsx
-        useExpenseForm.ts
-```
+That separation makes the app easier to extend as more features are added.
 
 This keeps related logic together.
 

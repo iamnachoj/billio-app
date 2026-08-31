@@ -15,24 +15,44 @@ The project is built with Next.js, TypeScript and libSQL, following a simple and
 
 ```text
 app/
+├── (public)/
+│   ├── invites/
+│   │   └── [token]/
+│   │       └── page.tsx
+│   ├── login/
+│   │   └── page.tsx
+│   ├── forgot-password/
+│   │   └── page.tsx
+│   ├── reset-password/
+│   │   └── page.tsx
+│   └── layout.tsx
 ├── api/
 │   ├── auth/
-│   │   ├── login/
-│   │   │   └── route.ts
 │   │   ├── forgot-password/
 │   │   │   └── route.ts
-│   │   ├── reset-password/
+│   │   ├── login/
 │   │   │   └── route.ts
-│   │   └── register/
+│   │   ├── logout/
+│   │   │   └── route.ts
+│   │   ├── register/
+│   │   │   └── route.ts
+│   │   └── reset-password/
 │   │       └── route.ts
 │   ├── groups/
 │   │   ├── [groupId]/
+│   │   │   ├── balances/
+│   │   │   │   └── route.ts
+│   │   │   ├── expenses/
+│   │   │   │   ├── [expenseId]/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── invites/
+│   │   │   │   └── route.ts
 │   │   │   ├── participants/
 │   │   │   │   ├── [participantId]/
 │   │   │   │   │   └── route.ts
 │   │   │   │   └── route.ts
-│   │   │   └── invites/
-│   │   │       └── route.ts
+│   │   │   └── route.ts
 │   │   └── route.ts
 │   ├── invites/
 │   │   └── [token]/
@@ -41,7 +61,23 @@ app/
 │       └── route.ts
 ├── globals.css
 ├── layout.tsx
-└── page.tsx
+├── page.tsx
+└── favicon.ico
+
+components/
+├── auth/
+├── dashboard/
+├── groups/
+├── invites/
+├── layout/
+└── ui/
+
+frontend-services/
+├── auth.service.ts
+├── expenses.service.ts
+├── groups.service.ts
+├── invites.service.ts
+└── me.service.ts
 
 lib/
 ├── api/
@@ -55,15 +91,37 @@ lib/
 │   ├── expense.ts
 │   ├── expenseSplit.ts
 │   ├── group.ts
+│   ├── groupInvite.ts
 │   ├── groupParticipant.ts
+│   ├── passwordResetToken.ts
 │   └── user.ts
 ├── repositories/
-│   └── userRepository.ts
+│   ├── groupInviteRepository.ts
+│   ├── groupRepository.ts
+│   ├── participantRepository.ts
+│   ├── passwordResetRepository.ts
+│   ├── userRepository.ts
+│   └── expenseRepository.ts
 ├── services/
 │   ├── authService.ts
-│   └── authService.test.ts
-└── utils/
-    └── jwt.ts
+│   ├── balanceService.ts
+│   ├── emailService.ts
+│   ├── expenseService.ts
+│   ├── groupDetailsService.ts
+│   ├── groupService.ts
+│   ├── inviteService.ts
+│   ├── passwordResetService.ts
+│   └── __tests__/
+├── utils/
+│   └── jwt.ts
+└── types/
+
+tests/
+├── integration/
+│   ├── balance-flow.test.ts
+│   ├── basic-guards.test.ts
+│   └── setup.ts
+└── ...
 ```
 
 ## Configuration Files
@@ -147,6 +205,7 @@ The current API surface is split by feature and keeps each handler thin.
 
 - `POST /api/auth/register` - create a new account
 - `POST /api/auth/login` - authenticate and receive a token
+- `POST /api/auth/logout` - clear the auth cookie
 - `POST /api/auth/forgot-password` - request a password reset email
 - `POST /api/auth/reset-password` - complete the password reset flow
 
@@ -415,7 +474,24 @@ In this project, that includes:
 
 - JWT helpers for token generation and verification
 
-### 7. API Response Helpers
+### 7. Frontend service layer
+
+Located under:
+
+```text
+frontend-services/
+```
+
+This layer wraps browser fetch calls to the backend and keeps page-level code free from low-level API details.
+
+Examples include:
+
+- `auth.service.ts` for login, registration and profile requests
+- `groups.service.ts` for group listing and mutations
+- `invites.service.ts` for invite preview and acceptance
+- `expenses.service.ts` and `me.service.ts` for the main domain actions
+
+### 8. API Response Helpers
 
 Located under:
 
