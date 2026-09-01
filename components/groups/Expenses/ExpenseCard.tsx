@@ -1,6 +1,10 @@
 'use client';
 
-import { Expense } from '@/lib/models/expense';
+import {
+  Expense,
+  getExpenseCategoryEmoji,
+  getExpenseCategoryLabel,
+} from '@/lib/models/expense';
 
 type ExpenseCardProps = {
   expense: Expense;
@@ -24,13 +28,6 @@ function formatDate(date: Date) {
   }).format(new Date(date));
 }
 
-function prettifyCategory(category: string) {
-  return category
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 export default function ExpenseCard({
   expense,
   payerName,
@@ -50,7 +47,8 @@ export default function ExpenseCard({
                 {expense.title}
               </h3>
               <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
-                {prettifyCategory(expense.category)}
+                {getExpenseCategoryEmoji(expense.category)}{' '}
+                {getExpenseCategoryLabel(expense.category)}
               </span>
             </div>
 

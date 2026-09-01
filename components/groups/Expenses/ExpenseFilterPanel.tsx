@@ -1,4 +1,8 @@
-import { ExpenseCategories } from '@/lib/models/expense';
+import {
+  ExpenseCategories,
+  getExpenseCategoryEmoji,
+  getExpenseCategoryLabel,
+} from '@/lib/models/expense';
 
 import {
   emptyExpenseFilters,
@@ -9,13 +13,6 @@ type ExpenseFilterPanelProps = {
   filters: ExpenseFilters;
   onChange: (next: ExpenseFilters) => void;
 };
-
-function prettifyCategory(category: string) {
-  return category
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
 
 export default function ExpenseFilterPanel({
   filters,
@@ -63,7 +60,8 @@ export default function ExpenseFilterPanel({
           <option value="">All categories</option>
           {ExpenseCategories.map((category) => (
             <option key={category} value={category}>
-              {prettifyCategory(category)}
+              {getExpenseCategoryEmoji(category)}{' '}
+              {getExpenseCategoryLabel(category)}
             </option>
           ))}
         </select>

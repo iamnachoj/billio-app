@@ -1,7 +1,11 @@
 import { FormEvent } from 'react';
 
 import Button from '@/components/ui/Button';
-import { ExpenseCategories } from '@/lib/models/expense';
+import {
+  ExpenseCategories,
+  getExpenseCategoryEmoji,
+  getExpenseCategoryLabel,
+} from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 
 type SplitMode = 'equal' | 'selected' | 'percentage';
@@ -133,7 +137,8 @@ export default function ExpenseEditForm({
           >
             {ExpenseCategories.map((expenseCategory) => (
               <option key={expenseCategory} value={expenseCategory}>
-                {expenseCategory}
+                {getExpenseCategoryEmoji(expenseCategory)}{' '}
+                {getExpenseCategoryLabel(expenseCategory)}
               </option>
             ))}
           </select>

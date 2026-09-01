@@ -1,4 +1,8 @@
 import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
+import {
+  getExpenseCategoryEmoji,
+  getExpenseCategoryLabel,
+} from '@/lib/models/expense';
 
 type SplitSummaryRow = {
   participantId: string;
@@ -27,13 +31,6 @@ function formatDate(date: Date | string) {
   }).format(new Date(date));
 }
 
-function prettifyCategory(category: string) {
-  return category
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 export default function ExpenseDetailsView({
   details,
   splitSummaryRows,
@@ -47,7 +44,8 @@ export default function ExpenseDetailsView({
             {details.expense.title}
           </h3>
           <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700">
-            {prettifyCategory(details.expense.category)}
+            {getExpenseCategoryEmoji(details.expense.category)}{' '}
+            {getExpenseCategoryLabel(details.expense.category)}
           </span>
         </div>
 

@@ -235,6 +235,39 @@ export async function initDB() {
     );
   }
 
+  // Remap categories from the old taxonomy to the current one (idempotent: no-op once migrated).
+  const legacyCategoryMap: Record<string, string> = {
+    rent: 'home',
+    utilities: 'home',
+    internet: 'home',
+    fuel: 'transport',
+    car: 'transport',
+    public_transport: 'transport',
+    mobility: 'transport',
+    gaming: 'entertainment',
+    healthcare: 'health',
+    fitness: 'personal_care',
+    education: 'miscellaneous',
+    pets: 'miscellaneous',
+    kids: 'miscellaneous',
+    work: 'services',
+    taxes: 'services',
+    financial: 'services',
+    insurance: 'services',
+    subscriptions: 'services',
+    technology: 'shopping',
+    other: 'miscellaneous',
+  };
+
+  for (const [legacyCategory, newCategory] of Object.entries(
+    legacyCategoryMap
+  )) {
+    await db.execute({
+      sql: 'UPDATE expenses SET category = ? WHERE category = ?',
+      args: [newCategory, legacyCategory],
+    });
+  }
+
   const expenseSplitsInfo = await db.execute(
     'PRAGMA table_info(expense_splits);'
   );

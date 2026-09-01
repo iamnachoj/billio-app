@@ -18,32 +18,52 @@ export const ExpenseCategories = [
   'eating_out',
   'groceries',
   'drinks',
-  'rent',
-  'utilities',
-  'internet',
-  'fuel',
-  'car',
-  'public_transport',
-  'travel',
-  'mobility',
-  'entertainment',
-  'gaming',
-  'shopping',
-  'healthcare',
-  'fitness',
-  'education',
-  'pets',
-  'gifts',
-  'kids',
-  'work',
-  'taxes',
-  'financial',
-  'insurance',
   'home',
+  'transport',
+  'travel',
+  'entertainment',
+  'shopping',
+  'health',
   'personal_care',
-  'subscriptions',
-  'technology',
-  'other',
+  'services',
+  'gifts',
+  'miscellaneous',
 ] as const;
 
 export type ExpenseCategory = (typeof ExpenseCategories)[number];
+
+export const ExpenseCategoryMeta: Record<
+  ExpenseCategory,
+  { label: string; emoji: string }
+> = {
+  eating_out: { label: 'Eating Out', emoji: '🍴' },
+  groceries: { label: 'Groceries', emoji: '🛒' },
+  drinks: { label: 'Drinks', emoji: '🍻' },
+  home: { label: 'Home', emoji: '🏠' },
+  transport: { label: 'Transport', emoji: '🚇' },
+  travel: { label: 'Travel', emoji: '✈️' },
+  entertainment: { label: 'Entertainment', emoji: '🪁' },
+  shopping: { label: 'Shopping', emoji: '🛍️' },
+  health: { label: 'Health', emoji: '❤️' },
+  personal_care: { label: 'Personal Care', emoji: '🛁' },
+  services: { label: 'Services', emoji: '📱' },
+  gifts: { label: 'Gifts', emoji: '🎁' },
+  miscellaneous: { label: 'Miscellaneous', emoji: '🗂️' },
+};
+
+// Falls back to a readable label for categories outside the current taxonomy (e.g. legacy data).
+export function getExpenseCategoryLabel(category: string): string {
+  const meta = ExpenseCategoryMeta[category as ExpenseCategory];
+  if (meta) {
+    return meta.label;
+  }
+
+  return category
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+export function getExpenseCategoryEmoji(category: string): string {
+  return ExpenseCategoryMeta[category as ExpenseCategory]?.emoji ?? '🗂️';
+}

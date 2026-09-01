@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import Button from '@/components/ui/Button';
@@ -10,7 +10,12 @@ import {
   type ExpenseDetailsData,
   type CreateExpenseSplitInput,
 } from '@/frontend-services/expenses.service';
-import { ExpenseCategories } from '@/lib/models/expense';
+import {
+  ExpenseCategories,
+  getExpenseCategoryEmoji,
+  getExpenseCategoryLabel,
+} from '@/lib/models/expense';
+import { suggestExpenseCategory } from '@/lib/utils/expenseCategorySuggestion';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 import { type GroupPageUser } from '@/components/groups/GroupPage';
 
@@ -110,6 +115,7 @@ function AddExpenseModalForm({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<string>(ExpenseCategories[0]);
+  const [hasManualCategory, setHasManualCategory] = useState(false);
   const [amountInput, setAmountInput] = useState('');
   const [currency, setCurrency] = useState(
     () => defaultCurrency || currencyOptions[0] || 'EUR'
@@ -127,6 +133,15 @@ function AddExpenseModalForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Auto-suggest a category from the title/description until the user picks one manually.
+  useEffect(() => {
+    if (hasManualCategory) {
+      return;
+    }
+
+    setCategory(suggestExpenseCategory(`${title} ${description}`));
+  }, [title, description, hasManualCategory]);
 
   const paidByParticipantIdValue = participants.some(
     (participant) => participant.id === paidByParticipantId
@@ -358,12 +373,16 @@ function AddExpenseModalForm({
           </label>
           <select
             value={category}
-            onChange={(event) => setCategory(event.target.value)}
+            onChange={(event) => {
+              setCategory(event.target.value);
+              setHasManualCategory(true);
+            }}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           >
             {ExpenseCategories.map((expenseCategory) => (
               <option key={expenseCategory} value={expenseCategory}>
-                {expenseCategory}
+                {getExpenseCategoryEmoji(expenseCategory)}{' '}
+                {getExpenseCategoryLabel(expenseCategory)}
               </option>
             ))}
           </select>

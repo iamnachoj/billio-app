@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 import { GroupBalances } from '@/lib/services/balanceService';
 import {
+  getExpenseCategoryEmoji,
+  getExpenseCategoryLabel,
+} from '@/lib/models/expense';
+import {
   getCategoryStats,
   type GroupCategoryStats,
 } from '@/frontend-services/stats.service';
@@ -34,13 +38,6 @@ function formatMoney(amountCents: number, currency: string) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amountCents / 100);
-}
-
-function prettifyCategory(category: string) {
-  return category
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
 }
 
 function getCurrentMonthRange() {
@@ -488,7 +485,8 @@ export default function GroupTotalsModal({
                 <p className="text-sm text-slate-700">
                   Top category:{' '}
                   <span className="font-semibold text-slate-900">
-                    {prettifyCategory(stats.topCategory.category)}
+                    {getExpenseCategoryEmoji(stats.topCategory.category)}{' '}
+                    {getExpenseCategoryLabel(stats.topCategory.category)}
                   </span>{' '}
                   ({formatMoney(stats.topCategory.totalCents, stats.currency)})
                 </p>
@@ -499,7 +497,8 @@ export default function GroupTotalsModal({
                   <li key={categoryStat.category} className="space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-800">
-                        {prettifyCategory(categoryStat.category)}{' '}
+                        {getExpenseCategoryEmoji(categoryStat.category)}{' '}
+                        {getExpenseCategoryLabel(categoryStat.category)}{' '}
                         <span className="text-slate-400">
                           (
                           {Math.round(categoryStat.percentageOfTotal * 100) /
