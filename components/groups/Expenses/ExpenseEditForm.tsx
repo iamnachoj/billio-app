@@ -1,4 +1,4 @@
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 
 import Button from '@/components/ui/Button';
 import {
@@ -63,13 +63,15 @@ export default function ExpenseEditForm({
   toggleSelectedParticipant,
   updatePercentage,
 }: ExpenseEditFormProps) {
+  const [isSplitOptionsOpen, setIsSplitOptionsOpen] = useState(false);
+
   return (
     <form
       onSubmit={onSubmit}
       className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4"
     >
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="space-y-2 md:col-span-2">
+      <div className="grid grid-cols-1 gap-3">
+        <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
             Title
           </label>
@@ -81,7 +83,7 @@ export default function ExpenseEditForm({
           />
         </div>
 
-        <div className="space-y-2 md:col-span-2">
+        <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
             Description
           </label>
@@ -95,35 +97,36 @@ export default function ExpenseEditForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">
-            Amount
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0.01"
-            value={amountInput}
-            onChange={(event) => setAmountInput(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">
-            Currency
-          </label>
-          <select
-            value={currency}
-            onChange={(event) => setCurrency(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
-          >
-            {currencyOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-12 gap-1 space-y-2">
+          <div className="col-span-8">
+            <label className="block text-sm font-medium text-slate-700">
+              Amount
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={amountInput}
+              onChange={(event) => setAmountInput(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
+            />
+          </div>
+          <div className="col-span-4">
+            <label className="block text-sm font-medium text-slate-700">
+              Currency
+            </label>
+            <select
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+              className="w-full h-10.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
+            >
+              {currencyOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -162,113 +165,138 @@ export default function ExpenseEditForm({
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">
-            Split mode
-          </label>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <button
-              type="button"
-              onClick={() => setSplitMode('equal')}
-              className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                splitMode === 'equal'
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              Equal
-            </button>
-            <button
-              type="button"
-              onClick={() => setSplitMode('selected')}
-              className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                splitMode === 'selected'
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              Selected people
-            </button>
-            <button
-              type="button"
-              onClick={() => setSplitMode('percentage')}
-              className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                splitMode === 'percentage'
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              Percentage
-            </button>
-          </div>
+      <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="block text-sm font-medium text-slate-700">
+            Split
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsSplitOptionsOpen((open) => !open)}
+            className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
+          >
+            {isSplitOptionsOpen ? 'Hide split options' : 'Split options'}
+          </button>
         </div>
 
-        {splitMode === 'equal' ? (
+        {!isSplitOptionsOpen ? (
           <p className="text-xs text-slate-600">
-            The amount will be split equally across all active participants.
+            The amount will be split equally across all participants.
           </p>
-        ) : null}
-
-        {splitMode === 'selected' ? (
-          <div className="space-y-2">
-            <p className="text-xs text-slate-600">
-              Choose who shares this expense.
-            </p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {activeParticipants.map((participant) => {
-                const checked = selectedParticipantIds.includes(participant.id);
-
-                return (
-                  <label
-                    key={participant.id}
-                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleSelectedParticipant(participant.id)}
-                    />
-                    <span>{participant.displayName}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        {splitMode === 'percentage' ? (
-          <div className="space-y-2">
-            <p className="text-xs text-slate-600">
-              Set the percentage for each participant. Total must be exactly
-              100.
-            </p>
-            <div className="space-y-2">
-              {activeParticipants.map((participant) => (
-                <div
-                  key={participant.id}
-                  className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2"
+        ) : (
+          <>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-slate-700">
+                Split mode
+              </label>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => setSplitMode('equal')}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                    splitMode === 'equal'
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
-                    {participant.displayName}
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={percentageByParticipantId[participant.id] ?? ''}
-                    onChange={(event) =>
-                      updatePercentage(participant.id, event.target.value)
-                    }
-                    className="w-24 rounded-md border border-slate-300 px-2 py-1 text-right text-sm text-slate-900"
-                  />
-                  <span className="text-sm text-slate-500">%</span>
-                </div>
-              ))}
+                  Equal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSplitMode('selected')}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                    splitMode === 'selected'
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Selected people
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSplitMode('percentage')}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                    splitMode === 'percentage'
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Percentage
+                </button>
+              </div>
             </div>
-          </div>
-        ) : null}
+
+            {splitMode === 'equal' ? (
+              <p className="text-xs text-slate-600">
+                The amount will be split equally across all participants.
+              </p>
+            ) : null}
+
+            {splitMode === 'selected' ? (
+              <div className="space-y-1">
+                <p className="text-xs text-slate-600">
+                  Choose who shares this expense.
+                </p>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                  {activeParticipants.map((participant) => {
+                    const checked = selectedParticipantIds.includes(
+                      participant.id
+                    );
+
+                    return (
+                      <label
+                        key={participant.id}
+                        className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() =>
+                            toggleSelectedParticipant(participant.id)
+                          }
+                        />
+                        <span>{participant.displayName}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {splitMode === 'percentage' ? (
+              <div className="space-y-1">
+                <p className="text-xs text-slate-600">
+                  Set the percentage for each participant. Total must be exactly
+                  100.
+                </p>
+                <div className="space-y-1">
+                  {activeParticipants.map((participant) => (
+                    <div
+                      key={participant.id}
+                      className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                        {participant.displayName}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={percentageByParticipantId[participant.id] ?? ''}
+                        onChange={(event) =>
+                          updatePercentage(participant.id, event.target.value)
+                        }
+                        className="w-24 rounded-md border border-slate-300 px-2 py-1 text-right text-sm text-slate-900"
+                      />
+                      <span className="text-sm text-slate-500">%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
 
       {error ? <p className="text-sm text-rose-700">{error}</p> : null}
