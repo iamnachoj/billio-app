@@ -74,6 +74,7 @@ export default function ExpenseFilterPanel({
           </label>
           <input
             id="expense-date-from"
+            placeholder="From date"
             type="date"
             value={filters.dateFrom}
             onChange={(event) => update('dateFrom', event.target.value)}
@@ -86,6 +87,7 @@ export default function ExpenseFilterPanel({
           </label>
           <input
             id="expense-date-to"
+            placeholder="To date"
             type="date"
             value={filters.dateTo}
             onChange={(event) => update('dateTo', event.target.value)}
