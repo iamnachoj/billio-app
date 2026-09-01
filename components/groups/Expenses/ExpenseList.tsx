@@ -51,7 +51,7 @@ export default function ExpenseList({
           <button
             type="button"
             onClick={() => setIsFilterPanelOpen((open) => !open)}
-            className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
+            className="cursor-pointer text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
           >
             {isFilterPanelOpen ? '🔎 Close filters' : '🔎 Search & filter'}
           </button>

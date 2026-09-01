@@ -49,7 +49,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 p-3 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/50 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={() => {
         if (closeOnOverlayClick) {
           onClose();

@@ -473,7 +473,9 @@ export default function GroupTotalsModal({
           </div>
 
           {isLoadingStats ? (
-            <p className="text-sm text-slate-600">Loading stats…</p>
+            <p className="text-sm text-slate-600 animate-pulse">
+              Loading stats…
+            </p>
           ) : statsError ? (
             <p className="text-sm text-rose-700">{statsError}</p>
           ) : !stats || stats.categories.length === 0 ? (
@@ -499,7 +501,10 @@ export default function GroupTotalsModal({
                       <span className="text-slate-800">
                         {prettifyCategory(categoryStat.category)}{' '}
                         <span className="text-slate-400">
-                          ({categoryStat.expenseCount})
+                          (
+                          {Math.round(categoryStat.percentageOfTotal * 100) /
+                            100}
+                          %)
                         </span>
                       </span>
                       <span className="font-medium text-slate-900">

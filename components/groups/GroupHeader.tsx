@@ -62,7 +62,7 @@ export default function GroupHeader({
               onClick={onOpenParticipantsModal}
               className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
             >
-              {participantsCount} participants (+ add more)
+              👥 {participantsCount} participants (+ add more)
             </button>{' '}
             · {expensesCount} expenses
           </p>
@@ -72,7 +72,7 @@ export default function GroupHeader({
               onClick={onOpenTotalsModal}
               className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
             >
-              View totals and settlements
+              📓 View totals and settlements
             </button>
           </p>
         </div>
