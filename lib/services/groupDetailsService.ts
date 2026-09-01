@@ -5,6 +5,10 @@ import {
   getExpenseSplitTotalsByOwedTo,
   getExpenseTotalsByPayer,
 } from '@/lib/repositories/expenseRepository';
+import {
+  getPaymentTotalsByReceiver,
+  getPaymentTotalsBySender,
+} from '@/lib/repositories/paymentRepository';
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
   getParticipantByGroupAndUserId,
@@ -81,6 +85,8 @@ export async function getGroupDetails(
     payerTotals,
     lentTotals,
     borrowedTotals,
+    paymentsSentTotals,
+    paymentsReceivedTotals,
   ] = await Promise.all([
     getGroupById(groupId),
     getParticipantsByGroupId(groupId),
@@ -92,6 +98,8 @@ export async function getGroupDetails(
     getExpenseTotalsByPayer(groupId),
     getExpenseSplitTotalsByOwedTo(groupId),
     getExpenseSplitTotalsByDebtor(groupId),
+    getPaymentTotalsBySender(groupId),
+    getPaymentTotalsByReceiver(groupId),
   ]);
 
   if (!group) {
@@ -112,6 +120,8 @@ export async function getGroupDetails(
     payerTotals,
     lentTotals,
     borrowedTotals,
+    paymentsSentTotals,
+    paymentsReceivedTotals,
   });
 
   const lastExpense =

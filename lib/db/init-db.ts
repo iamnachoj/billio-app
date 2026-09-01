@@ -301,6 +301,27 @@ export async function initDB() {
     );
   `);
 
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS payments (
+      id TEXT PRIMARY KEY,
+      group_id TEXT NOT NULL,
+      from_participant_id TEXT NOT NULL,
+      to_participant_id TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      currency TEXT NOT NULL,
+      created_by_participant_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
+
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_payments_group_id ON payments (group_id);'
+  );
+
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_payments_group_created ON payments (group_id, created_at DESC);'
+  );
+
   await db.execute(
     'CREATE INDEX IF NOT EXISTS idx_expenses_group_created ON expenses (group_id, created_at DESC);'
   );

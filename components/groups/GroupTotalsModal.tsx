@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import Modal from '@/components/ui/Modal';
 import { GroupBalances } from '@/lib/services/balanceService';
@@ -8,6 +9,12 @@ import {
   getCategoryStats,
   type GroupCategoryStats,
 } from '@/frontend-services/stats.service';
+import {
+  createPayment,
+  deletePayment,
+  getPayments,
+  type PaymentData,
+} from '@/frontend-services/payments.service';
 
 type GroupTotalsModalProps = {
   open: boolean;
@@ -46,6 +53,14 @@ function getCurrentMonthRange() {
   };
 }
 
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    dateStyle: 'medium',
+  }).format(new Date(value));
+}
+
+const PAYMENT_HISTORY_PAGE_SIZE = 5;
+
 export default function GroupTotalsModal({
   open,
   onClose,
@@ -58,6 +73,126 @@ export default function GroupTotalsModal({
     balances.currencies.find(
       (currency) => currency.currency === selectedCurrency
     ) ?? balances.currencies[0];
+
+  const router = useRouter();
+  const [settlingKey, setSettlingKey] = useState<string | null>(null);
+  const [settleError, setSettleError] = useState('');
+
+  const [paymentHistory, setPaymentHistory] = useState<PaymentData[]>([]);
+  const [paymentHistoryCursor, setPaymentHistoryCursor] = useState<
+    string | null
+  >(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingMoreHistory, setIsLoadingMoreHistory] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [undoingPaymentId, setUndoingPaymentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !currencySummary) {
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingHistory(true);
+    setHistoryError('');
+
+    getPayments(groupId, {
+      currency: currencySummary.currency,
+      limit: PAYMENT_HISTORY_PAGE_SIZE,
+    }).then((result) => {
+      if (cancelled) {
+        return;
+      }
+
+      setIsLoadingHistory(false);
+
+      if (!result.success) {
+        setHistoryError(result.error.message);
+        return;
+      }
+
+      setPaymentHistory(result.data.payments);
+      setPaymentHistoryCursor(result.data.nextCursor);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, groupId, currencySummary, historyRefreshKey]);
+
+  async function loadMorePaymentHistory() {
+    if (!paymentHistoryCursor || isLoadingMoreHistory || !currencySummary) {
+      return;
+    }
+
+    setIsLoadingMoreHistory(true);
+    setHistoryError('');
+
+    const result = await getPayments(groupId, {
+      currency: currencySummary.currency,
+      limit: PAYMENT_HISTORY_PAGE_SIZE,
+      cursor: paymentHistoryCursor,
+    });
+
+    setIsLoadingMoreHistory(false);
+
+    if (!result.success) {
+      setHistoryError(result.error.message);
+      return;
+    }
+
+    setPaymentHistory((current) => [...current, ...result.data.payments]);
+    setPaymentHistoryCursor(result.data.nextCursor);
+  }
+
+  async function handleUndoPayment(paymentId: string) {
+    setUndoingPaymentId(paymentId);
+    setHistoryError('');
+
+    const result = await deletePayment(groupId, paymentId);
+
+    setUndoingPaymentId(null);
+
+    if (!result.success) {
+      setHistoryError(result.error.message);
+      return;
+    }
+
+    setHistoryRefreshKey((key) => key + 1);
+    router.refresh();
+  }
+
+  async function handleSettle(settlement: {
+    fromParticipantId: string;
+    toParticipantId: string;
+    amountCents: number;
+  }) {
+    if (!currencySummary) {
+      return;
+    }
+
+    const key = `${settlement.fromParticipantId}-${settlement.toParticipantId}`;
+    setSettlingKey(key);
+    setSettleError('');
+
+    const result = await createPayment(groupId, {
+      fromParticipantId: settlement.fromParticipantId,
+      toParticipantId: settlement.toParticipantId,
+      amountCents: settlement.amountCents,
+      currency: currencySummary.currency,
+    });
+
+    setSettlingKey(null);
+
+    if (!result.success) {
+      setSettleError(result.error.message);
+      return;
+    }
+
+    setHistoryRefreshKey((key) => key + 1);
+    router.refresh();
+  }
 
   const [period, setPeriod] = useState<StatsPeriod>('month');
   const [stats, setStats] = useState<GroupCategoryStats | null>(null);
@@ -195,6 +330,9 @@ export default function GroupTotalsModal({
           <h3 className="text-sm font-semibold text-slate-900">
             Who owes whom
           </h3>
+          {settleError ? (
+            <p className="text-sm text-rose-700">{settleError}</p>
+          ) : null}
           {currencySummary.settlements.length === 0 ? (
             <p className="text-sm text-slate-600">Everyone is settled.</p>
           ) : (
@@ -206,24 +344,100 @@ export default function GroupTotalsModal({
                 const toName =
                   participantNameById.get(settlement.toParticipantId) ??
                   'Unknown participant';
+                const key = `${settlement.fromParticipantId}-${settlement.toParticipantId}`;
+                const isSettling = settlingKey === key;
 
                 return (
                   <li
-                    key={`${settlement.fromParticipantId}-${settlement.toParticipantId}-${index}`}
-                    className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800"
+                    key={`${key}-${index}`}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800"
                   >
-                    <span className="font-medium">{fromName}</span> owes{' '}
-                    <span className="font-medium">{toName}</span>{' '}
-                    <span className="font-semibold">
-                      {formatMoney(
-                        settlement.amountCents,
-                        currencySummary.currency
-                      )}
-                    </span>
+                    <p>
+                      <span className="font-medium">{fromName}</span> owes{' '}
+                      <span className="font-medium">{toName}</span>{' '}
+                      <span className="font-semibold">
+                        {formatMoney(
+                          settlement.amountCents,
+                          currencySummary.currency
+                        )}
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleSettle(settlement)}
+                      disabled={isSettling}
+                      className="shrink-0 rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 transition hover:border-slate-500 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isSettling ? 'Saving…' : 'Mark as paid'}
+                    </button>
                   </li>
                 );
               })}
             </ul>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-slate-900">
+            Payment history
+          </h3>
+          {historyError ? (
+            <p className="text-sm text-rose-700">{historyError}</p>
+          ) : null}
+          {isLoadingHistory ? (
+            <p className="text-sm text-slate-600">Loading payments…</p>
+          ) : paymentHistory.length === 0 ? (
+            <p className="text-sm text-slate-600">No payments recorded yet.</p>
+          ) : (
+            <>
+              <ul className="space-y-2">
+                {paymentHistory.map((payment) => {
+                  const fromName =
+                    participantNameById.get(payment.fromParticipantId) ??
+                    'Unknown participant';
+                  const toName =
+                    participantNameById.get(payment.toParticipantId) ??
+                    'Unknown participant';
+
+                  return (
+                    <li
+                      key={payment.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800"
+                    >
+                      <p>
+                        <span className="font-medium">{fromName}</span> paid{' '}
+                        <span className="font-medium">{toName}</span>{' '}
+                        <span className="font-semibold">
+                          {formatMoney(payment.amount, payment.currency)}
+                        </span>
+                        <span className="ml-2 text-xs text-slate-400">
+                          {formatDate(payment.createdAt)}
+                        </span>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleUndoPayment(payment.id)}
+                        disabled={undoingPaymentId === payment.id}
+                        className="shrink-0 text-xs text-slate-400 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {undoingPaymentId === payment.id ? 'Undoing…' : 'Undo'}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {paymentHistoryCursor ? (
+                <button
+                  type="button"
+                  onClick={loadMorePaymentHistory}
+                  disabled={isLoadingMoreHistory}
+                  className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoadingMoreHistory ? 'Loading…' : 'View more'}
+                </button>
+              ) : null}
+            </>
           )}
         </div>
 

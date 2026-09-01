@@ -4,6 +4,10 @@ import {
   getExpenseTotalsByPayer,
   type CurrencyParticipantTotal,
 } from '@/lib/repositories/expenseRepository';
+import {
+  getPaymentTotalsByReceiver,
+  getPaymentTotalsBySender,
+} from '@/lib/repositories/paymentRepository';
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
   getParticipantByGroupAndUserId,
@@ -129,6 +133,8 @@ export function calculateGroupBalancesFromAggregates({
   payerTotals,
   lentTotals,
   borrowedTotals,
+  paymentsSentTotals,
+  paymentsReceivedTotals,
 }: {
   groupId: string;
   myParticipantId: string;
@@ -136,6 +142,8 @@ export function calculateGroupBalancesFromAggregates({
   payerTotals: CurrencyParticipantTotal[];
   lentTotals: CurrencyParticipantTotal[];
   borrowedTotals: CurrencyParticipantTotal[];
+  paymentsSentTotals?: CurrencyParticipantTotal[];
+  paymentsReceivedTotals?: CurrencyParticipantTotal[];
 }): GroupBalances {
   const participantInfos: ParticipantInfo[] = participants.map(
     (participant) => ({
@@ -152,6 +160,8 @@ export function calculateGroupBalancesFromAggregates({
       ...payerTotals.map((total) => total.currency),
       ...lentTotals.map((total) => total.currency),
       ...borrowedTotals.map((total) => total.currency),
+      ...(paymentsSentTotals ?? []).map((total) => total.currency),
+      ...(paymentsReceivedTotals ?? []).map((total) => total.currency),
     ])
   ).sort();
 
@@ -206,9 +216,32 @@ export function calculateGroupBalancesFromAggregates({
       }
     }
 
+    // Paying down a debt raises net balance; receiving a payment lowers it.
+    for (const total of paymentsSentTotals ?? []) {
+      if (total.currency !== currency) {
+        continue;
+      }
+
+      const sender = participantBalancesMap.get(total.participantId);
+      if (sender) {
+        sender.netBalanceCents += total.totalCents;
+      }
+    }
+
+    for (const total of paymentsReceivedTotals ?? []) {
+      if (total.currency !== currency) {
+        continue;
+      }
+
+      const receiver = participantBalancesMap.get(total.participantId);
+      if (receiver) {
+        receiver.netBalanceCents -= total.totalCents;
+      }
+    }
+
     const participantBalances = participants.map((participant) => {
       const balance = participantBalancesMap.get(participant.id)!;
-      balance.netBalanceCents =
+      balance.netBalanceCents +=
         balance.totalLentCents - balance.totalBorrowedCents;
       balance.position =
         balance.netBalanceCents > 0
@@ -298,13 +331,21 @@ export async function getGroupBalances({
     };
   }
 
-  const [participants, payerTotals, lentTotals, borrowedTotals] =
-    await Promise.all([
-      getParticipantsByGroupId(groupId),
-      getExpenseTotalsByPayer(groupId),
-      getExpenseSplitTotalsByOwedTo(groupId),
-      getExpenseSplitTotalsByDebtor(groupId),
-    ]);
+  const [
+    participants,
+    payerTotals,
+    lentTotals,
+    borrowedTotals,
+    paymentsSentTotals,
+    paymentsReceivedTotals,
+  ] = await Promise.all([
+    getParticipantsByGroupId(groupId),
+    getExpenseTotalsByPayer(groupId),
+    getExpenseSplitTotalsByOwedTo(groupId),
+    getExpenseSplitTotalsByDebtor(groupId),
+    getPaymentTotalsBySender(groupId),
+    getPaymentTotalsByReceiver(groupId),
+  ]);
 
   return {
     ok: true,
@@ -315,6 +356,8 @@ export async function getGroupBalances({
       payerTotals,
       lentTotals,
       borrowedTotals,
+      paymentsSentTotals,
+      paymentsReceivedTotals,
     }),
   };
 }

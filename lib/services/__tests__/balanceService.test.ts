@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as expenseRepository from '@/lib/repositories/expenseRepository';
+import * as paymentRepository from '@/lib/repositories/paymentRepository';
 import * as groupRepository from '@/lib/repositories/groupRepository';
 import * as participantRepository from '@/lib/repositories/participantRepository';
 import { getGroupBalances } from '../balanceService';
@@ -9,6 +10,11 @@ vi.mock('@/lib/repositories/expenseRepository', () => ({
   getExpenseTotalsByPayer: vi.fn(),
   getExpenseSplitTotalsByOwedTo: vi.fn(),
   getExpenseSplitTotalsByDebtor: vi.fn(),
+}));
+
+vi.mock('@/lib/repositories/paymentRepository', () => ({
+  getPaymentTotalsBySender: vi.fn(),
+  getPaymentTotalsByReceiver: vi.fn(),
 }));
 
 vi.mock('@/lib/repositories/groupRepository', () => ({
@@ -23,6 +29,11 @@ vi.mock('@/lib/repositories/participantRepository', () => ({
 describe('balanceService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    vi.mocked(paymentRepository.getPaymentTotalsBySender).mockResolvedValue([]);
+    vi.mocked(paymentRepository.getPaymentTotalsByReceiver).mockResolvedValue(
+      []
+    );
   });
 
   it('calculates balances and settlements for a group', async () => {

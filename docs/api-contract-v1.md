@@ -545,6 +545,72 @@ Response `200`:
 }
 ```
 
+### 6.1 Payments (settlements)
+
+`POST /api/groups/[groupId]/payments`
+
+Records that one participant paid another to settle a debt. Payments are not expenses: they don't appear in category stats or "total spent", they only offset balances. `amountCents` is trusted as sent by the client (typically the exact amount from a suggested settlement) — the server only validates it's a positive integer and that both participants belong to the group.
+
+Request:
+
+```json
+{
+  "fromParticipantId": "participant-id-that-paid",
+  "toParticipantId": "participant-id-that-received",
+  "amountCents": 1000,
+  "currency": "EUR"
+}
+```
+
+Response `201`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "payment-id",
+    "groupId": "group-id",
+    "fromParticipantId": "participant-id-that-paid",
+    "toParticipantId": "participant-id-that-received",
+    "amount": 1000,
+    "currency": "EUR",
+    "createdByParticipantId": "participant-id-of-current-user",
+    "createdAt": "2026-07-25T10:00:00.000Z"
+  }
+}
+```
+
+`GET /api/groups/[groupId]/payments`
+
+Cursor-paginated payment history. Query params (all optional):
+
+- `currency` — filter to a single currency
+- `limit` — page size, integer 1-50, default 5
+- `cursor` — opaque string from the previous page's `nextCursor`
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "payments": [
+      {
+        "id": "payment-id",
+        "groupId": "group-id",
+        "fromParticipantId": "participant-id-that-paid",
+        "toParticipantId": "participant-id-that-received",
+        "amount": 1000,
+        "currency": "EUR",
+        "createdByParticipantId": "participant-id-of-current-user",
+        "createdAt": "2026-07-25T10:00:00.000Z"
+      }
+    ],
+    "nextCursor": "b3Blbmm...or null when this is the last page"
+  }
+}
+```
+
 ### 7. Balances
 
 `GET /api/groups/[groupId]/balances`
