@@ -277,6 +277,24 @@ export default function UserAccountSettings({
         </div>
       </div>
 
+      <div className="mt-6 pt-6 space-x-4 border-t border-gray-200">
+        <a
+          href="/terms-and-conditions"
+          target="_blank"
+          className="text-gray-500 hover:underline"
+        >
+          Terms of Service
+        </a>
+        <span className="text-gray-500">|</span>
+        <a
+          href="/privacy-policy"
+          target="_blank"
+          className="text-gray-500 hover:underline"
+        >
+          Privacy Policy
+        </a>
+      </div>
+
       <Modal
         open={isDeleteModalOpen}
         onClose={closeDeleteModal}

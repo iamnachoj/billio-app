@@ -108,12 +108,21 @@ export default function Login({ initialMode, redirectTo }: Props) {
                   <span>
                     I accept the{' '}
                     <Link
-                      href="/privacy"
+                      href="/terms-and-conditions"
+                      target="_blank"
                       className="text-teal-600 hover:underline"
                     >
                       Terms of Service
                     </Link>{' '}
-                    and Privacy Policy.
+                    and{' '}
+                    <Link
+                      href="/privacy-policy"
+                      target="_blank"
+                      className="text-teal-600 hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
                   </span>
                 </label>
               </>

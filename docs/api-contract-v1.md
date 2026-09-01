@@ -611,6 +611,17 @@ Response `200`:
 }
 ```
 
+`DELETE /api/groups/[groupId]/payments/[paymentId]`
+
+Undoes a settlement payment (any group member can undo any payment). Response `200`:
+
+```json
+{
+  "success": true,
+  "data": { "deleted": true }
+}
+```
+
 ### 7. Balances
 
 `GET /api/groups/[groupId]/balances`
