@@ -69,7 +69,7 @@ export default function Modal({
             }
           )}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-4 sm:px-8 sm:py-6">
+          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-4 sm:px-8 sm:py-6 md:px-4 md:py-2">
             {title ? (
               <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                 {title}
@@ -90,7 +90,7 @@ export default function Modal({
             )}
           </div>
 
-          <div className="overflow-y-auto p-4 sm:p-8">{children}</div>
+          <div className="overflow-y-auto p-4 sm:p-8 md:p-4">{children}</div>
         </div>
       </div>
     </div>
