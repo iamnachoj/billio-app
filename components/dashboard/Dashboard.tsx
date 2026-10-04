@@ -1,11 +1,20 @@
 'use client';
 
-import { useDashboard } from './hooks/useDashboard';
-import { Group } from '@/lib/models/group';
+import { DashboardGroup, useDashboard } from './hooks/useDashboard';
+
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 
 import GroupCard from './GroupCard';
+import SortableGroupCard from './SortableGroupCard';
 import Button from '../ui/Button';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import Modal from '../ui/Modal';
 import CreateGroupForm from '../groups/CreateGroupForm';
 
@@ -17,14 +26,34 @@ type User = {
 
 type Props = {
   user: User;
-  groups: Group[];
+  groups: DashboardGroup[];
 };
 
 export default function Dashboard({ user, groups }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  // Stable id so dnd-kit's aria-describedby matches between server and
+  // client renders (otherwise its module-level counter causes a
+  // hydration mismatch).
+  const dndContextId = useId();
 
-  const { activeGroups, archivedGroups, showArchived, toggleArchived } =
-    useDashboard(groups);
+  const {
+    activeGroups,
+    archivedGroups,
+    showArchived,
+    toggleArchived,
+    reorderActiveGroup,
+  } = useDashboard(groups);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      reorderActiveGroup(String(active.id), String(over.id));
+    }
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 md:px-8">
@@ -56,11 +85,22 @@ export default function Dashboard({ user, groups }: Props) {
           </button>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {activeGroups.map((group) => (
-            <GroupCard key={group.id} group={group} />
-          ))}
-        </div>
+        <DndContext
+          id={dndContextId}
+          sensors={sensors}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={activeGroups.map((g) => g.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {activeGroups.map((group) => (
+                <SortableGroupCard key={group.id} group={group} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {showArchived && archivedGroups.length > 0 && (
           <>

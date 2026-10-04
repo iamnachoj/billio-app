@@ -4,7 +4,7 @@ type Props = {
   group: {
     id: string;
     name: string;
-    description: string | null;
+    description?: string | null;
   };
 };
 
@@ -12,7 +12,7 @@ export default function GroupCard({ group }: Props) {
   return (
     <Link
       href={`/dashboard/groups/${group.id}`}
-      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+      className="block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
     >
       <h3 className="text-xl font-semibold text-gray-800">{group.name}</h3>
 
