@@ -39,7 +39,7 @@ export default function SortableGroupCard({ group }: Props) {
         {...attributes}
         {...listeners}
         aria-label={`Reorder ${group.name}`}
-        className="absolute left-1 top-1/2 z-10 -translate-y-1/2 cursor-grab touch-none rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
+        className="absolute left-1 top-1/2 z-10 -translate-y-1/2 cursor-grab touch-none rounded-md p-1.5 text-gray-700 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
