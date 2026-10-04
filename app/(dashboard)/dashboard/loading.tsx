@@ -18,8 +18,9 @@ export default function DashboardLoading() {
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
             >
+              <div className="absolute left-1.5 top-1.5 h-6 w-6 animate-pulse rounded-md bg-slate-200" />
               <div className="h-7 w-2/3 animate-pulse rounded-full bg-slate-200" />
               <div className="mt-4 h-4 w-full animate-pulse rounded-full bg-slate-200" />
               <div className="mt-2 h-4 w-5/6 animate-pulse rounded-full bg-slate-200" />

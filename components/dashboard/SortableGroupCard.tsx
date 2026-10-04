@@ -34,12 +34,14 @@ export default function SortableGroupCard({ group }: Props) {
       style={style}
       className={`relative h-full ${isDragging ? 'z-10 opacity-80' : ''}`}
     >
+      <GroupCard group={group} />
       <button
         type="button"
         {...attributes}
         {...listeners}
+        onClick={(e) => e.stopPropagation()}
         aria-label={`Reorder ${group.name}`}
-        className="absolute left-1 top-1/2 z-10 -translate-y-1/2 cursor-grab touch-none rounded-md p-1.5 text-gray-700 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
+        className="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded-md bg-white/90 p-1 text-gray-500 backdrop-blur-sm hover:border-gray-300 hover:text-gray-800 active:cursor-grabbing"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -51,9 +53,6 @@ export default function SortableGroupCard({ group }: Props) {
           <path d="M7 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm9-11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
         </svg>
       </button>
-      <div className="h-full pl-7">
-        <GroupCard group={group} />
-      </div>
     </div>
   );
 }
