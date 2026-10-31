@@ -19,13 +19,13 @@ Files: `lib/services/expenseService.ts`, `lib/services/balanceService.ts`, `lib/
 - `paidByParticipantId` fronts the money. Each share is stored as an `expense_splits` row `{ participantId (debtor), owedToParticipantId = payer, amount }`.
 - **The payer's own share is not stored** (`share.participantId !== paidByParticipantId` is filtered out; zero shares are dropped too).
 - Split modes (`SplitInput`):
-  - `equal`: all participants of the group (every status, including `left` and `invited`, since `getParticipantsByGroupId` doesn't filter by status).
+  - `equal`: active participants of the group only. `getParticipantsByGroupId` returns all statuses, so the service filters to `status === 'active'`.
   - `selected`: equal among the unique `participantIds` given.
   - `percentage`: `{ participantId, percentage }[]`, no duplicates, no negatives, sum within 0.0001 of 100.
 - Rounding:
   - Equal/selected: `base = floor(amount / n)`, `remainder = amount % n`; the **first `remainder` participants in list order (`created_at ASC`) get +1 cent**.
   - Percentage: floor each `amount * pct / 100`, then give the leftover cents one each to the largest fractional parts (stable order on ties).
-- `viewer` role cannot create expenses. Create and update both resolve splits; `createExpense` and `resolveExpenseSplits` currently contain duplicated split logic, so change both together or consolidate deliberately.
+- `viewer` role cannot create expenses. Both create and update use `resolveExpenseSplits`, so keep that shared resolver as the single source of split validation and calculation.
 
 ### Worked example (matches `tests/integration/balance-flow.test.ts`)
 

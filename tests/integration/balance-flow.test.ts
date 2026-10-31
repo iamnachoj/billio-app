@@ -104,6 +104,70 @@ async function seedGroupWithThreeParticipants() {
 }
 
 describe('integration: balances from real DB data', () => {
+  it('excludes invited and left participants from equal expense splits', async () => {
+    const seeded = await seedGroupWithThreeParticipants();
+
+    for (const [displayName, status] of [
+      ['Invited participant', 'invited'],
+      ['Left participant', 'left'],
+    ] as const) {
+      const result = await addParticipantToGroup({
+        groupId: seeded.groupId,
+        displayName,
+        status,
+        createdBy: seeded.ownerUserId,
+      });
+
+      if (!result.ok) {
+        throw new Error(
+          `Failed to add ${status} participant: ${result.error.code}`
+        );
+      }
+    }
+
+    const participants = await getParticipantsForGroup(
+      seeded.groupId,
+      seeded.ownerUserId
+    );
+    if (!participants.ok) {
+      throw new Error(
+        `Failed to list participants: ${participants.error.code}`
+      );
+    }
+    const inactiveIds = new Set(
+      (participants.data.participants as Participant[])
+        .filter((participant) => participant.status !== 'active')
+        .map((participant) => participant.id)
+    );
+
+    const result = await createExpense({
+      groupId: seeded.groupId,
+      userId: seeded.ownerUserId,
+      title: 'Active participants only',
+      category: 'groceries',
+      amount: 1235,
+      currency: 'EUR',
+      paidByParticipantId: seeded.linkedMemberParticipantId,
+      split: { mode: 'equal' },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error(`Expense creation failed: ${result.error.code}`);
+    }
+
+    const storedSplits = result.data.splits as Array<{
+      participantId: string;
+      amount: number;
+    }>;
+    expect(
+      storedSplits.some((split) => inactiveIds.has(split.participantId))
+    ).toBe(false);
+    expect(storedSplits.reduce((total, split) => total + split.amount, 0)).toBe(
+      823
+    );
+  });
+
   it('computes balances after creating an expense', async () => {
     const seeded = await seedGroupWithThreeParticipants();
 

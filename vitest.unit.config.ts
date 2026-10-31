@@ -11,7 +11,13 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['lib/**/*.test.ts'],
-    exclude: ['tests/integration/**'],
+    include: ['**/*.{test,spec}.{ts,tsx}'],
+    exclude: [
+      '**/node_modules/**',
+      '**/.git/**',
+      '**/.next/**',
+      'coverage/**',
+      'tests/integration/**',
+    ],
   },
 });

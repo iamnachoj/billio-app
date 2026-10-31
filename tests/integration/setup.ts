@@ -2,16 +2,7 @@ import { beforeAll, beforeEach } from 'vitest';
 
 import { db } from '../../lib/db/db';
 import { initDB } from '../../lib/db/init-db';
-
-const TABLES = [
-  'expense_splits',
-  'expenses',
-  'group_invites',
-  'group_participants',
-  'groups',
-  'password_resets',
-  'users',
-];
+import { clearIntegrationDatabase } from './clear-database';
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL?.startsWith('file:')) {
@@ -21,7 +12,5 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  for (const table of TABLES) {
-    await db.execute(`DELETE FROM ${table};`);
-  }
+  await clearIntegrationDatabase(db);
 });

@@ -15,7 +15,7 @@ description: Write or fix unit and integration tests in Billio with Vitest, choo
 
 ## Unit tests
 
-- Config: `vitest.unit.config.ts`. It **only includes `lib/**/\*.test.ts`**. A test placed in `components/`or`app/` will silently not run.
+- Config: `vitest.unit.config.ts` discovers `*.test.*` and `*.spec.*` files across the repo, including `components/` and `app/`, while excluding dependencies, build output and integration tests. The config uses Node, not jsdom, so component tests should exercise pure component logic unless a DOM environment is explicitly configured.
 - Pattern (see `groupService.test.ts`): `vi.mock('@/lib/repositories/xRepository', () => ({ fn: vi.fn(), ... }))` listing every function the service imports, `vi.mocked(fn).mockResolvedValue(...)`, `beforeEach(() => vi.clearAllMocks())`.
 - Assert on the result object: `expect(result.ok).toBe(false)`, then code and status. Test the success path, each `INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN` branch, and that repositories are (not) called.
 - Run one file: `npx vitest run -c vitest.unit.config.ts lib/services/__tests__/groupService.test.ts`.

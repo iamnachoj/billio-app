@@ -35,7 +35,7 @@ Backend request flow: `app/api/**/route.ts` → `lib/services/` → `lib/reposit
 
 ## Conventions
 
-- Unit tests: `__tests__/` folder next to the code (`lib/services/__tests__`, `lib/repositories/__tests__`). Service tests mock repositories with `vi.mock`.
+- Unit tests: `__tests__/` folder next to the code (`lib/services/__tests__`, `lib/repositories/__tests__`, `components/ui/__tests__`). The unit config discovers `*.test.*` and `*.spec.*` files across the repo (except integration tests). Service tests mock repositories with `vi.mock`.
 - Integration tests: `tests/integration/*.test.ts`. They run against a local `file:` SQLite DB and delete all rows between tests. Use them for flows that cross services and repositories.
 - New behaviour in services needs a unit test; new cross-feature flows or SQL need an integration test.
 - Error codes are `UPPER_SNAKE_CASE`. Statuses: 401 unauthenticated, 403 forbidden, 404 not found, 409 conflict.
