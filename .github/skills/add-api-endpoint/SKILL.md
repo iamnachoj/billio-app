@@ -19,13 +19,21 @@ Work bottom-up and finish each layer before the next. Reference implementation: 
    - Return `{ ok: true, data } | { ok: false, error: { code, message, status } }`. Do not throw for expected failures.
    - Order of checks: input validation (`INVALID_INPUT` 400) → membership (`getParticipantByGroupAndUserId`; if none, `NOT_FOUND` 404 when the group doesn't exist, otherwise `FORBIDDEN` 403) → role checks (`viewer` cannot write) → business rules → repository call.
    - Validate that every participant id referenced belongs to the group.
-5. **Route** in `app/api/.../route.ts`. Keep it thin:
+5. **Route** in `app/api/.../route.ts`. Keep it thin. Define the request schema in
+   `lib/api/request-validation.ts`; use `readJsonBody` for JSON and
+   `readSearchParams` for query strings. Return the helper's error response on
+   failure, and pass only explicitly selected parsed fields to the service:
    ```ts
    const currentUser = await getCurrentUser();
    if (!currentUser) return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
    const { groupId } = await params; // params is a Promise in Next 16
-   const body = await req.json();
-   const result = await someService({ groupId, userId: currentUser.id, ...body fields });
+   const body = await readJsonBody(req, createThingBodySchema);
+   if (!body.success) return body.response;
+   const result = await someService({
+     groupId,
+     userId: currentUser.id,
+     name: body.data.name,
+   });
    if (!result.ok) return errorResponse(result.error.code, result.error.message, result.error.status);
    return successResponse(result.data, 201 /* for creates */);
    ```

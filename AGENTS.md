@@ -26,7 +26,7 @@ Next 16 uses `proxy.ts` (not `middleware.ts`) for route protection. Path alias: 
 
 Backend request flow: `app/api/**/route.ts` → `lib/services/` → `lib/repositories/` → DB.
 
-- **Route handlers stay thin.** They authenticate (`getCurrentUser()`), parse the body, call one service, and map the result to a response. No business logic or SQL.
+- **Route handlers stay thin.** They authenticate (`getCurrentUser()`), validate JSON bodies and query strings with schemas and helpers in `lib/api/request-validation.ts`, call services, and map results to responses. No business logic or SQL. Read the Zod overview in [docs/project-guide.md](docs/project-guide.md#request-validation-with-zod) when changing request validation.
 - **Services** (`lib/services/`) hold all business rules and return a result object: `{ ok: true, data }` or `{ ok: false, error: { code, message, status } }`. They never throw for expected failures.
 - **Repositories** (`lib/repositories/`) are the only code that imports `lib/db/db`. One file per entity; raw SQL; map rows via `lib/mappers/` into `lib/models/` types.
 - **API responses** always go through `successResponse` / `errorResponse` in `lib/api/response.ts`. Envelope: `{ success, data }` or `{ success: false, error: { code, message } }`. Routes wrap the body in try/catch and return `INTERNAL_ERROR` / 500.

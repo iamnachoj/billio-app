@@ -55,6 +55,18 @@ request and response examples, is in [API Contract v1](./api-contract-v1.md).
 Update that document whenever an endpoint's path, request, response, or error
 codes change.
 
+### Request validation with Zod
+
+[Zod](https://zod.dev/) is a TypeScript-friendly runtime validation library.
+TypeScript checks code while building; Zod checks untrusted HTTP data at
+runtime. Billio defines request-body and query-string schemas in
+`lib/api/request-validation.ts`. Route handlers pass incoming data through
+`readJsonBody` or `readSearchParams` before calling a service. A successful
+parse returns typed, schema-approved data; a failure returns the standard
+`INVALID_INPUT` API error with a useful field-level message. Keep business
+rules in services: route schemas validate input shape and basic types, while
+services validate permissions and domain constraints.
+
 ## Invites and temporary records
 
 Group owners and admins can create invite links. An invite can optionally be

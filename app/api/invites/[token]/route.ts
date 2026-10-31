@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  acceptInviteBodySchema,
+  readJsonBody,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import { acceptInvite, getInviteByToken } from '@/lib/services/inviteService';
 
@@ -36,15 +40,18 @@ export async function POST(
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const body = await req.json();
+    const body = await readJsonBody(req, acceptInviteBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
     const { token } = await params;
 
     const result = await acceptInvite({
       token,
       userId: currentUser.id,
       userEmail: currentUser.email,
-      participantId: body?.participantId,
-      displayName: body?.displayName,
+      participantId: body.data.participantId,
+      displayName: body.data.displayName,
     });
 
     if (!result.ok) {

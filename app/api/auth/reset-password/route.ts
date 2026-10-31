@@ -1,11 +1,18 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  readJsonBody,
+  resetPasswordBodySchema,
+} from '@/lib/api/request-validation';
 import { resetPassword } from '@/lib/services/passwordResetService';
 
 export async function POST(req: Request) {
   try {
-    const { token, password } = await req.json();
+    const body = await readJsonBody(req, resetPasswordBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
-    const result = await resetPassword(token, password);
+    const result = await resetPassword(body.data.token, body.data.password);
 
     if (!result.ok) {
       return errorResponse(

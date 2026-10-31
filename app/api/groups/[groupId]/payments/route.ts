@@ -1,4 +1,10 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  createPaymentBodySchema,
+  paymentListQuerySchema,
+  readJsonBody,
+  readSearchParams,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   createSettlementPayment,
@@ -17,15 +23,18 @@ export async function POST(
     }
 
     const { groupId } = await params;
-    const body = await req.json();
+    const body = await readJsonBody(req, createPaymentBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await createSettlementPayment({
       groupId,
       userId: currentUser.id,
-      fromParticipantId: body?.fromParticipantId,
-      toParticipantId: body?.toParticipantId,
-      amountCents: body?.amountCents,
-      currency: body?.currency,
+      fromParticipantId: body.data.fromParticipantId,
+      toParticipantId: body.data.toParticipantId,
+      amountCents: body.data.amountCents,
+      currency: body.data.currency,
     });
 
     if (!result.ok) {
@@ -56,15 +65,17 @@ export async function GET(
     }
 
     const { groupId } = await params;
-    const searchParams = new URL(req.url).searchParams;
-    const limitParam = searchParams.get('limit');
+    const query = readSearchParams(req, paymentListQuerySchema);
+    if (!query.success) {
+      return query.response;
+    }
 
     const result = await getGroupPayments({
       groupId,
       userId: currentUser.id,
-      currency: searchParams.get('currency') ?? undefined,
-      limit: limitParam ? Number(limitParam) : undefined,
-      cursor: searchParams.get('cursor') ?? undefined,
+      currency: query.data.currency,
+      limit: query.data.limit,
+      cursor: query.data.cursor,
     });
 
     if (!result.ok) {

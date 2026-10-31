@@ -27,10 +27,17 @@ Error envelope:
 
 Typical error statuses:
 
+- `400` invalid request shape or business input
 - `401` unauthenticated
 - `403` authenticated but not allowed
 - `404` resource does not exist
 - `409` business conflict
+
+JSON request bodies and query strings are validated at the route boundary with
+Zod schemas in `lib/api/request-validation.ts`. Invalid JSON or values that do
+not match the endpoint's schema return HTTP `400` with code `INVALID_INPUT` in
+the standard error envelope. Service-level validation remains responsible for
+permissions and domain rules.
 
 ### 2. Authentication
 

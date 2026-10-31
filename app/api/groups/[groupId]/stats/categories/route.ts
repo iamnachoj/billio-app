@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  categoryStatsQuerySchema,
+  readSearchParams,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import { getGroupCategoryStats } from '@/lib/services/statsService';
 
@@ -14,19 +18,17 @@ export async function GET(
     }
 
     const { groupId } = await params;
-    const searchParams = new URL(req.url).searchParams;
-    const currency = searchParams.get('currency');
-
-    if (!currency) {
-      return errorResponse('INVALID_INPUT', 'currency is required', 400);
+    const query = readSearchParams(req, categoryStatsQuerySchema);
+    if (!query.success) {
+      return query.response;
     }
 
     const result = await getGroupCategoryStats({
       groupId,
       userId: currentUser.id,
-      currency,
-      dateFrom: searchParams.get('dateFrom') ?? undefined,
-      dateTo: searchParams.get('dateTo') ?? undefined,
+      currency: query.data.currency,
+      dateFrom: query.data.dateFrom,
+      dateTo: query.data.dateTo,
     });
 
     if (!result.ok) {

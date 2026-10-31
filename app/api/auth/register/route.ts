@@ -1,11 +1,18 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  readJsonBody,
+  registerBodySchema,
+} from '@/lib/api/request-validation';
 import { registerUser } from '@/lib/services/authService';
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const body = await readJsonBody(req, registerBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
-    const result = await registerUser({ name, email, password });
+    const result = await registerUser(body.data);
 
     if (!result.ok) {
       return errorResponse(

@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  readJsonBody,
+  updateParticipantBodySchema,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   deleteParticipant,
@@ -52,14 +56,17 @@ export async function PATCH(
     }
 
     const { participantId } = await params;
-    const body = await req.json();
+    const body = await readJsonBody(req, updateParticipantBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await updateParticipant({
       participantId,
       userId: currentUser.id,
-      displayName: body?.displayName,
-      role: body?.role,
-      status: body?.status,
+      displayName: body.data.displayName,
+      role: body.data.role,
+      status: body.data.status,
     });
 
     if (!result.ok) {

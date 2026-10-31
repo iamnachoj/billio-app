@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  readJsonBody,
+  updateGroupBodySchema,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import { updateGroupName } from '@/lib/services/groupService';
 
@@ -14,13 +18,16 @@ export async function PATCH(
     }
 
     const { groupId } = await params;
-    const body = await req.json();
+    const body = await readJsonBody(req, updateGroupBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await updateGroupName({
       groupId,
       userId: currentUser.id,
-      name: body?.name,
-      description: body?.description,
+      name: body.data.name,
+      description: body.data.description,
     });
 
     if (!result.ok) {

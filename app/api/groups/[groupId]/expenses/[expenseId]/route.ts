@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  readJsonBody,
+  updateExpenseBodySchema,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   deleteExpenseForGroup,
@@ -88,19 +92,22 @@ export async function PATCH(
     }
 
     const { groupId, expenseId } = await params;
-    const body = await req.json();
+    const body = await readJsonBody(req, updateExpenseBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await updateExpenseForGroup({
       groupId,
       expenseId,
       userId: currentUser.id,
-      title: body?.title,
-      description: body?.description,
-      amount: body?.amount,
-      currency: body?.currency,
-      paidByParticipantId: body?.paidByParticipantId,
-      category: body?.category,
-      split: body?.split,
+      title: body.data.title,
+      description: body.data.description,
+      amount: body.data.amount,
+      currency: body.data.currency,
+      paidByParticipantId: body.data.paidByParticipantId,
+      category: body.data.category,
+      split: body.data.split,
     });
 
     if (!result.ok) {

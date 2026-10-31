@@ -1,4 +1,9 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  createGroupBodySchema,
+  leaveGroupBodySchema,
+  readJsonBody,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   createGroup,
@@ -14,13 +19,14 @@ export async function POST(req: Request) {
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const body = await req.json();
-
-    const { name, description } = body;
+    const body = await readJsonBody(req, createGroupBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await createGroup({
-      name,
-      description,
+      name: body.data.name,
+      description: body.data.description,
       createdBy: currentUser.id,
       creatorName: currentUser.name,
     });
@@ -75,10 +81,13 @@ export async function DELETE(req: Request) {
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const { groupId } = await req.json();
+    const body = await readJsonBody(req, leaveGroupBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await leaveGroup({
-      groupId,
+      groupId: body.data.groupId,
       userId: currentUser.id,
     });
 

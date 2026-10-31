@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  addParticipantBodySchema,
+  readJsonBody,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   addParticipantToGroup,
@@ -17,14 +21,17 @@ export async function POST(
     }
 
     const { groupId } = await params;
-    const body = await req.json();
+    const body = await readJsonBody(req, addParticipantBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await addParticipantToGroup({
       groupId,
-      displayName: body?.displayName,
-      userId: body?.userId,
-      role: body?.role,
-      status: body?.status,
+      displayName: body.data.displayName,
+      userId: body.data.userId,
+      role: body.data.role,
+      status: body.data.status,
       createdBy: currentUser.id,
     });
 

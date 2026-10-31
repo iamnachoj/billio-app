@@ -1,4 +1,8 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  createInviteBodySchema,
+  readJsonBody,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import { createGroupInvite } from '@/lib/services/inviteService';
 
@@ -14,17 +18,16 @@ export async function POST(
     }
 
     const { groupId } = await params;
-    let body: { email?: string } = {};
-
-    try {
-      body = await req.json();
-    } catch {
-      body = {};
+    const body = await readJsonBody(req, createInviteBodySchema, {
+      allowEmpty: true,
+    });
+    if (!body.success) {
+      return body.response;
     }
 
     const result = await createGroupInvite({
       groupId,
-      email: body.email,
+      email: body.data.email,
       createdBy: currentUser.id,
     });
 

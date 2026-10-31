@@ -1,4 +1,9 @@
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  deletePushSubscriptionBodySchema,
+  pushSubscriptionBodySchema,
+  readJsonBody,
+} from '@/lib/api/request-validation';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   deletePushSubscriptionByEndpoint,
@@ -13,25 +18,16 @@ export async function POST(req: Request) {
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const body = await req.json();
-    const endpoint = body?.endpoint;
-    const p256dh = body?.keys?.p256dh;
-    const auth = body?.keys?.auth;
-
-    if (
-      typeof endpoint !== 'string' ||
-      typeof p256dh !== 'string' ||
-      typeof auth !== 'string' ||
-      !endpoint.startsWith('https://')
-    ) {
-      return errorResponse('INVALID_INPUT', 'Invalid push subscription', 400);
+    const body = await readJsonBody(req, pushSubscriptionBodySchema);
+    if (!body.success) {
+      return body.response;
     }
 
     await upsertPushSubscription({
       userId: currentUser.id,
-      endpoint,
-      p256dh,
-      auth,
+      endpoint: body.data.endpoint,
+      p256dh: body.data.keys.p256dh,
+      auth: body.data.keys.auth,
     });
 
     return successResponse({ subscribed: true }, 201);
@@ -50,13 +46,12 @@ export async function DELETE(req: Request) {
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const body = await req.json();
-
-    if (typeof body?.endpoint !== 'string') {
-      return errorResponse('INVALID_INPUT', 'Endpoint is required', 400);
+    const body = await readJsonBody(req, deletePushSubscriptionBodySchema);
+    if (!body.success) {
+      return body.response;
     }
 
-    await deletePushSubscriptionByEndpoint(body.endpoint, currentUser.id);
+    await deletePushSubscriptionByEndpoint(body.data.endpoint, currentUser.id);
 
     return successResponse({ subscribed: false });
   } catch (error) {

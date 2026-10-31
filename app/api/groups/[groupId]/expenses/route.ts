@@ -1,6 +1,12 @@
 import { after } from 'next/server';
 
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  createExpenseBodySchema,
+  expenseListQuerySchema,
+  readJsonBody,
+  readSearchParams,
+} from '@/lib/api/request-validation';
 import { notifyNewExpense } from '@/lib/services/pushService';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
@@ -20,18 +26,21 @@ export async function POST(
     }
 
     const { groupId } = await params;
-    const body = await req.json();
+    const body = await readJsonBody(req, createExpenseBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
     const result = await createExpense({
       groupId,
       userId: currentUser.id,
-      title: body?.title,
-      description: body?.description,
-      category: body?.category,
-      amount: body?.amount,
-      currency: body?.currency,
-      paidByParticipantId: body?.paidByParticipantId,
-      split: body?.split,
+      title: body.data.title,
+      description: body.data.description,
+      category: body.data.category,
+      amount: body.data.amount,
+      currency: body.data.currency,
+      paidByParticipantId: body.data.paidByParticipantId,
+      split: body.data.split,
     });
 
     if (!result.ok) {
@@ -78,23 +87,22 @@ export async function GET(
     }
 
     const { groupId } = await params;
-    const searchParams = new URL(req.url).searchParams;
-
-    const limitParam = searchParams.get('limit');
-    const minAmountParam = searchParams.get('minAmountCents');
-    const maxAmountParam = searchParams.get('maxAmountCents');
+    const query = readSearchParams(req, expenseListQuerySchema);
+    if (!query.success) {
+      return query.response;
+    }
 
     const result = await getExpensesForGroup({
       groupId,
       userId: currentUser.id,
-      limit: limitParam ? Number(limitParam) : undefined,
-      cursor: searchParams.get('cursor') ?? undefined,
-      category: searchParams.get('category') ?? undefined,
-      dateFrom: searchParams.get('dateFrom') ?? undefined,
-      dateTo: searchParams.get('dateTo') ?? undefined,
-      minAmountCents: minAmountParam ? Number(minAmountParam) : undefined,
-      maxAmountCents: maxAmountParam ? Number(maxAmountParam) : undefined,
-      search: searchParams.get('search') ?? undefined,
+      limit: query.data.limit,
+      cursor: query.data.cursor,
+      category: query.data.category,
+      dateFrom: query.data.dateFrom,
+      dateTo: query.data.dateTo,
+      minAmountCents: query.data.minAmountCents,
+      maxAmountCents: query.data.maxAmountCents,
+      search: query.data.search,
     });
 
     if (!result.ok) {

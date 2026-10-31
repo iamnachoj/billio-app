@@ -4,6 +4,10 @@ import {
   updateUserAccount,
 } from '@/lib/services/authService';
 import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  readJsonBody,
+  updateUserBodySchema,
+} from '@/lib/api/request-validation';
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -42,9 +46,12 @@ export async function PATCH(req: Request) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
   }
 
-  const { email, name, password } = await req.json();
+  const body = await readJsonBody(req, updateUserBodySchema);
+  if (!body.success) {
+    return body.response;
+  }
 
-  const result = await updateUserAccount(user.id, { email, name, password });
+  const result = await updateUserAccount(user.id, body.data);
 
   if (!result.ok) {
     return errorResponse(

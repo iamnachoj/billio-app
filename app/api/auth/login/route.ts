@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 
 import { errorResponse } from '@/lib/api/response';
+import { loginBodySchema, readJsonBody } from '@/lib/api/request-validation';
 import { loginUser } from '@/lib/services/authService';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const body = await readJsonBody(req, loginBodySchema);
+    if (!body.success) {
+      return body.response;
+    }
 
-    const result = await loginUser({ email, password });
+    const result = await loginUser(body.data);
 
     if (!result.ok) {
       return errorResponse(
