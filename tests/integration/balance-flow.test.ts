@@ -189,6 +189,16 @@ describe('integration: balances from real DB data', () => {
       );
     }
 
+    const persistedSplits = createResult.data.splits as Array<{
+      amount: number;
+    }>;
+    const persistedSplitTotal = persistedSplits.reduce(
+      (sum, split) => sum + split.amount,
+      0
+    );
+    expect(persistedSplitTotal).toBe(823);
+    expect(persistedSplitTotal + 412).toBe(1235);
+
     const balancesResult = await getGroupBalances({
       groupId: seeded.groupId,
       userId: seeded.ownerUserId,
@@ -223,6 +233,12 @@ describe('integration: balances from real DB data', () => {
     expect(ownerBalance?.netBalanceCents).toBe(-412);
     expect(payerBalance?.netBalanceCents).toBe(823);
     expect(unlinkedBalance?.netBalanceCents).toBe(-411);
+    expect(
+      eur.participantBalances.reduce(
+        (sum, balance) => sum + balance.netBalanceCents,
+        0
+      )
+    ).toBe(0);
 
     expect(eur.settlements).toEqual([
       {
@@ -236,6 +252,28 @@ describe('integration: balances from real DB data', () => {
         amountCents: 411,
       },
     ]);
+
+    const settledBalances = new Map(
+      eur.participantBalances.map((balance) => [
+        balance.participantId,
+        balance.netBalanceCents,
+      ])
+    );
+    for (const settlement of eur.settlements) {
+      settledBalances.set(
+        settlement.fromParticipantId,
+        (settledBalances.get(settlement.fromParticipantId) ?? 0) +
+          settlement.amountCents
+      );
+      settledBalances.set(
+        settlement.toParticipantId,
+        (settledBalances.get(settlement.toParticipantId) ?? 0) -
+          settlement.amountCents
+      );
+    }
+    expect(
+      [...settledBalances.values()].every((balance) => balance === 0)
+    ).toBe(true);
   });
 
   it('recomputes balances after editing an expense amount with split', async () => {

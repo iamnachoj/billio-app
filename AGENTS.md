@@ -69,6 +69,8 @@ Task recipes live in `.github/skills/<name>/SKILL.md`. Read the matching one bef
 | [docs/api-contract-v1.md](docs/api-contract-v1.md)             | Adding or changing any API endpoint, or consuming one from the frontend.           |
 | [docs/frontend-architecture.md](docs/frontend-architecture.md) | Adding pages, components, hooks or frontend services; deciding where code belongs. |
 | [docs/integration-testing.md](docs/integration-testing.md)     | Writing or debugging integration tests, or touching DB environments.               |
+| [docs/domain.md](docs/domain.md)                               | Changing expenses, splits, payments, balances, currencies, or rounding.            |
+| [docs/project-guide.md](docs/project-guide.md)                 | Understanding the architecture and core product concepts.                          |
 | [README.md](README.md)                                         | Project overview and local setup.                                                  |
 
 Before finishing any task: run `npm run verify`.
