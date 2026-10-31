@@ -51,6 +51,17 @@ Backend request flow: `app/api/**/route.ts` → `lib/services/` → `lib/reposit
 - Any change to an API route's path, request, response, or error codes must update [docs/api-contract-v1.md](docs/api-contract-v1.md) in the same change.
 - Don't make unrelated refactors or reformat files you aren't changing.
 
+## Skills
+
+Task recipes live in `.github/skills/<name>/SKILL.md`. Read the matching one before starting:
+
+- `add-api-endpoint`: new or changed endpoint, end to end.
+- `add-db-migration`: any schema change in `lib/db/init-db.ts`.
+- `add-ui-feature`: components, hooks, modals, pages.
+- `write-tests`: unit vs. integration tests and their setup.
+- `balance-and-expense-logic`: expenses, splits, payments, balances, rounding. **Read before touching any of it.**
+- `review-checklist`: reviewing a diff or finishing a feature.
+
 ## Docs index
 
 | File                                                           | Read it when                                                                       |
