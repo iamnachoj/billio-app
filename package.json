@@ -12,7 +12,9 @@
     "format": "npx prettier --write .",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck && npm run test:all",
+    "api:contract": "tsx scripts/api-contract.ts --write",
+    "api:contract:check": "tsx scripts/api-contract.ts --check",
+    "verify": "npm run api:contract:check && npm run lint && npm run typecheck && npm run test:all",
     "db:init": "tsx lib/db/init-db.ts"
   },
   "dependencies": {

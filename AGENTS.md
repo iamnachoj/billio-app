@@ -10,15 +10,16 @@ Next 16 uses `proxy.ts` (not `middleware.ts`) for route protection. Path alias: 
 
 ## Commands
 
-| Task                                      | Command                              |
-| ----------------------------------------- | ------------------------------------ |
-| Dev server                                | `npm run dev`                        |
-| **Full check (do this before finishing)** | `npm run verify`                     |
-| Lint / typecheck                          | `npm run lint` / `npm run typecheck` |
-| Unit tests                                | `npm test`                           |
-| Integration tests                         | `npm run test:integration`           |
-| Format                                    | `npm run format`                     |
-| Create/migrate DB schema                  | `npm run db:init`                    |
+| Task                                      | Command                                               |
+| ----------------------------------------- | ----------------------------------------------------- |
+| Dev server                                | `npm run dev`                                         |
+| **Full check (do this before finishing)** | `npm run verify`                                      |
+| Lint / typecheck                          | `npm run lint` / `npm run typecheck`                  |
+| Unit tests                                | `npm test`                                            |
+| Integration tests                         | `npm run test:integration`                            |
+| Regenerate/check API contract             | `npm run api:contract` / `npm run api:contract:check` |
+| Format                                    | `npm run format`                                      |
+| Create/migrate DB schema                  | `npm run db:init`                                     |
 
 `verify` = lint + typecheck + unit + integration. It must pass with zero errors and warnings. Run a single unit test file with `npx vitest run -c vitest.unit.config.ts <path>`.
 
@@ -49,6 +50,7 @@ Backend request flow: `app/api/**/route.ts` → `lib/services/` → `lib/reposit
 - Never point integration tests at a non-`file:` database.
 - Ask before adding dependencies, changing the DB schema, or changing auth/JWT/cookie behaviour.
 - Any change to an API route's path, request, response, or error codes must update [docs/api-contract-v1.md](docs/api-contract-v1.md) in the same change.
+- After changing route methods or request schemas, run `npm run api:contract` and commit the regenerated inventory in [docs/api-contract-v1.md](docs/api-contract-v1.md). `npm run verify` checks for drift.
 - Don't make unrelated refactors or reformat files you aren't changing.
 
 ## Skills
