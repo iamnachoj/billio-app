@@ -347,6 +347,21 @@ export async function initDB() {
     );
   `);
 
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      endpoint TEXT UNIQUE NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
+
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions (user_id);'
+  );
+
   await db.execute(
     'CREATE INDEX IF NOT EXISTS idx_payments_group_id ON payments (group_id);'
   );

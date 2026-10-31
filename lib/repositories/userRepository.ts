@@ -145,6 +145,11 @@ export async function updateUserPassword(id: string, passwordHash: string) {
 }
 
 export async function deleteUserById(id: string) {
+  await db.execute({
+    sql: 'DELETE FROM push_subscriptions WHERE user_id = ?',
+    args: [id],
+  });
+
   const result = await db.execute({
     sql: `
       DELETE FROM users

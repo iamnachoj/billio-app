@@ -1,3 +1,4 @@
+import PushNotificationsSettings from '@/components/dashboard/settings/PushNotificationsSettings';
 import UserAccountSettings from '@/components/dashboard/settings/UserAccountSettings';
 import { getCurrentUser } from '@/lib/services/authService';
 
@@ -23,6 +24,8 @@ export default async function SettingsPage() {
           email: user.email,
         }}
       />
+
+      <PushNotificationsSettings />
     </div>
   );
 }

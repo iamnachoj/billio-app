@@ -1,4 +1,7 @@
+import { after } from 'next/server';
+
 import { errorResponse, successResponse } from '@/lib/api/response';
+import { notifyNewExpense } from '@/lib/services/pushService';
 import { getCurrentUser } from '@/lib/services/authService';
 import {
   createExpense,
@@ -38,6 +41,22 @@ export async function POST(
         result.error.status
       );
     }
+
+    const created = result.data.expense as {
+      title: string;
+      amount: number;
+      currency: string;
+    };
+
+    after(() =>
+      notifyNewExpense({
+        groupId,
+        actorUserId: currentUser.id,
+        title: created.title,
+        amountCents: created.amount,
+        currency: created.currency,
+      }).catch((error) => console.error('Push notification failed', error))
+    );
 
     return successResponse(result.data, 201);
   } catch (error) {
