@@ -104,7 +104,7 @@ async function seedGroupWithThreeParticipants() {
 }
 
 describe('integration: balances from real DB data', () => {
-  it('excludes invited and left participants from equal expense splits', async () => {
+  it('includes invited and left participants in equal expense splits', async () => {
     const seeded = await seedGroupWithThreeParticipants();
 
     for (const [displayName, status] of [
@@ -143,7 +143,7 @@ describe('integration: balances from real DB data', () => {
     const result = await createExpense({
       groupId: seeded.groupId,
       userId: seeded.ownerUserId,
-      title: 'Active participants only',
+      title: 'All group participants',
       category: 'groceries',
       amount: 1235,
       currency: 'EUR',
@@ -160,12 +160,15 @@ describe('integration: balances from real DB data', () => {
       participantId: string;
       amount: number;
     }>;
-    expect(
-      storedSplits.some((split) => inactiveIds.has(split.participantId))
-    ).toBe(false);
+    for (const participantId of inactiveIds) {
+      expect(
+        storedSplits.some((split) => split.participantId === participantId)
+      ).toBe(true);
+    }
     expect(storedSplits.reduce((total, split) => total + split.amount, 0)).toBe(
-      823
+      988
     );
+    expect(988 + 247).toBe(1235);
   });
 
   it('computes balances after creating an expense', async () => {

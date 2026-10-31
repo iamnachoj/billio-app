@@ -29,7 +29,8 @@ separate buckets; Billio does not apply exchange rates.
 The `split` configuration accepted by expense creation and updates has three
 modes:
 
-- **Equal:** divide the amount among participants whose status is `active`.
+- **Equal:** divide the amount among all participants in the group, regardless
+  of status.
 - **Selected:** divide the amount equally among the supplied, unique
   participant IDs.
 - **Percentage:** apply each supplied percentage. IDs must be unique,
@@ -64,7 +65,7 @@ shares are also omitted. Every persisted split points to the payer as
 
 ### Worked example: equal split
 
-Three active participants split `1235` cents in EUR; the payer is the second
+Three participants split `1235` cents in EUR; the payer is the second
 participant, and the participants are ordered A, B, C:
 
 ```text
@@ -77,14 +78,11 @@ B paid. B's own 412-cent share is implicit; persisted debts are A → B for 412
 cents and C → B for 411 cents. The stored debts total 823 cents; including
 B's implicit 412 cents recovers the original 1235-cent expense.
 
-### Current status-validation note
-
-Equal splits explicitly include active participants only. The current resolver
-validates selected and percentage split IDs against participants in the group,
-but does not currently filter those modes by participant status. Likewise, the
-resolver checks that the payer belongs to the group, not that the payer is
-active. This differs from the intended active-participant wording in the API
-contract and should be resolved deliberately before changing those semantics.
+Participant IDs for every split mode, and the payer, must belong to the group.
+Split membership is independent of participant status. This is intentional:
+participants who have left retain their historical identity and may still
+participate in later expenses. Invited participants are also included until
+removed or otherwise changed.
 
 ## Balance calculation
 

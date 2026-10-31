@@ -114,13 +114,13 @@ function areSplitInputsEqual(
 
 function inferSplitState({
   details,
-  activeParticipants,
+  participants,
 }: {
   details: ExpenseDetailsData;
-  activeParticipants: GroupParticipant[];
+  participants: GroupParticipant[];
 }) {
   const amountByParticipantId: Record<string, number> = {};
-  for (const participant of activeParticipants) {
+  for (const participant of participants) {
     amountByParticipantId[participant.id] = 0;
   }
 
@@ -147,7 +147,7 @@ function inferSplitState({
     amountByParticipantId[payerId] += payerShare;
   }
 
-  const selectedParticipantIds = activeParticipants
+  const selectedParticipantIds = participants
     .filter((participant) => (amountByParticipantId[participant.id] ?? 0) > 0)
     .map((participant) => participant.id);
 
@@ -162,7 +162,7 @@ function inferSplitState({
   let mode: SplitMode = 'percentage';
   if (
     isEqualAmongSelected &&
-    selectedParticipantIds.length === activeParticipants.length
+    selectedParticipantIds.length === participants.length
   ) {
     mode = 'equal';
   } else if (isEqualAmongSelected) {
@@ -173,7 +173,7 @@ function inferSplitState({
   let basisPointsByParticipantId: Record<string, number> = {};
 
   if (totalAmount > 0) {
-    const withFloor = activeParticipants.map((participant) => {
+    const withFloor = participants.map((participant) => {
       const amount = amountByParticipantId[participant.id] ?? 0;
       const raw = (amount * 10000) / totalAmount;
       const floored = Math.floor(raw);
@@ -202,12 +202,12 @@ function inferSplitState({
   const percentageByParticipantId =
     totalAmount > 0
       ? Object.fromEntries(
-          activeParticipants.map((participant) => {
+          participants.map((participant) => {
             const basisPoints = basisPointsByParticipantId[participant.id] ?? 0;
             return [participant.id, (basisPoints / 100).toFixed(2)] as const;
           })
         )
-      : buildEqualPercentageMap(activeParticipants);
+      : buildEqualPercentageMap(participants);
 
   return {
     mode,
@@ -229,12 +229,6 @@ export function useExpenseDetailsModal({
   onExpenseDeleted,
 }: UseExpenseDetailsModalParams) {
   const router = useRouter();
-
-  const activeParticipants = useMemo(() => {
-    return participants.filter(
-      (participant) => participant.status === 'active'
-    );
-  }, [participants]);
 
   const participantNameById = useMemo(() => {
     return new Map(
@@ -310,14 +304,14 @@ export function useExpenseDetailsModal({
 
       const inferred = inferSplitState({
         details: nextDetails,
-        activeParticipants,
+        participants,
       });
 
       setSplitMode(inferred.mode);
       setSelectedParticipantIds(inferred.selectedParticipantIds);
       setPercentageByParticipantId(inferred.percentageByParticipantId);
 
-      const summaryRows = activeParticipants
+      const summaryRows = participants
         .map((participant) => ({
           participantId: participant.id,
           amount: inferred.amountByParticipantId[participant.id] ?? 0,
@@ -337,7 +331,7 @@ export function useExpenseDetailsModal({
               }
             : {
                 mode: 'percentage',
-                shares: activeParticipants.map((participant) => ({
+                shares: participants.map((participant) => ({
                   participantId: participant.id,
                   percentage: Number(
                     inferred.percentageByParticipantId[participant.id] ?? '0'
@@ -355,7 +349,7 @@ export function useExpenseDetailsModal({
         split: initialSplit,
       });
     },
-    [activeParticipants]
+    [participants]
   );
 
   useEffect(() => {
@@ -487,7 +481,7 @@ export function useExpenseDetailsModal({
       };
     }
 
-    const shares = activeParticipants.map((participant) => {
+    const shares = participants.map((participant) => {
       const raw = percentageByParticipantId[participant.id] ?? '0';
       const percentage = Number(raw);
 
@@ -564,8 +558,8 @@ export function useExpenseDetailsModal({
       return;
     }
 
-    if (activeParticipants.length === 0) {
-      setError('No active participants are available to split this expense.');
+    if (participants.length === 0) {
+      setError('No participants are available to split this expense.');
       return;
     }
 
@@ -703,7 +697,7 @@ export function useExpenseDetailsModal({
     selectedParticipantIds,
     percentageByParticipantId,
     splitSummaryRows,
-    activeParticipants,
+    participants,
     participantNameById,
     currencyOptions,
     setTitle,

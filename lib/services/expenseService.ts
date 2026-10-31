@@ -235,9 +235,6 @@ async function resolveExpenseSplits({
   }
 
   const allParticipants = await getParticipantsByGroupId(groupId);
-  const activeParticipants = allParticipants.filter(
-    (participant) => participant.status === 'active'
-  );
   const participantIds = new Set(
     allParticipants.map((participant) => participant.id)
   );
@@ -256,12 +253,12 @@ async function resolveExpenseSplits({
   let shares: Array<{ participantId: string; amount: number }> = [];
 
   if (normalizedSplit.mode === 'equal') {
-    if (activeParticipants.length === 0) {
+    if (allParticipants.length === 0) {
       return {
         ok: false,
         error: {
           code: 'INVALID_INPUT',
-          message: 'No active participants found for equal split',
+          message: 'No participants found for equal split',
           status: 400,
         },
       };
@@ -269,7 +266,7 @@ async function resolveExpenseSplits({
 
     shares = buildEqualShares(
       amount,
-      activeParticipants.map((participant) => participant.id)
+      allParticipants.map((participant) => participant.id)
     );
   }
 

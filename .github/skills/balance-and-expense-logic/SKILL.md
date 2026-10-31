@@ -19,7 +19,7 @@ Files: `lib/services/expenseService.ts`, `lib/services/balanceService.ts`, `lib/
 - `paidByParticipantId` fronts the money. Each share is stored as an `expense_splits` row `{ participantId (debtor), owedToParticipantId = payer, amount }`.
 - **The payer's own share is not stored** (`share.participantId !== paidByParticipantId` is filtered out; zero shares are dropped too).
 - Split modes (`SplitInput`):
-  - `equal`: active participants of the group only. `getParticipantsByGroupId` returns all statuses, so the service filters to `status === 'active'`.
+  - `equal`: all participants in the group, regardless of status. This is intentional: participants who left retain historical identity and can still be included in new expenses.
   - `selected`: equal among the unique `participantIds` given.
   - `percentage`: `{ participantId, percentage }[]`, no duplicates, no negatives, sum within 0.0001 of 100.
 - Rounding:

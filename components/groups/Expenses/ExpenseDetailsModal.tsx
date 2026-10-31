@@ -122,7 +122,7 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
               splitMode={model.splitMode}
               selectedParticipantIds={model.selectedParticipantIds}
               percentageByParticipantId={model.percentageByParticipantId}
-              activeParticipants={model.activeParticipants}
+              participants={model.participants}
               currencyOptions={model.currencyOptions}
               error={model.error}
               isSaving={model.isSaving}

@@ -20,7 +20,7 @@ type ExpenseEditFormProps = {
   splitMode: SplitMode;
   selectedParticipantIds: string[];
   percentageByParticipantId: Record<string, string>;
-  activeParticipants: GroupParticipant[];
+  participants: GroupParticipant[];
   currencyOptions: string[];
   error: string;
   isSaving: boolean;
@@ -47,7 +47,7 @@ export default function ExpenseEditForm({
   splitMode,
   selectedParticipantIds,
   percentageByParticipantId,
-  activeParticipants,
+  participants,
   currencyOptions,
   error,
   isSaving,
@@ -156,7 +156,7 @@ export default function ExpenseEditForm({
             onChange={(event) => setPaidByParticipantId(event.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           >
-            {activeParticipants.map((participant) => (
+            {participants.map((participant) => (
               <option key={participant.id} value={participant.id}>
                 {participant.displayName}
               </option>
@@ -238,7 +238,7 @@ export default function ExpenseEditForm({
                   Choose who shares this expense.
                 </p>
                 <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-                  {activeParticipants.map((participant) => {
+                  {participants.map((participant) => {
                     const checked = selectedParticipantIds.includes(
                       participant.id
                     );
@@ -270,7 +270,7 @@ export default function ExpenseEditForm({
                   100.
                 </p>
                 <div className="space-y-1">
-                  {activeParticipants.map((participant) => (
+                  {participants.map((participant) => (
                     <div
                       key={participant.id}
                       className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2"

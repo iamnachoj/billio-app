@@ -400,6 +400,10 @@ Request:
 - `selected` with `participantIds: string[]`
 - `percentage` with `shares: [{ participantId, percentage }]` summing to `100`
 
+All split modes can include any participant in the group, regardless of
+participant status. Equal splits include every group participant; the payer's
+share is implicit and is not included in the persisted debt rows.
+
 Response `201`:
 
 ```json
