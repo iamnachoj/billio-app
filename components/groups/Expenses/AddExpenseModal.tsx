@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import Button from '@/components/ui/Button';
@@ -114,7 +114,9 @@ function AddExpenseModalForm({
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<string>(ExpenseCategories[0]);
+  const [manualCategory, setManualCategory] = useState<string>(
+    ExpenseCategories[0]
+  );
   const [hasManualCategory, setHasManualCategory] = useState(false);
   const [amountInput, setAmountInput] = useState('');
   const [currency, setCurrency] = useState(
@@ -137,13 +139,9 @@ function AddExpenseModalForm({
   const [error, setError] = useState('');
 
   // Auto-suggest a category from the title/description until the user picks one manually.
-  useEffect(() => {
-    if (hasManualCategory) {
-      return;
-    }
-
-    setCategory(suggestExpenseCategory(`${title} ${description}`));
-  }, [title, description, hasManualCategory]);
+  const category = hasManualCategory
+    ? manualCategory
+    : suggestExpenseCategory(`${title} ${description}`);
 
   const paidByParticipantIdValue = participants.some(
     (participant) => participant.id === paidByParticipantId
@@ -387,7 +385,7 @@ function AddExpenseModalForm({
           <select
             value={category}
             onChange={(event) => {
-              setCategory(event.target.value);
+              setManualCategory(event.target.value);
               setHasManualCategory(true);
             }}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"

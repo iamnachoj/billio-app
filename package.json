@@ -11,6 +11,8 @@
     "test:all": "npm run test && npm run test:integration",
     "format": "npx prettier --write .",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm run test:all",
     "db:init": "tsx lib/db/init-db.ts"
   },
   "dependencies": {

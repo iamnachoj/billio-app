@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -56,15 +56,10 @@ export default function InviteAcceptanceCard({
   const signInHref = `/login?next=${encodeURIComponent(nextPath)}`;
   const registerHref = `/login?register=true&next=${encodeURIComponent(nextPath)}`;
 
-  const emailMismatch = useMemo(() => {
-    if (!preview.invite.email || !currentUser?.email) {
-      return false;
-    }
-
-    return (
-      preview.invite.email.toLowerCase() !== currentUser.email.toLowerCase()
-    );
-  }, [preview.invite.email, currentUser?.email]);
+  const emailMismatch =
+    !!preview.invite.email &&
+    !!currentUser?.email &&
+    preview.invite.email.toLowerCase() !== currentUser.email.toLowerCase();
 
   async function handleAccept() {
     if (!currentUser) {

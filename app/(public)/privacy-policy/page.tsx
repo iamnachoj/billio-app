@@ -61,7 +61,7 @@ export default function PrivacyPolicyPage() {
 
             <p>
               The information stored by Billio is used solely to provide and
-              operate the application's functionality.
+              operate the application&apos;s functionality.
             </p>
 
             <p className="mt-4">
@@ -230,8 +230,8 @@ export default function PrivacyPolicyPage() {
             <p className="mt-4">
               Anyone interested in running their own instance of Billio may
               inspect the source code and create their own fork in accordance
-              with the project's license and applicable intellectual property
-              rights.
+              with the project&apos;s license and applicable intellectual
+              property rights.
             </p>
           </section>
 

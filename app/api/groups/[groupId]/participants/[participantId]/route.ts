@@ -51,7 +51,7 @@ export async function PATCH(
       return errorResponse('UNAUTHORIZED', 'Authentication required', 401);
     }
 
-    const { groupId, participantId } = await params;
+    const { participantId } = await params;
     const body = await req.json();
 
     const result = await updateParticipant({

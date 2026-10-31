@@ -79,11 +79,16 @@ export default function GroupTotalsModal({
   const [paymentHistoryCursor, setPaymentHistoryCursor] = useState<
     string | null
   >(null);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [loadedHistoryKey, setLoadedHistoryKey] = useState<string | null>(null);
   const [isLoadingMoreHistory, setIsLoadingMoreHistory] = useState(false);
   const [historyError, setHistoryError] = useState('');
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [undoingPaymentId, setUndoingPaymentId] = useState<string | null>(null);
+
+  // Loading is derived: the request for the current key hasn't completed yet.
+  const historyKey = `${groupId}:${currencySummary?.currency}:${historyRefreshKey}`;
+  const isLoadingHistory =
+    open && !!currencySummary && loadedHistoryKey !== historyKey;
 
   useEffect(() => {
     if (!open || !currencySummary) {
@@ -91,8 +96,6 @@ export default function GroupTotalsModal({
     }
 
     let cancelled = false;
-    setIsLoadingHistory(true);
-    setHistoryError('');
 
     getPayments(groupId, {
       currency: currencySummary.currency,
@@ -102,13 +105,14 @@ export default function GroupTotalsModal({
         return;
       }
 
-      setIsLoadingHistory(false);
+      setLoadedHistoryKey(historyKey);
 
       if (!result.success) {
         setHistoryError(result.error.message);
         return;
       }
 
+      setHistoryError('');
       setPaymentHistory(result.data.payments);
       setPaymentHistoryCursor(result.data.nextCursor);
     });
@@ -116,7 +120,7 @@ export default function GroupTotalsModal({
     return () => {
       cancelled = true;
     };
-  }, [open, groupId, currencySummary, historyRefreshKey]);
+  }, [open, groupId, currencySummary, historyKey]);
 
   async function loadMorePaymentHistory() {
     if (!paymentHistoryCursor || isLoadingMoreHistory || !currencySummary) {
@@ -193,8 +197,12 @@ export default function GroupTotalsModal({
 
   const [period, setPeriod] = useState<StatsPeriod>('month');
   const [stats, setStats] = useState<GroupCategoryStats | null>(null);
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [loadedStatsKey, setLoadedStatsKey] = useState<string | null>(null);
   const [statsError, setStatsError] = useState('');
+
+  const statsKey = `${groupId}:${currencySummary?.currency}:${period}`;
+  const isLoadingStats =
+    open && !!currencySummary && loadedStatsKey !== statsKey;
 
   useEffect(() => {
     if (!open || !currencySummary) {
@@ -205,9 +213,6 @@ export default function GroupTotalsModal({
     const { dateFrom, dateTo } =
       period === 'month' ? getCurrentMonthRange() : {};
 
-    setIsLoadingStats(true);
-    setStatsError('');
-
     getCategoryStats(groupId, {
       currency: currencySummary.currency,
       dateFrom,
@@ -217,20 +222,21 @@ export default function GroupTotalsModal({
         return;
       }
 
-      setIsLoadingStats(false);
+      setLoadedStatsKey(statsKey);
 
       if (!result.success) {
         setStatsError(result.error.message);
         return;
       }
 
+      setStatsError('');
       setStats(result.data);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [open, groupId, currencySummary, period]);
+  }, [open, groupId, currencySummary, period, statsKey]);
 
   if (!currencySummary) {
     return (

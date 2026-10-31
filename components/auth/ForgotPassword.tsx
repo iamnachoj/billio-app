@@ -20,8 +20,8 @@ export default function ForgotPassword() {
         </h1>
 
         <p className="mt-3 text-gray-500">
-          Enter your email address and we'll send you instructions to reset your
-          password.
+          Enter your email address and we&apos;ll send you instructions to reset
+          your password.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">

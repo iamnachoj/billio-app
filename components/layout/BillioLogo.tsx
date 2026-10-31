@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 type BillioLogoProps = {
   className?: string;
 };
@@ -8,9 +10,11 @@ export default function BillioLogo({ className = '' }: BillioLogoProps) {
       <span className="font-bold">
         Bi<span className="text-teal-500">ll</span>io{' '}
       </span>
-      <img
+      <Image
         src="/billio-logo.png"
         alt="Billio Logo"
+        width={32}
+        height={32}
         className={`inline-block h-8 w-8 mb-1 ${className}`}
       />
     </h1>

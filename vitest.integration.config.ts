@@ -11,6 +11,10 @@ export default defineConfig({
     },
   },
   test: {
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL ?? 'file:./integration.db',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+    },
     include: ['tests/integration/**/*.test.ts'],
     setupFiles: ['tests/integration/setup.ts'],
     fileParallelism: false,

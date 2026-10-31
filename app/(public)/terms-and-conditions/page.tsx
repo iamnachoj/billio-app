@@ -243,7 +243,7 @@ export default function TermsAndConditions() {
               If you have questions regarding these Terms, the Billio project,
               or the processing of personal data, you may contact the project
               developer through the contact information made available with the
-              service or through the project's GitHub repository.
+              service or through the project&apos;s GitHub repository.
             </p>
           </section>
 

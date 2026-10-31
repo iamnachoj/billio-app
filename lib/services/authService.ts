@@ -157,6 +157,7 @@ export async function getCurrentUser() {
       return null;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...safeUser } = user;
 
     return safeUser;

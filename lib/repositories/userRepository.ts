@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db/db';
 import { mapUser, UserRow } from '@/lib/mappers/userMapper';
-import { get } from 'http';
 
 type CreateUserInput = {
   name: string;

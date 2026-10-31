@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -38,11 +38,10 @@ export default function InviteLinkModal({
 }: InviteLinkModalProps) {
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      setCopied(false);
-    }
-  }, [open]);
+  function handleClose() {
+    setCopied(false);
+    onClose();
+  }
 
   async function copyInviteLink() {
     try {
@@ -56,7 +55,7 @@ export default function InviteLinkModal({
   const formattedExpiry = formatExpiry(expiresAt);
 
   return (
-    <Modal open={open} onClose={onClose} title="Invite link" size="md">
+    <Modal open={open} onClose={handleClose} title="Invite link" size="md">
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
           Share this link so someone can join and link themselves to the group.
@@ -91,7 +90,7 @@ export default function InviteLinkModal({
         ) : null}
 
         <div className="flex items-center justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={handleClose}>
             Close
           </Button>
           <Button type="button" onClick={copyInviteLink}>

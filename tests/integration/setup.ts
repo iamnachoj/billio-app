@@ -14,6 +14,9 @@ const TABLES = [
 ];
 
 beforeAll(async () => {
+  if (!process.env.DATABASE_URL?.startsWith('file:')) {
+    throw new Error('Integration tests must use a local file: database');
+  }
   await initDB();
 });
 
