@@ -196,7 +196,7 @@ function AddExpenseModalForm({
 
     const shares = participants.map((participant) => {
       const raw = percentageByParticipantId[participant.id] ?? '0';
-      const percentage = Number(raw);
+      const percentage = Number(raw.replace(',', '.'));
 
       return {
         participantId: participant.id,
@@ -241,7 +241,7 @@ function AddExpenseModalForm({
 
     setError('');
 
-    const amount = Number(amountInput);
+    const amount = Number(amountInput.replace(',', '.'));
     const amountCents = Math.round(amount * 100);
 
     if (!title.trim()) {
@@ -349,9 +349,8 @@ function AddExpenseModalForm({
             Amount
           </label>
           <input
-            type="number"
-            step="0.01"
-            min="0.01"
+            type="text"
+            inputMode="decimal"
             value={amountInput}
             onChange={(event) => setAmountInput(event.target.value)}
             placeholder="12.34"
@@ -531,10 +530,8 @@ function AddExpenseModalForm({
                         {participant.displayName}
                       </span>
                       <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={percentageByParticipantId[participant.id] ?? ''}
                         onChange={(event) =>
                           updatePercentage(participant.id, event.target.value)
