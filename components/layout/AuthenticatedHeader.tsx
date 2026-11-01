@@ -13,11 +13,12 @@ export default async function Header() {
           <Link href="/">
             <BillioLogo />
           </Link>
-          <nav className="mt-2 flex lg:gap-4">
+          <nav className="mt-2 flex items-center gap-6">
             <Link
               href="/dashboard/settings"
-              className="mr-4 hover:text-teal-400"
+              className="inline-flex items-center gap-2 hover:text-teal-400"
             >
+              <span aria-hidden="true">⚙️</span>
               Settings
             </Link>
             <LogoutButton />

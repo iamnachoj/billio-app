@@ -7,9 +7,10 @@ export function LogoutButton() {
 
   return (
     <button
-      className="mb-2 hover:text-red-500 cursor-pointer"
+      className="inline-flex items-center gap-2 hover:text-red-500 cursor-pointer"
       onClick={handleLogout}
     >
+      <span aria-hidden="true">🚪</span>
       Log out
     </button>
   );
