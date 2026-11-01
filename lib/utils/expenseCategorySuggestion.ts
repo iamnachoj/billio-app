@@ -17,7 +17,19 @@ const CATEGORY_KEYWORDS: Array<{
       'brunch',
       'comida fuera',
       'menu del dia',
+      'fast food',
+      'takeaway',
+      'takeout',
+      'food delivery',
+      'desayuno',
+      'breakfast',
+      'merienda',
       'cafeteria',
+      'bocadillo',
+      'sandwich',
+      'food truck',
+      'helado',
+      'ice cream',
       'tapas',
       'tapeo',
       'sushi',
@@ -35,27 +47,69 @@ const CATEGORY_KEYWORDS: Array<{
       'super',
       'mercadona',
       'carrefour',
+      'lidl',
+      'aldi',
+      'eroski',
+      'consum',
+      'walmart',
+      'tesco',
+      'supermarket',
       'grocery',
       'groceries',
+      'grocery store',
       'compra semanal',
       'alimentacion',
+      'compras',
+      'panaderia',
+      'carniceria',
+      'fruteria',
+      'verduleria',
+      'bakery',
+      'butcher',
+      'greengrocer',
+      'ametller',
+      'asian shop',
+      'tienda asiatica',
+      'tienda de comestibles',
+      'grocery store',
+      'frutas',
+      'verduras',
+      'boulangerie',
+      'fromagerie',
+      'charcuterie',
+      'épicerie',
+      'queso',
+      'grantja',
+      'carniceria',
+      'pescaderia',
     ],
   },
   {
     category: 'drinks',
     keywords: [
       'cerveza',
+      'cervezas',
       'cervecita',
+      'cervecitas',
       'cerve',
       'birra',
+      'birras',
       'copas',
       'vino',
       'wine',
       'beer',
+      'beers',
       'bar',
       'pub',
       'cocktail',
       'coctel',
+      'caña',
+      'cañas',
+      'refresco',
+      'refrescos',
+      'soft drink',
+      'gin',
+      'gintonic',
       'alcohol',
       'ron',
       'whisky',
@@ -74,11 +128,19 @@ const CATEGORY_KEYWORDS: Array<{
       'agua',
       'gas',
       'electricidad',
+      'factura de luz',
+      'utility bill',
+      'utilities',
       'wifi',
       'mueble',
+      'muebles',
       'furniture',
       'ikea',
       'reforma',
+      'reparacion',
+      'limpieza',
+      'household',
+      'cleaning supplies',
       'tijeras',
       'herramientas',
       'tools',
@@ -95,12 +157,23 @@ const CATEGORY_KEYWORDS: Array<{
       'taxi',
       'uber',
       'cabify',
+      'bolt',
+      'lyft',
       'parking',
+      'aparcamiento',
       'peaje',
+      'toll',
       'tren',
       'train',
+      'cercanias',
       'coche',
       'car rental',
+      'alquiler de coche',
+      'bicicleta',
+      'bike',
+      'scooter',
+      'patinete',
+      'transporte publico',
     ],
   },
   {
@@ -109,11 +182,21 @@ const CATEGORY_KEYWORDS: Array<{
       'vuelo',
       'flight',
       'hotel',
+      'hostel',
+      'hostal',
+      'alojamiento',
       'viaje',
       'trip',
       'avion',
+      'airport',
       'airbnb',
       'excursion',
+      'crucero',
+      'cruise',
+      'vacaciones',
+      'holiday',
+      'luggage',
+      'equipaje',
       'apartment',
     ],
   },
@@ -123,14 +206,27 @@ const CATEGORY_KEYWORDS: Array<{
       'cine',
       'cinema',
       'movie',
+      'pelicula',
+      'film',
       'concierto',
       'concert',
+      'festival',
       'teatro',
       'theatre',
+      'museum',
+      'museo',
+      'bowling',
+      'escape room',
+      'karaoke',
       'videojuego',
       'videogame',
       'juego',
       'ocio',
+      'amusement park',
+      'parque de atracciones',
+      'zoo',
+      'aquarium',
+      'acuario',
       'tennis',
       'escalada',
       'climbing',
@@ -151,6 +247,18 @@ const CATEGORY_KEYWORDS: Array<{
       'clothes',
       'zapatillas',
       'shoes',
+      'clothing',
+      'camiseta',
+      'pantalon',
+      'vestido',
+      'abrigo',
+      'bolso',
+      'bag',
+      'electronics',
+      'electronica',
+      'tienda de ropa',
+      'centro comercial',
+      'mall',
       'amazon',
       'zara',
       'tienda',
@@ -167,22 +275,46 @@ const CATEGORY_KEYWORDS: Array<{
       'dentista',
       'dentist',
       'hospital',
+      'clinica',
+      'clinic',
+      'medicina',
+      'medicine',
+      'medicamento',
+      'medication',
+      'terapia',
+      'therapy',
+      'optica',
+      'optician',
+      'analisis',
+      'doctor visit',
     ],
   },
   {
     category: 'personal_care',
     keywords: [
       'peluqueria',
+      'barberia',
+      'barber',
+      'haircut',
       'gimnasio',
       'shampoo',
+      'champu',
       'conditioner',
       'soap',
+      'jabon',
       'toothpaste',
       'toothbrush',
       'gym',
       'spa',
       'manicura',
+      'pedicura',
       'cosmetica',
+      'cosmetics',
+      'skincare',
+      'cuidado personal',
+      'personal hygiene',
+      'desodorante',
+      'deodorant',
     ],
   },
   {
@@ -195,15 +327,36 @@ const CATEGORY_KEYWORDS: Array<{
       'netflix',
       'spotify',
       'youtube',
+      'prime video',
+      'disney plus',
+      'icloud',
+      'microsoft 365',
+      'internet',
+      'telefono',
+      'phone bill',
+      'mobile plan',
       'pago',
       'payment',
       'invoice',
+      'factura',
+      'membership',
+      'membresia',
       'gestoria',
     ],
   },
   {
     category: 'gifts',
-    keywords: ['regalo', 'gift', 'cumpleanos', 'birthday', 'present'],
+    keywords: [
+      'regalo',
+      'gift',
+      'cumpleanos',
+      'birthday',
+      'present',
+      'aniversario',
+      'anniversary',
+      'wedding gift',
+      'regalo de boda',
+    ],
   },
 ];
 
@@ -276,27 +429,53 @@ export function suggestExpenseCategory(text: string): ExpenseCategory {
   }
 
   const words = normalizedText.split(/[^a-z0-9]+/).filter(Boolean);
+  const scores = new Map<ExpenseCategory, number>();
 
   for (const { category, keywords } of CATEGORY_KEYWORDS) {
-    const matchesKeyword = keywords.some((keyword) => {
+    let score = 0;
+    const matchedKeywords = new Set<string>();
+
+    for (const keyword of keywords) {
       const normalizedKeyword = normalize(keyword);
+      const keywordWords = normalizedKeyword.split(' ');
+      const matchesPhrase = words.some((_, index) =>
+        keywordWords.every(
+          (keywordWord, offset) => words[index + offset] === keywordWord
+        )
+      );
 
-      if (normalizedText.includes(normalizedKeyword)) {
-        return true;
+      if (matchesPhrase) {
+        matchedKeywords.add(normalizedKeyword);
+        score +=
+          10 +
+          Math.min(normalizedKeyword.length, 20) +
+          (keywordWords.length - 1) * 3;
+        continue;
       }
 
-      // Multi-word keywords (e.g. "car rental") skip fuzzy matching; typos there are rarer and harder to bound safely.
-      if (normalizedKeyword.includes(' ')) {
-        return false;
+      if (
+        keywordWords.length === 1 &&
+        words.some((word) => isFuzzyMatch(word, normalizedKeyword))
+      ) {
+        matchedKeywords.add(normalizedKeyword);
+        score += 5 + Math.min(normalizedKeyword.length, 10);
       }
+    }
 
-      return words.some((word) => isFuzzyMatch(word, normalizedKeyword));
-    });
-
-    if (matchesKeyword) {
-      return category;
+    if (matchedKeywords.size > 0) {
+      scores.set(category, score);
     }
   }
 
-  return 'miscellaneous';
+  let bestCategory: ExpenseCategory = 'miscellaneous';
+  let bestScore = 0;
+
+  for (const [category, score] of scores) {
+    if (score > bestScore) {
+      bestCategory = category;
+      bestScore = score;
+    }
+  }
+
+  return bestCategory;
 }

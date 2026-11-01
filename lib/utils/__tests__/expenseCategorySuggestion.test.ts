@@ -36,6 +36,31 @@ describe('suggestExpenseCategory', () => {
     expect(suggestExpenseCategory('Regalo de cumpleaños')).toBe('gifts');
   });
 
+  it.each([
+    ['Takeaway pizza', 'eating_out'],
+    ['Compra en Lidl', 'groceries'],
+    ['Cañas con amigos', 'drinks'],
+    ['Utility bill', 'home'],
+    ['Bolt al aeropuerto', 'transport'],
+    ['Alojamiento en Roma', 'travel'],
+    ['Escape room', 'entertainment'],
+    ['Ropa para el invierno', 'shopping'],
+    ['Medicamento', 'health'],
+    ['Skincare', 'personal_care'],
+    ['Phone bill', 'services'],
+    ['Regalo de boda', 'gifts'],
+  ] as const)('suggests %s as %s', (title, category) => {
+    expect(suggestExpenseCategory(title)).toBe(category);
+  });
+
+  it('prefers the strongest category signal when several categories match', () => {
+    expect(suggestExpenseCategory('comida en el hotel')).toBe('eating_out');
+  });
+
+  it('does not match keywords that only appear inside another word', () => {
+    expect(suggestExpenseCategory('Hotel Barcelona')).toBe('travel');
+  });
+
   it('is accent-insensitive and case-insensitive', () => {
     expect(suggestExpenseCategory('FARMACIA')).toBe('health');
     expect(suggestExpenseCategory('médico de cabecera')).toBe('health');
