@@ -1,24 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import GroupCategoryStats from '@/components/groups/GroupCategoryStats';
+import GroupPaymentHistory from '@/components/groups/GroupPaymentHistory';
+import { formatMoney } from '@/components/groups/groupTotalsUtils';
 import Modal from '@/components/ui/Modal';
 import { GroupBalances } from '@/lib/services/balanceService';
-import {
-  getExpenseCategoryEmoji,
-  getExpenseCategoryLabel,
-} from '@/lib/models/expense';
-import {
-  getCategoryStats,
-  type GroupCategoryStats,
-} from '@/frontend-services/stats.service';
-import {
-  createPayment,
-  deletePayment,
-  getPayments,
-  type PaymentData,
-} from '@/frontend-services/payments.service';
+import { createPayment } from '@/frontend-services/payments.service';
 
 type GroupTotalsModalProps = {
   open: boolean;
@@ -28,35 +18,6 @@ type GroupTotalsModalProps = {
   selectedCurrency: string;
   participantNameById: Map<string, string>;
 };
-
-type StatsPeriod = 'month' | 'all';
-
-function formatMoney(amountCents: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amountCents / 100);
-}
-
-function getCurrentMonthRange() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  return {
-    dateFrom: start.toISOString(),
-    dateTo: now.toISOString(),
-  };
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-GB', {
-    dateStyle: 'medium',
-  }).format(new Date(value));
-}
-
-const PAYMENT_HISTORY_PAGE_SIZE = 5;
 
 export default function GroupTotalsModal({
   open,
@@ -75,94 +36,7 @@ export default function GroupTotalsModal({
   const [settlingKey, setSettlingKey] = useState<string | null>(null);
   const [settleError, setSettleError] = useState('');
 
-  const [paymentHistory, setPaymentHistory] = useState<PaymentData[]>([]);
-  const [paymentHistoryCursor, setPaymentHistoryCursor] = useState<
-    string | null
-  >(null);
-  const [loadedHistoryKey, setLoadedHistoryKey] = useState<string | null>(null);
-  const [isLoadingMoreHistory, setIsLoadingMoreHistory] = useState(false);
-  const [historyError, setHistoryError] = useState('');
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
-  const [undoingPaymentId, setUndoingPaymentId] = useState<string | null>(null);
-
-  // Loading is derived: the request for the current key hasn't completed yet.
-  const historyKey = `${groupId}:${currencySummary?.currency}:${historyRefreshKey}`;
-  const isLoadingHistory =
-    open && !!currencySummary && loadedHistoryKey !== historyKey;
-
-  useEffect(() => {
-    if (!open || !currencySummary) {
-      return;
-    }
-
-    let cancelled = false;
-
-    getPayments(groupId, {
-      currency: currencySummary.currency,
-      limit: PAYMENT_HISTORY_PAGE_SIZE,
-    }).then((result) => {
-      if (cancelled) {
-        return;
-      }
-
-      setLoadedHistoryKey(historyKey);
-
-      if (!result.success) {
-        setHistoryError(result.error.message);
-        return;
-      }
-
-      setHistoryError('');
-      setPaymentHistory(result.data.payments);
-      setPaymentHistoryCursor(result.data.nextCursor);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open, groupId, currencySummary, historyKey]);
-
-  async function loadMorePaymentHistory() {
-    if (!paymentHistoryCursor || isLoadingMoreHistory || !currencySummary) {
-      return;
-    }
-
-    setIsLoadingMoreHistory(true);
-    setHistoryError('');
-
-    const result = await getPayments(groupId, {
-      currency: currencySummary.currency,
-      limit: PAYMENT_HISTORY_PAGE_SIZE,
-      cursor: paymentHistoryCursor,
-    });
-
-    setIsLoadingMoreHistory(false);
-
-    if (!result.success) {
-      setHistoryError(result.error.message);
-      return;
-    }
-
-    setPaymentHistory((current) => [...current, ...result.data.payments]);
-    setPaymentHistoryCursor(result.data.nextCursor);
-  }
-
-  async function handleUndoPayment(paymentId: string) {
-    setUndoingPaymentId(paymentId);
-    setHistoryError('');
-
-    const result = await deletePayment(groupId, paymentId);
-
-    setUndoingPaymentId(null);
-
-    if (!result.success) {
-      setHistoryError(result.error.message);
-      return;
-    }
-
-    setHistoryRefreshKey((key) => key + 1);
-    router.refresh();
-  }
 
   async function handleSettle(settlement: {
     fromParticipantId: string;
@@ -195,48 +69,8 @@ export default function GroupTotalsModal({
     router.refresh();
   }
 
-  const [period, setPeriod] = useState<StatsPeriod>('month');
-  const [stats, setStats] = useState<GroupCategoryStats | null>(null);
-  const [loadedStatsKey, setLoadedStatsKey] = useState<string | null>(null);
-  const [statsError, setStatsError] = useState('');
-
-  const statsKey = `${groupId}:${currencySummary?.currency}:${period}`;
-  const isLoadingStats =
-    open && !!currencySummary && loadedStatsKey !== statsKey;
-
-  useEffect(() => {
-    if (!open || !currencySummary) {
-      return;
-    }
-
-    let cancelled = false;
-    const { dateFrom, dateTo } =
-      period === 'month' ? getCurrentMonthRange() : {};
-
-    getCategoryStats(groupId, {
-      currency: currencySummary.currency,
-      dateFrom,
-      dateTo,
-    }).then((result) => {
-      if (cancelled) {
-        return;
-      }
-
-      setLoadedStatsKey(statsKey);
-
-      if (!result.success) {
-        setStatsError(result.error.message);
-        return;
-      }
-
-      setStatsError('');
-      setStats(result.data);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open, groupId, currencySummary, period, statsKey]);
+  const [period, setPeriod] = useState<'month' | 'all'>('month');
+  const [monthOffset, setMonthOffset] = useState(0);
 
   if (!currencySummary) {
     return (
@@ -380,156 +214,25 @@ export default function GroupTotalsModal({
           )}
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-900">
-            Payment history
-          </h3>
-          {historyError ? (
-            <p className="text-sm text-rose-700">{historyError}</p>
-          ) : null}
-          {isLoadingHistory ? (
-            <p className="text-sm text-slate-600">Loading payments…</p>
-          ) : paymentHistory.length === 0 ? (
-            <p className="text-sm text-slate-600">No payments recorded yet.</p>
-          ) : (
-            <>
-              <ul className="space-y-2">
-                {paymentHistory.map((payment) => {
-                  const fromName =
-                    participantNameById.get(payment.fromParticipantId) ??
-                    'Unknown participant';
-                  const toName =
-                    participantNameById.get(payment.toParticipantId) ??
-                    'Unknown participant';
+        <GroupPaymentHistory
+          groupId={groupId}
+          currency={currencySummary.currency}
+          participantNameById={participantNameById}
+          refreshKey={historyRefreshKey}
+        />
 
-                  return (
-                    <li
-                      key={payment.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800"
-                    >
-                      <p>
-                        <span className="font-medium">{fromName}</span> paid{' '}
-                        <span className="font-medium">{toName}</span>{' '}
-                        <span className="font-semibold">
-                          {formatMoney(payment.amount, payment.currency)}
-                        </span>
-                        <span className="ml-2 text-xs text-slate-400">
-                          {formatDate(payment.createdAt)}
-                        </span>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => handleUndoPayment(payment.id)}
-                        disabled={undoingPaymentId === payment.id}
-                        className="shrink-0 text-xs text-slate-400 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {undoingPaymentId === payment.id ? 'Undoing…' : 'Undo'}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {paymentHistoryCursor ? (
-                <button
-                  type="button"
-                  onClick={loadMorePaymentHistory}
-                  disabled={isLoadingMoreHistory}
-                  className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isLoadingMoreHistory ? 'Loading…' : 'View more'}
-                </button>
-              ) : null}
-            </>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Spending by category
-            </h3>
-            <div className="flex gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 text-xs font-medium">
-              <button
-                type="button"
-                onClick={() => setPeriod('month')}
-                className={`rounded-full px-3 py-1 transition ${
-                  period === 'month'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                This month
-              </button>
-              <button
-                type="button"
-                onClick={() => setPeriod('all')}
-                className={`rounded-full px-3 py-1 transition ${
-                  period === 'all'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All time
-              </button>
-            </div>
-          </div>
-
-          {isLoadingStats ? (
-            <p className="text-sm text-slate-600 animate-pulse">
-              Loading stats…
-            </p>
-          ) : statsError ? (
-            <p className="text-sm text-rose-700">{statsError}</p>
-          ) : !stats || stats.categories.length === 0 ? (
-            <p className="text-sm text-slate-600">
-              No expenses in this period.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {stats.topCategory ? (
-                <p className="text-sm text-slate-700">
-                  Top category:{' '}
-                  <span className="font-semibold text-slate-900">
-                    {getExpenseCategoryEmoji(stats.topCategory.category)}{' '}
-                    {getExpenseCategoryLabel(stats.topCategory.category)}
-                  </span>{' '}
-                  ({formatMoney(stats.topCategory.totalCents, stats.currency)})
-                </p>
-              ) : null}
-
-              <ul className="space-y-2">
-                {stats.categories.map((categoryStat) => (
-                  <li key={categoryStat.category} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-800">
-                        {getExpenseCategoryEmoji(categoryStat.category)}{' '}
-                        {getExpenseCategoryLabel(categoryStat.category)}{' '}
-                        <span className="text-slate-400">
-                          (
-                          {Math.round(categoryStat.percentageOfTotal * 100) /
-                            100}
-                          %)
-                        </span>
-                      </span>
-                      <span className="font-medium text-slate-900">
-                        {formatMoney(categoryStat.totalCents, stats.currency)}
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-slate-900"
-                        style={{
-                          width: `${categoryStat.percentageOfTotal}%`,
-                        }}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        <GroupCategoryStats
+          groupId={groupId}
+          currency={currencySummary.currency}
+          period={period}
+          monthOffset={monthOffset}
+          onSelectMonth={() => setPeriod('month')}
+          onSelectAll={() => setPeriod('all')}
+          onChangeMonth={(direction) => {
+            setMonthOffset((offset) => Math.min(0, offset + direction));
+            setPeriod('month');
+          }}
+        />
       </div>
     </Modal>
   );

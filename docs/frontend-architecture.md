@@ -179,6 +179,16 @@ This keeps related logic together.
 
 ---
 
+## Group totals
+
+The totals modal separates payment history and category statistics into their
+own components. Category statistics can be viewed for the current month, any
+previous month, or all time. Month boundaries use the viewer's local time; the
+current month runs through the current instant. The other totals, balances,
+settlements, and payment history remain all-time.
+
+---
+
 # frontend-services/
 
 The frontend should never call `fetch()` directly inside components.
