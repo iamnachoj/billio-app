@@ -87,7 +87,7 @@ export default function GroupCategoryStats({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <h3 className="text-sm font-semibold text-slate-900">
           Spending by category
         </h3>
@@ -113,7 +113,7 @@ export default function GroupCategoryStats({
               type="button"
               aria-pressed={period === 'month'}
               onClick={onSelectMonth}
-              className="px-1 py-1"
+              className="min-w-28 px-1 py-1"
             >
               {month.label}
             </button>
@@ -142,13 +142,20 @@ export default function GroupCategoryStats({
         </div>
       </div>
 
-      <div className="min-h-48">
+      <div
+        role="region"
+        aria-label="Category spending results"
+        tabIndex={0}
+        className="h-80 overflow-y-auto rounded-xl border border-slate-200 p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 [scrollbar-gutter:stable]"
+      >
         {isLoading ? (
-          <p role="status" className="text-sm text-slate-600 animate-pulse">
-            Loading stats…
-          </p>
+          <div className="flex min-h-full items-center justify-center">
+            <p role="status" className="text-sm text-slate-600 animate-pulse">
+              Loading stats…
+            </p>
+          </div>
         ) : statsError ? (
-          <div className="space-y-1">
+          <div className="flex min-h-full flex-col items-center justify-center gap-1 text-center">
             <p className="text-sm text-rose-700">{statsError}</p>
             <button
               type="button"
@@ -159,7 +166,11 @@ export default function GroupCategoryStats({
             </button>
           </div>
         ) : !stats || stats.categories.length === 0 ? (
-          <p className="text-sm text-slate-600">No expenses in this period.</p>
+          <div className="flex min-h-full items-center justify-center text-center">
+            <p className="text-sm text-slate-600">
+              No expenses in this period.
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             {stats.topCategory ? (

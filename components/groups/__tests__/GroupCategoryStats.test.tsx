@@ -25,8 +25,11 @@ describe('GroupCategoryStats controls', () => {
     expect(html).toMatch(/aria-label="Next month"[^>]*\sdisabled=""/);
     expect(html).toMatch(/aria-pressed="true"[^>]*>This month/);
     expect(html).toMatch(/aria-pressed="false"[^>]*>All time/);
+    expect(html).toMatch(
+      /role="region" aria-label="Category spending results" tabindex="0" class="[^"]*\bh-80\b[^"]*\boverflow-y-auto\b[^"]*\bborder\b/
+    );
     expect(html).toContain(
-      '<div class="min-h-48"><p role="status" class="text-sm text-slate-600 animate-pulse">Loading stats…</p></div>'
+      '<div class="flex min-h-full items-center justify-center"><p role="status"'
     );
   });
 
