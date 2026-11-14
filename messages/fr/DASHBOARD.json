@@ -1,9 +1,14 @@
 {
   "GREETING": "Salut {name} 👋",
+  "OVERVIEW": "Votre tableau de bord",
+  "INTRO": "Toutes vos dépenses partagées, au même endroit.",
   "GROUPS": {
     "ADD": "Ajouter un groupe",
     "CREATE_TITLE": "Créer un groupe",
     "TITLE": "Vos groupes",
+    "DESCRIPTION": "Reprenez là où vous en étiez.",
+    "EMPTY_TITLE": "Aucun groupe actif pour le moment",
+    "EMPTY_DESCRIPTION": "Créez un groupe pour commencer à partager vos dépenses.",
     "SHOW_ARCHIVED": "Afficher les archives",
     "HIDE_ARCHIVED": "Masquer les archives",
     "ARCHIVED_TITLE": "Archives",

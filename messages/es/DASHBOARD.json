@@ -1,9 +1,14 @@
 {
   "GREETING": "Hola, {name} 👋",
+  "OVERVIEW": "Tu panel",
+  "INTRO": "Todos tus gastos compartidos, en un solo lugar.",
   "GROUPS": {
     "ADD": "Añadir grupo",
     "CREATE_TITLE": "Crear grupo",
     "TITLE": "Tus grupos",
+    "DESCRIPTION": "Continúa donde lo dejaste.",
+    "EMPTY_TITLE": "Aún no tienes grupos activos",
+    "EMPTY_DESCRIPTION": "Crea un grupo para empezar a compartir gastos.",
     "SHOW_ARCHIVED": "Mostrar archivados",
     "HIDE_ARCHIVED": "Ocultar archivados",
     "ARCHIVED_TITLE": "Archivados",

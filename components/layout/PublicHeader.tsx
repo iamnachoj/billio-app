@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 export default async function Header() {
   const t = await getTranslations('LAYOUT');
   return (
-    <header className="bg-gray-800 text-white p-4 lg:py-4 lg:px-16">
+    <header className="bg-gray-800 text-white p-4">
       <div className="flex items-center justify-between">
         <Link href="/" className="text-3xl text-center">
           {t('WELCOME')} <BillioLogo />

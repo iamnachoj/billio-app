@@ -43,7 +43,7 @@ export default function SortableGroupCard({ group }: Props) {
         {...listeners}
         onClick={(e) => e.stopPropagation()}
         aria-label={t('GROUPS.REORDER', { groupName: group.name })}
-        className="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded-md bg-white/90 p-1 text-gray-500 backdrop-blur-sm hover:border-gray-300 hover:text-gray-800 active:cursor-grabbing"
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 cursor-grab touch-none items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 active:cursor-grabbing"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

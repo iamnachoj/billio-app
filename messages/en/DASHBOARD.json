@@ -1,9 +1,14 @@
 {
   "GREETING": "Hello {name} 👋",
+  "OVERVIEW": "Your dashboard",
+  "INTRO": "All your shared expenses, in one place.",
   "GROUPS": {
     "ADD": "Add new group",
     "CREATE_TITLE": "Create group",
     "TITLE": "Your groups",
+    "DESCRIPTION": "Pick up where you left off.",
+    "EMPTY_TITLE": "No active groups yet",
+    "EMPTY_DESCRIPTION": "Create a group to start sharing expenses.",
     "SHOW_ARCHIVED": "Show archived",
     "HIDE_ARCHIVED": "Hide archived",
     "ARCHIVED_TITLE": "Archived",
