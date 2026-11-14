@@ -3,7 +3,6 @@ import BillioLogo from '@/components/layout/BillioLogo';
 import { LogoutButton } from '@/components/layout/LogoutButton';
 import { getCurrentUser } from '@/lib/services/authService';
 import { getTranslations } from 'next-intl/server';
-import LanguageSwitcher from './LanguageSwitcher';
 
 export default async function Header() {
   const t = await getTranslations('LAYOUT');
@@ -20,7 +19,6 @@ export default async function Header() {
             aria-label={t('NAVIGATION')}
             className="mt-2 flex items-center gap-6"
           >
-            <LanguageSwitcher authenticated />
             <Link
               href="/dashboard/settings"
               className="inline-flex items-center gap-2 hover:text-teal-400"

@@ -11,6 +11,9 @@
     "REORDER": "Reorder {groupName}"
   },
   "SETTINGS": {
+    "LANGUAGE": {
+      "TITLE": "Language"
+    },
     "NOTIFICATIONS": {
       "TITLE": "Notifications",
       "DESCRIPTION": "Get notified on this device when someone adds a new expense to one of your groups.",

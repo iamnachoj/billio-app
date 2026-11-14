@@ -93,6 +93,10 @@ remain unprefixed. The proxy negotiates the locale from the `NEXT_LOCALE` cookie
 then `Accept-Language`, and finally English. Use navigation helpers from
 `i18n/navigation.ts` so internal links retain the active locale.
 
+Authenticated users change their saved language in dashboard settings. Public
+pages offer the same selector in the footer; it changes the locale without
+saving an account preference. The selector's options follow `routing.locales`.
+
 Do not hardcode user-facing text. Add matching uppercase, domain-namespaced keys
 to both `messages/en/` and `messages/es/`, use `useTranslations` in client
 components and `getTranslations` on the server, and translate API errors using

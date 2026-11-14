@@ -11,6 +11,9 @@
     "REORDER": "Reordenar {groupName}"
   },
   "SETTINGS": {
+    "LANGUAGE": {
+      "TITLE": "Idioma"
+    },
     "NOTIFICATIONS": {
       "TITLE": "Notificaciones",
       "DESCRIPTION": "Recibe notificaciones en este dispositivo cuando alguien añada un gasto a uno de tus grupos.",

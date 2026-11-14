@@ -5,6 +5,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 
 import { logout } from '@/frontend-services/auth.service';
 import { deleteMe, updateMe } from '@/frontend-services/me.service';
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher';
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -30,6 +31,7 @@ export default function UserAccountSettings({
   initialUser,
 }: UserAccountSettingsProps) {
   const t = useTranslations('DASHBOARD.SETTINGS.ACCOUNT');
+  const language = useTranslations('DASHBOARD.SETTINGS.LANGUAGE');
   const apiError = useApiError();
   const format = useFormatter();
   const locale = useLocale() as 'en' | 'es';
@@ -277,6 +279,15 @@ export default function UserAccountSettings({
           </Button>
         </div>
       </form>
+
+      <div className="mt-8 border-t border-gray-200 pt-6">
+        <h3 className="text-base font-semibold text-gray-900">
+          {language('TITLE')}
+        </h3>
+        <div className="mt-5">
+          <LanguageSwitcher authenticated />
+        </div>
+      </div>
 
       <div className="mt-8 border-t border-gray-200 pt-6">
         <h3 className="text-base font-semibold text-red-600">

@@ -9,8 +9,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock('react', async (importOriginal) => ({
   ...(await importOriginal<typeof import('react')>()),
   useState: (initial: unknown) => [initial, mocks.setState],
+  useId: () => 'language-selector',
 }));
 vi.mock('next-intl', () => ({
+  hasLocale: (locales: string[], locale: string) => locales.includes(locale),
   useLocale: () => 'en',
   useTranslations: () => (key: string) => key,
 }));
@@ -27,11 +29,11 @@ vi.mock('@/frontend-services/me.service', () => ({
 
 import LanguageSwitcher from '../LanguageSwitcher';
 
-function clickSpanish(authenticated = false) {
+function selectLanguage(value: string, authenticated = false) {
   const element = LanguageSwitcher({ authenticated });
-  const languageGroup = element.props.children[0];
-  const spanishButton = languageGroup.props.children[1];
-  spanishButton.props.onClick();
+  const select = element.props.children[1].props.children[0];
+  select.props.onChange({ currentTarget: { value } });
+  return element;
 }
 
 describe('LanguageSwitcher', () => {
@@ -47,7 +49,7 @@ describe('LanguageSwitcher', () => {
   });
 
   it('switches the locale without losing the query or fragment', () => {
-    clickSpanish();
+    selectLanguage('es');
     expect(mocks.replace).toHaveBeenCalledWith(
       '/login?next=%2Fes%2Fdashboard#section',
       { locale: 'es' }
@@ -57,7 +59,7 @@ describe('LanguageSwitcher', () => {
 
   it('saves an authenticated preference before switching', async () => {
     mocks.updateMe.mockResolvedValue({ success: true });
-    clickSpanish(true);
+    selectLanguage('es', true);
     expect(mocks.updateMe).toHaveBeenCalledWith({ locale: 'es' });
     await vi.waitFor(() =>
       expect(mocks.replace).toHaveBeenCalledWith(
@@ -72,9 +74,38 @@ describe('LanguageSwitcher', () => {
       success: false,
       error: { code: 'ERROR', message: 'server error' },
     });
-    clickSpanish(true);
+    selectLanguage('es', true);
     await vi.waitFor(() =>
       expect(mocks.setState).toHaveBeenCalledWith('translated error')
+    );
+    expect(mocks.replace).not.toHaveBeenCalled();
+  });
+
+  it('labels the selector and offers every configured language', () => {
+    const element = LanguageSwitcher({});
+    const label = element.props.children[0];
+    const select = element.props.children[1].props.children[0];
+    expect(label.props.htmlFor).toBe(select.props.id);
+    expect(label.props.children).toBe('LABEL');
+    expect(select.props.value).toBe('en');
+    expect(
+      select.props.children.map(
+        (option: { props: { value: string } }) => option.props.value
+      )
+    ).toEqual(['en', 'es']);
+  });
+
+  it.each(['en', 'invalid'])('does not navigate for %s', (locale) => {
+    selectLanguage(locale, true);
+    expect(mocks.updateMe).not.toHaveBeenCalled();
+    expect(mocks.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate when saving throws', async () => {
+    mocks.updateMe.mockRejectedValue(new Error('Network error'));
+    selectLanguage('es', true);
+    await vi.waitFor(() =>
+      expect(mocks.setState).toHaveBeenCalledWith('SAVE_ERROR')
     );
     expect(mocks.replace).not.toHaveBeenCalled();
   });

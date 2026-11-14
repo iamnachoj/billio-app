@@ -1,7 +1,6 @@
 import { Link } from '@/i18n/navigation';
 import BillioLogo from '@/components/layout/BillioLogo';
 import { getTranslations } from 'next-intl/server';
-import LanguageSwitcher from './LanguageSwitcher';
 
 export default async function Header() {
   const t = await getTranslations('LAYOUT');
@@ -11,7 +10,6 @@ export default async function Header() {
         <Link href="/" className="text-3xl text-center">
           {t('WELCOME')} <BillioLogo />
         </Link>
-        <LanguageSwitcher />
       </div>
     </header>
   );

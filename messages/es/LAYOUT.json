@@ -4,10 +4,9 @@
   "SETTINGS": "Ajustes",
   "LOG_OUT": "Cerrar sesión",
   "LANGUAGE_SWITCHER": {
-    "LABEL": "Idioma",
+    "LABEL": "Elige el idioma que quieres usar en Billio.",
     "ENGLISH": "Inglés",
     "SPANISH": "Español",
-    "CHANGE_TO": "Cambiar idioma a {language}",
     "SAVE_ERROR": "No se pudo guardar tu preferencia de idioma. Inténtalo de nuevo."
   }
 }
