@@ -1,19 +1,17 @@
 import crypto from 'crypto';
+import { checkGroupWritable } from './groupArchiveGuard';
 
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import {
-  createParticipant as createParticipantInRepository,
   getParticipantByGroupAndUserId,
   getParticipantById,
   getParticipantsByGroupId,
-  linkParticipantToUser,
-  updateParticipantById,
 } from '@/lib/repositories/participantRepository';
 import {
+  acceptGroupInviteAtomically,
   cleanupExpiredGroupInvites,
   createGroupInvite as createGroupInviteInRepository,
   getGroupInviteByToken,
-  markGroupInviteAsAccepted,
 } from '@/lib/repositories/groupInviteRepository';
 
 export type InviteResult<T> =
@@ -131,6 +129,9 @@ export async function createGroupInvite({
   if (!adminResult.ok) {
     return adminResult;
   }
+
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
 
   await cleanupExpiredGroupInvites();
 
@@ -264,6 +265,9 @@ export async function acceptInvite({
     email?: string;
   };
 
+  const archivedError = await checkGroupWritable(invite.groupId);
+  if (archivedError) return archivedError;
+
   if (
     invite.email &&
     userEmail &&
@@ -313,29 +317,58 @@ export async function acceptInvite({
         },
       };
     }
-
-    await updateParticipantById(participant.id, {
-      status: 'active',
-    });
-
-    if (!participant.userId) {
-      await linkParticipantToUser({
-        participantId: participant.id,
-        userId,
-      });
-    }
-  } else {
-    await createParticipantInRepository({
-      groupId: invite.groupId,
-      displayName: displayName!.trim(),
-      userId,
-      role: 'member',
-      status: 'active',
-      createdBy: userId,
-    });
   }
 
-  await markGroupInviteAsAccepted(invite.id);
+  const acceptance = await acceptGroupInviteAtomically({
+    inviteId: invite.id,
+    userId,
+    participantId,
+    displayName: displayName?.trim(),
+  });
+
+  if (acceptance.status === 'group_archived') {
+    return {
+      ok: false,
+      error: {
+        code: 'GROUP_ARCHIVED',
+        message: 'Group is archived and read-only',
+        status: 409,
+      },
+    };
+  }
+
+  if (acceptance.status === 'invite_unavailable') {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_TOKEN',
+        message: 'Invite is no longer available',
+        status: 400,
+      },
+    };
+  }
+
+  if (acceptance.status === 'participant_not_found') {
+    return {
+      ok: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Participant not found',
+        status: 404,
+      },
+    };
+  }
+
+  if (acceptance.status === 'participant_claimed') {
+    return {
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Participant already belongs to another user',
+        status: 403,
+      },
+    };
+  }
 
   return {
     ok: true,

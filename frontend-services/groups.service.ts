@@ -1,3 +1,28 @@
+import { parseApiResult } from './expenses.service';
+import type { Group } from '@/lib/models/group';
+
+type GroupArchiveData = Omit<
+  Group,
+  'createdAt' | 'updatedAt' | 'archivedAt'
+> & {
+  createdAt: string;
+  updatedAt: string;
+  archivedAt: string | null;
+};
+
+export async function setGroupArchived(groupId: string, archived: boolean) {
+  const response = await fetch(`/api/groups/${groupId}/archive`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ archived }),
+  });
+
+  return parseApiResult<GroupArchiveData>(response);
+}
+
 export async function getGroups() {
   const response = await fetch('/api/groups', {
     credentials: 'include',

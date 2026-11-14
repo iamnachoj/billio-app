@@ -4,5 +4,6 @@ export type Group = {
   description?: string;
   createdAt: Date;
   updatedAt: Date;
+  archivedAt: Date | null;
   createdBy: string; // user ID of the creator
 };

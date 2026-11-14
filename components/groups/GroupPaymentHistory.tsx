@@ -19,6 +19,7 @@ type Props = {
   currency: string;
   participantNameById: Map<string, string>;
   refreshKey: number;
+  readOnly: boolean;
 };
 
 export default function GroupPaymentHistory({
@@ -26,6 +27,7 @@ export default function GroupPaymentHistory({
   currency,
   participantNameById,
   refreshKey,
+  readOnly,
 }: Props) {
   const t = useTranslations('GROUPS');
   const locale = useLocale();
@@ -152,16 +154,18 @@ export default function GroupPaymentHistory({
                       })}
                     </span>
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => handleUndo(payment.id)}
-                    disabled={undoingPaymentId === payment.id}
-                    className="shrink-0 text-xs text-slate-400 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {undoingPaymentId === payment.id
-                      ? t('PAYMENTS.UNDOING')
-                      : t('PAYMENTS.UNDO')}
-                  </button>
+                  {!readOnly ? (
+                    <button
+                      type="button"
+                      onClick={() => handleUndo(payment.id)}
+                      disabled={undoingPaymentId === payment.id}
+                      className="shrink-0 text-xs text-slate-400 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {undoingPaymentId === payment.id
+                        ? t('PAYMENTS.UNDOING')
+                        : t('PAYMENTS.UNDO')}
+                    </button>
+                  ) : null}
                 </li>
               );
             })}

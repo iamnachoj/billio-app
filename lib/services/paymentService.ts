@@ -1,3 +1,5 @@
+import { checkGroupWritable } from './groupArchiveGuard';
+
 import {
   createPayment,
   deletePaymentById,
@@ -144,6 +146,9 @@ export async function createSettlementPayment({
       },
     };
   }
+
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
 
   const payment = await createPayment({
     groupId,
@@ -315,6 +320,9 @@ export async function deleteSettlementPayment({
       },
     };
   }
+
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
 
   await deletePaymentById(paymentId);
 

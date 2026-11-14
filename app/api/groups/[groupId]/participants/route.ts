@@ -1,4 +1,8 @@
-import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  errorResponse,
+  successResponse,
+  unexpectedErrorResponse,
+} from '@/lib/api/response';
 import {
   addParticipantBodySchema,
   readJsonBody,
@@ -45,9 +49,7 @@ export async function POST(
 
     return successResponse(result.data.participant, 201);
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }
 
@@ -76,8 +78,6 @@ export async function GET(
 
     return successResponse(result.data.participants);
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }

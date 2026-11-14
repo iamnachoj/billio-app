@@ -2,6 +2,8 @@
   "CONFLICT": "Esta acción entra en conflicto con el estado actual.",
   "EMAIL_IN_USE": "Este correo electrónico ya está en uso.",
   "FORBIDDEN": "No tienes permiso para hacer esto.",
+  "GROUP_ARCHIVED": "Este grupo está archivado. Restáuralo antes de hacer cambios.",
+  "GROUP_NOT_SETTLED": "Liquida todos los saldos en todas las monedas antes de archivar el grupo.",
   "INTERNAL_ERROR": "Algo salió mal. Inténtalo de nuevo.",
   "INVALID_CREDENTIALS": "El correo electrónico o la contraseña no son correctos.",
   "INVALID_INPUT": "Revisa los datos e inténtalo de nuevo.",

@@ -5,6 +5,7 @@ dotenv.config({
 });
 
 import { db } from './db';
+import { ensureGroupArchiveColumn } from './group-archive-migration';
 import { ensureUserLocaleColumn } from './user-locale-migration';
 
 export async function initDB() {
@@ -34,6 +35,8 @@ export async function initDB() {
       updated_at TEXT
     );
   `);
+
+  await ensureGroupArchiveColumn(db);
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS group_participants (
@@ -267,7 +270,8 @@ export async function initDB() {
     legacyCategoryMap
   )) {
     await db.execute({
-      sql: 'UPDATE expenses SET category = ? WHERE category = ?',
+      sql: `UPDATE expenses SET category = ? WHERE category = ?
+            AND group_id IN (SELECT id FROM groups WHERE archived_at IS NULL)`,
       args: [newCategory, legacyCategory],
     });
   }
@@ -383,6 +387,58 @@ export async function initDB() {
   await db.execute(
     'CREATE INDEX IF NOT EXISTS idx_expense_splits_expense_id ON expense_splits (expense_id);'
   );
+
+  // Database-level guards close the gap between a service check and its write.
+  for (const table of [
+    'group_participants',
+    'group_invites',
+    'expenses',
+    'payments',
+  ]) {
+    for (const operation of ['INSERT', 'UPDATE', 'DELETE']) {
+      const groups =
+        operation === 'INSERT'
+          ? 'NEW.group_id'
+          : operation === 'DELETE'
+            ? 'OLD.group_id'
+            : 'OLD.group_id, NEW.group_id';
+      await db.execute(`
+        CREATE TRIGGER IF NOT EXISTS guard_archived_${table}_${operation.toLowerCase()}
+        BEFORE ${operation} ON ${table}
+        WHEN EXISTS (SELECT 1 FROM groups WHERE id IN (${groups}) AND archived_at IS NOT NULL)
+        BEGIN SELECT RAISE(ABORT, 'GROUP_ARCHIVED'); END;
+      `);
+    }
+  }
+  for (const operation of ['INSERT', 'UPDATE', 'DELETE']) {
+    const expenses =
+      operation === 'INSERT'
+        ? 'NEW.expense_id'
+        : operation === 'DELETE'
+          ? 'OLD.expense_id'
+          : 'OLD.expense_id, NEW.expense_id';
+    await db.execute(`
+      CREATE TRIGGER IF NOT EXISTS guard_archived_splits_${operation.toLowerCase()}
+      BEFORE ${operation} ON expense_splits
+      WHEN EXISTS (
+        SELECT 1 FROM expenses e JOIN groups g ON g.id = e.group_id
+        WHERE e.id IN (${expenses}) AND g.archived_at IS NOT NULL
+      )
+      BEGIN SELECT RAISE(ABORT, 'GROUP_ARCHIVED'); END;
+    `);
+  }
+  await db.execute(`
+    CREATE TRIGGER IF NOT EXISTS guard_archived_group_update
+    BEFORE UPDATE OF name, description, created_by ON groups
+    WHEN OLD.archived_at IS NOT NULL
+    BEGIN SELECT RAISE(ABORT, 'GROUP_ARCHIVED'); END;
+  `);
+  await db.execute(`
+    CREATE TRIGGER IF NOT EXISTS guard_archived_group_delete
+    BEFORE DELETE ON groups
+    WHEN OLD.archived_at IS NOT NULL
+    BEGIN SELECT RAISE(ABORT, 'GROUP_ARCHIVED'); END;
+  `);
 }
 
 initDB()

@@ -1,6 +1,10 @@
 import { after } from 'next/server';
 
-import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  errorResponse,
+  successResponse,
+  unexpectedErrorResponse,
+} from '@/lib/api/response';
 import {
   createExpenseBodySchema,
   expenseListQuerySchema,
@@ -69,9 +73,7 @@ export async function POST(
 
     return successResponse(result.data, 201);
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }
 
@@ -118,8 +120,6 @@ export async function GET(
       nextCursor: result.data.nextCursor,
     });
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }

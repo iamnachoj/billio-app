@@ -2,6 +2,8 @@
   "CONFLICT": "Cette action est incompatible avec l’état actuel.",
   "EMAIL_IN_USE": "Cette adresse e-mail est déjà utilisée.",
   "FORBIDDEN": "Vous n’êtes pas autorisé à effectuer cette action.",
+  "GROUP_ARCHIVED": "Ce groupe est archivé. Restaurez-le avant de le modifier.",
+  "GROUP_NOT_SETTLED": "Réglez tous les soldes dans toutes les devises avant d’archiver le groupe.",
   "INTERNAL_ERROR": "Une erreur s’est produite. Veuillez réessayer.",
   "INVALID_CREDENTIALS": "Adresse e-mail ou mot de passe invalide.",
   "INVALID_INPUT": "Vérifiez les informations saisies, puis réessayez.",

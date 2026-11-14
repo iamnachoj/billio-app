@@ -14,6 +14,7 @@ type GroupParticipantsModalProps = {
   participants: GroupParticipant[];
   currentUserId: string;
   canAddParticipants: boolean;
+  readOnly: boolean;
   isAddingParticipant: boolean;
   addParticipantError: string;
   newParticipantNameDraft: string;
@@ -54,6 +55,7 @@ export default function GroupParticipantsModal({
   participants,
   currentUserId,
   canAddParticipants,
+  readOnly,
   isAddingParticipant,
   addParticipantError,
   newParticipantNameDraft,
@@ -123,18 +125,20 @@ export default function GroupParticipantsModal({
           <p className="text-sm text-slate-600">
             {t('PARTICIPANTS.TOTAL', { count: participants.length })}
           </p>
-          <Button
-            onClick={handleToggleInviteOpen}
-            variant="secondary"
-            className="px-3 py-2 text-sm"
-          >
-            {isGenerateInviteOpen
-              ? t('PARTICIPANTS.CLOSE_INVITE')
-              : t('PARTICIPANTS.GENERATE_INVITE')}
-          </Button>
+          {!readOnly ? (
+            <Button
+              onClick={handleToggleInviteOpen}
+              variant="secondary"
+              className="px-3 py-2 text-sm"
+            >
+              {isGenerateInviteOpen
+                ? t('PARTICIPANTS.CLOSE_INVITE')
+                : t('PARTICIPANTS.GENERATE_INVITE')}
+            </Button>
+          ) : null}
         </div>
 
-        {isGenerateInviteOpen ? (
+        {!readOnly && isGenerateInviteOpen ? (
           <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-semibold text-slate-800">
               {t('PARTICIPANTS.GENERATE_INVITE')}
@@ -301,16 +305,18 @@ export default function GroupParticipantsModal({
             </p>
           ) : null}
 
-          <Button
-            onClick={handleToggleAddParticipantOpen}
-            className="text-sm my-4"
-          >
-            {isAddParticipantOpen
-              ? t('PARTICIPANTS.CLOSE_ADD')
-              : t('PARTICIPANTS.ADD_NEW')}
-          </Button>
+          {!readOnly ? (
+            <Button
+              onClick={handleToggleAddParticipantOpen}
+              className="text-sm my-4"
+            >
+              {isAddParticipantOpen
+                ? t('PARTICIPANTS.CLOSE_ADD')
+                : t('PARTICIPANTS.ADD_NEW')}
+            </Button>
+          ) : null}
         </div>
-        {isAddParticipantOpen ? (
+        {!readOnly && isAddParticipantOpen ? (
           <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-semibold text-slate-800">
               {t('PARTICIPANTS.ADD_TITLE')}
@@ -332,10 +338,7 @@ export default function GroupParticipantsModal({
                 onChange={(event) =>
                   setNewParticipantRoleDraft(
                     event.target.value as
-                      | 'owner'
-                      | 'admin'
-                      | 'member'
-                      | 'viewer'
+                      'owner' | 'admin' | 'member' | 'viewer'
                   )
                 }
                 disabled={!canAddParticipants || isAddingParticipant}

@@ -13,6 +13,7 @@ const TABLES = [
 ];
 
 export async function clearIntegrationDatabase(db: Client) {
+  await db.execute('UPDATE groups SET archived_at = NULL;');
   for (const table of TABLES) {
     await db.execute(`DELETE FROM ${table};`);
   }

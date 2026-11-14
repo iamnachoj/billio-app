@@ -15,6 +15,8 @@ import GroupTotalsModal from '@/components/groups/GroupTotalsModal';
 import GroupSettingsModal from './GroupSettingsModal';
 import ExpenseDetailsModal from './Expenses/ExpenseDetailsModal';
 import { useGroup } from './hooks/useGroup';
+import Alert from '@/components/ui/Alert';
+import { useTranslations } from 'next-intl';
 
 export type GroupPageUser = {
   id: string;
@@ -38,9 +40,13 @@ export type GroupPageProps = {
 
 export default function GroupPage(props: GroupPageProps) {
   const group = useGroup(props);
+  const t = useTranslations('GROUPS');
 
   return (
     <main className="mx-auto max-w-5xl p-6 md:p-8 space-y-8">
+      {group.isArchived ? (
+        <Alert variant="info">{t('SETTINGS.ARCHIVED_NOTICE')}</Alert>
+      ) : null}
       <GroupHeader
         groupName={group.groupName}
         description={group.groupDescription}
@@ -52,6 +58,7 @@ export default function GroupPage(props: GroupPageProps) {
         onOpenParticipantsModal={group.openParticipantsModal}
         onOpenSettingsModal={group.openSettingsModal}
         onOpenTotalsModal={group.openTotalsModal}
+        isArchived={group.isArchived}
       />
 
       <ExpenseList
@@ -75,6 +82,7 @@ export default function GroupPage(props: GroupPageProps) {
         participants={group.participants}
         currentUserId={group.user.id}
         canAddParticipants={group.canEditGroupName}
+        readOnly={group.isArchived}
         isAddingParticipant={group.isAddingParticipant}
         addParticipantError={group.addParticipantError}
         newParticipantNameDraft={group.newParticipantNameDraft}
@@ -98,6 +106,10 @@ export default function GroupPage(props: GroupPageProps) {
         onSubmit={group.submitSettings}
         isSaving={group.isSavingSettings}
         isLeavingGroup={group.isLeavingGroup}
+        isChangingArchive={group.isChangingArchive}
+        isArchived={group.isArchived}
+        canManageArchive={group.canManageArchive}
+        onChangeArchiveStatus={group.changeArchiveStatus}
         error={group.settingsError}
         canEditGroupName={group.canEditGroupName}
         canLeaveGroup={group.canLeaveGroup}
@@ -157,6 +169,7 @@ export default function GroupPage(props: GroupPageProps) {
         balances={group.balances}
         selectedCurrency={group.selectedCurrency}
         participantNameById={group.participantNameById}
+        readOnly={group.isArchived}
       />
     </main>
   );

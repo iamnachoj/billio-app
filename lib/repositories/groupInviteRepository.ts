@@ -106,17 +106,124 @@ export async function getGroupInviteByToken(token: string) {
   } satisfies GroupInvite;
 }
 
-export async function markGroupInviteAsAccepted(id: string) {
-  const now = new Date().toISOString();
+export async function acceptGroupInviteAtomically({
+  inviteId,
+  userId,
+  participantId,
+  displayName,
+}: {
+  inviteId: string;
+  userId: string;
+  participantId?: string;
+  displayName?: string;
+}): Promise<
+  | { status: 'accepted' }
+  | { status: 'group_archived' }
+  | { status: 'invite_unavailable' }
+  | { status: 'participant_not_found' }
+  | { status: 'participant_claimed' }
+> {
+  const transaction = await db.transaction('write');
 
-  await db.execute({
-    sql: `
-      UPDATE group_invites
-      SET status = ?, accepted_at = ?, updated_at = ?
-      WHERE id = ?
-    `,
-    args: ['accepted', now, now, id],
-  });
+  try {
+    const now = new Date().toISOString();
+    const inviteUpdate = await transaction.execute({
+      sql: `
+        UPDATE group_invites
+        SET status = 'accepted', accepted_at = ?, updated_at = ?
+        WHERE id = ?
+          AND status = 'pending'
+          AND expires_at > ?
+          AND EXISTS (
+            SELECT 1 FROM groups
+            WHERE groups.id = group_invites.group_id
+              AND groups.archived_at IS NULL
+          )
+      `,
+      args: [now, now, inviteId, now],
+    });
+
+    if (inviteUpdate.rowsAffected === 0) {
+      const state = await transaction.execute({
+        sql: `
+          SELECT g.archived_at
+          FROM group_invites i
+          LEFT JOIN groups g ON g.id = i.group_id
+          WHERE i.id = ?
+        `,
+        args: [inviteId],
+      });
+      await transaction.rollback();
+
+      if (state.rows[0]?.archived_at) {
+        return { status: 'group_archived' };
+      }
+
+      return { status: 'invite_unavailable' };
+    }
+
+    if (participantId) {
+      const participantUpdate = await transaction.execute({
+        sql: `
+          UPDATE group_participants
+          SET user_id = COALESCE(user_id, ?), status = 'active', updated_at = ?
+          WHERE id = ?
+            AND group_id = (
+              SELECT group_id FROM group_invites WHERE id = ?
+            )
+            AND (user_id IS NULL OR user_id = ?)
+        `,
+        args: [userId, now, participantId, inviteId, userId],
+      });
+
+      if (participantUpdate.rowsAffected === 0) {
+        const participant = await transaction.execute({
+          sql: `
+            SELECT user_id
+            FROM group_participants
+            WHERE id = ?
+              AND group_id = (
+                SELECT group_id FROM group_invites WHERE id = ?
+              )
+          `,
+          args: [participantId, inviteId],
+        });
+        await transaction.rollback();
+
+        if (!participant.rows[0]) {
+          return { status: 'participant_not_found' };
+        }
+
+        return { status: 'participant_claimed' };
+      }
+    } else {
+      if (!displayName) {
+        throw new Error('Display name is required when creating a participant');
+      }
+      await transaction.execute({
+        sql: `
+          INSERT INTO group_participants (
+            id, group_id, display_name, user_id, role, status,
+            joined_at, created_at, updated_at
+          )
+          SELECT ?, group_id, ?, ?, 'member', 'active', ?, ?, ?
+          FROM group_invites
+          WHERE id = ?
+        `,
+        args: [randomUUID(), displayName, userId, now, now, now, inviteId],
+      });
+    }
+
+    await transaction.commit();
+    return { status: 'accepted' };
+  } catch (error) {
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      console.error('Failed to roll back invite acceptance', rollbackError);
+    }
+    throw error;
+  }
 }
 
 export async function deleteGroupInviteById(id: string) {
@@ -138,8 +245,9 @@ export async function cleanupExpiredGroupInvites() {
   await db.execute({
     sql: `
       DELETE FROM group_invites
-      WHERE (status = 'pending' AND expires_at < ?)
-         OR (status IN ('accepted', 'expired', 'revoked') AND updated_at < ?)
+      WHERE ((status = 'pending' AND expires_at < ?)
+         OR (status IN ('accepted', 'expired', 'revoked') AND updated_at < ?))
+        AND group_id IN (SELECT id FROM groups WHERE archived_at IS NULL)
     `,
     args: [now, staleCutoff],
   });

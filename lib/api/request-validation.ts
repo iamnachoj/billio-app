@@ -126,6 +126,10 @@ export const updateGroupBodySchema = z.object({
   description: optionalString,
 });
 
+export const archiveGroupBodySchema = z.object({
+  archived: z.boolean(),
+});
+
 export const addParticipantBodySchema = z.object({
   displayName: nonEmptyString,
   userId: optionalNonEmptyString,

@@ -258,6 +258,7 @@ Response `201`:
     "description": "Weekend with friends",
     "createdAt": "2026-07-25T10:00:00.000Z",
     "updatedAt": "2026-07-25T10:00:00.000Z",
+    "archivedAt": null,
     "createdBy": "user-id"
   }
 }
@@ -277,11 +278,45 @@ Response `200`:
       "description": "Weekend with friends",
       "createdAt": "2026-07-25T10:00:00.000Z",
       "updatedAt": "2026-07-25T10:00:00.000Z",
+      "archivedAt": null,
       "createdBy": "user-id"
     }
   ]
 }
 ```
+
+`PATCH /api/groups/[groupId]/archive`
+
+Request: `{ "archived": true }` to archive or `{ "archived": false }` to
+restore. Only owners and admins may change the state. Archiving requires every
+participant's net balance to be zero separately in every currency (including
+payments). Repeating the current state is allowed and preserves the original
+archive timestamp.
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "group-id",
+    "name": "Trip to Lisbon",
+    "description": "Weekend with friends",
+    "createdAt": "2026-07-25T10:00:00.000Z",
+    "updatedAt": "2026-07-26T10:00:00.000Z",
+    "archivedAt": "2026-07-26T10:00:00.000Z",
+    "createdBy": "user-id"
+  }
+}
+```
+
+`archivedAt` is a nullable ISO timestamp on group objects, including group
+creation, listing, and group details. Archived groups remain readable and may
+be restored, but group, participant, invitation, expense and payment writes
+(including leaving or accepting an invite) return `GROUP_ARCHIVED` (409).
+The archive endpoint can also return `GROUP_NOT_SETTLED` (409),
+`INVALID_INPUT` (400), `UNAUTHORIZED` (401), `FORBIDDEN` (403), or `NOT_FOUND`
+(404). Expired-invite cleanup skips archived groups.
 
 `DELETE /api/groups`
 
@@ -867,6 +902,7 @@ expressible in JSON Schema.
 | GET | `/api/groups` | — | — |
 | POST | `/api/groups` | `createGroupBodySchema` | — |
 | PATCH | `/api/groups/[groupId]` | `updateGroupBodySchema` | — |
+| PATCH | `/api/groups/[groupId]/archive` | `archiveGroupBodySchema` | — |
 | GET | `/api/groups/[groupId]/balances` | — | — |
 | GET | `/api/groups/[groupId]/expenses` | — | `expenseListQuerySchema` |
 | POST | `/api/groups/[groupId]/expenses` | `createExpenseBodySchema` | — |
@@ -948,6 +984,26 @@ expressible in JSON Schema.
   },
   "required": [
     "displayName"
+  ],
+  "additionalProperties": false
+}
+```
+
+</details>
+<details>
+<summary><code>archiveGroupBodySchema</code></summary>
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "archived": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "archived"
   ],
   "additionalProperties": false
 }

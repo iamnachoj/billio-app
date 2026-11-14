@@ -44,6 +44,7 @@ describe('groupService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
 
@@ -65,6 +66,7 @@ describe('groupService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     expect(groupRepository.createGroup).toHaveBeenCalledWith({
@@ -110,6 +112,7 @@ describe('groupService', () => {
         description: 'Weekend trip',
         createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        archivedAt: null,
         createdBy: 'user-1',
       },
     ]);
@@ -128,6 +131,7 @@ describe('groupService', () => {
         description: 'Weekend trip',
         createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+        archivedAt: null,
         createdBy: 'user-1',
       },
     ]);
@@ -198,6 +202,7 @@ describe('groupService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-2',
     });
 
@@ -472,6 +477,7 @@ describe('groupService', () => {
       description: 'Trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(
@@ -531,6 +537,7 @@ describe('groupService', () => {
       description: 'Trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(

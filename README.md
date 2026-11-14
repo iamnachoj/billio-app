@@ -23,6 +23,13 @@ a user is registered or a language preference is saved. The database account
 must have permission to alter the users table. You can also apply migrations
 explicitly with `npm run db:init` before deploying.
 
+Group owners and admins can archive a group from its settings once every
+participant's balance is settled in every currency. Archiving applies to
+everyone and keeps the group read-only; an owner or admin can restore it from
+the same settings. Use **Show archived** on the dashboard to find it again.
+Existing databases must be migrated with `npm run db:init` before using group
+archiving.
+
 ## Common commands
 
 ```bash

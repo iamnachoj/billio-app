@@ -15,6 +15,7 @@ type GroupHeaderProps = {
   onOpenParticipantsModal: () => void;
   onOpenSettingsModal: () => void;
   onOpenTotalsModal: () => void;
+  isArchived: boolean;
 };
 
 export default function GroupHeader({
@@ -28,6 +29,7 @@ export default function GroupHeader({
   onOpenParticipantsModal,
   onOpenSettingsModal,
   onOpenTotalsModal,
+  isArchived,
 }: GroupHeaderProps) {
   const t = useTranslations('GROUPS');
   const locale = useLocale();
@@ -60,7 +62,13 @@ export default function GroupHeader({
               onClick={onOpenParticipantsModal}
               className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
             >
-              👥 {t('GROUP_HEADER.PARTICIPANTS', { count: participantsCount })}
+              👥{' '}
+              {t(
+                isArchived
+                  ? 'GROUP_HEADER.PARTICIPANTS_READ_ONLY'
+                  : 'GROUP_HEADER.PARTICIPANTS',
+                { count: participantsCount }
+              )}
             </button>{' '}
             · {t('GROUP_HEADER.EXPENSES', { count: expensesCount })}
           </p>

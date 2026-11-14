@@ -4,6 +4,7 @@ import { useRouter } from '@/i18n/navigation';
 
 import {
   leaveGroup,
+  setGroupArchived,
   updateGroupName,
 } from '@/frontend-services/groups.service';
 import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
@@ -84,6 +85,7 @@ export function useGroup(props: GroupPageProps) {
   const [settingsError, setSettingsError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isLeavingGroup, setIsLeavingGroup] = useState(false);
+  const [isChangingArchive, setIsChangingArchive] = useState(false);
 
   const groupName = props.group.name;
   const groupDescription = props.group.description ?? '';
@@ -193,10 +195,13 @@ export function useGroup(props: GroupPageProps) {
     );
   }, [participants, props.user.id]);
 
-  const canEditGroupName =
+  const canManageArchive =
     myParticipant?.role === 'owner' || myParticipant?.role === 'admin';
-  const canCreateExpense = !!myParticipant && myParticipant.role !== 'viewer';
-  const canLeaveGroup = !!myParticipant;
+  const isArchived = Boolean(props.group.archivedAt);
+  const canEditGroupName = canManageArchive && !isArchived;
+  const canCreateExpense =
+    !!myParticipant && myParticipant.role !== 'viewer' && !isArchived;
+  const canLeaveGroup = !!myParticipant && !isArchived;
 
   const participantsSection = useGroupParticipantsSection({
     groupId: props.group.id,
@@ -311,12 +316,32 @@ export function useGroup(props: GroupPageProps) {
   }
 
   function closeSettingsModal() {
-    if (isSavingSettings) {
+    if (isSavingSettings || isChangingArchive) {
       return;
     }
 
     setIsSettingsModalOpen(false);
     setSettingsError('');
+  }
+
+  async function changeArchiveStatus() {
+    if (!canManageArchive || isChangingArchive) return;
+    setSettingsError('');
+    setIsChangingArchive(true);
+    try {
+      const response = await setGroupArchived(props.group.id, !isArchived);
+      if (!response.success) {
+        setSettingsError(apiError(response.error));
+        return;
+      }
+      setIsSettingsModalOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to change group archive status', error);
+      setSettingsError(t('SETTINGS.ARCHIVE_FAILED'));
+    } finally {
+      setIsChangingArchive(false);
+    }
   }
 
   async function submitSettings(event: FormEvent) {
@@ -458,6 +483,9 @@ export function useGroup(props: GroupPageProps) {
     isLeaveConfirmModalOpen,
     isSavingSettings,
     isLeavingGroup,
+    isChangingArchive,
+    isArchived,
+    canManageArchive,
     groupName,
     groupDescription,
     groupNameDraft,
@@ -486,6 +514,7 @@ export function useGroup(props: GroupPageProps) {
     requestLeaveGroup,
     cancelLeaveGroup,
     confirmLeaveGroup,
+    changeArchiveStatus,
     openExpenseDetailsModal: (expenseId: string) => {
       setSelectedExpenseId(expenseId);
       setIsExpenseDetailsModalOpen(true);

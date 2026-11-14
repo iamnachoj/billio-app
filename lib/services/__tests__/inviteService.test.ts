@@ -29,15 +29,18 @@ vi.mock('@/lib/repositories/participantRepository', () => ({
 }));
 
 vi.mock('@/lib/repositories/groupInviteRepository', () => ({
+  acceptGroupInviteAtomically: vi.fn(),
   cleanupExpiredGroupInvites: vi.fn(),
   createGroupInvite: vi.fn(),
   getGroupInviteByToken: vi.fn(),
-  markGroupInviteAsAccepted: vi.fn(),
 }));
 
 describe('inviteService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(
+      groupInviteRepository.acceptGroupInviteAtomically
+    ).mockResolvedValue({ status: 'accepted' });
   });
 
   it('creates a reusable group invite link for an admin user', async () => {
@@ -47,6 +50,7 @@ describe('inviteService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(
@@ -117,6 +121,7 @@ describe('inviteService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
@@ -157,19 +162,14 @@ describe('inviteService', () => {
       throw new Error('Expected invite acceptance to succeed');
     }
 
-    expect(participantRepository.updateParticipantById).toHaveBeenCalledWith(
-      'participant-1',
-      {
-        status: 'active',
-      }
-    );
-    expect(participantRepository.linkParticipantToUser).toHaveBeenCalledWith({
-      participantId: 'participant-1',
-      userId: 'user-2',
-    });
     expect(
-      groupInviteRepository.markGroupInviteAsAccepted
-    ).toHaveBeenCalledWith('invite-1-a-b-c-d');
+      groupInviteRepository.acceptGroupInviteAtomically
+    ).toHaveBeenCalledWith({
+      inviteId: 'invite-1-a-b-c-d',
+      userId: 'user-2',
+      participantId: 'participant-1',
+      displayName: undefined,
+    });
   });
 
   it('accepts a link invite by creating a new participant', async () => {
@@ -193,6 +193,7 @@ describe('inviteService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
@@ -222,17 +223,14 @@ describe('inviteService', () => {
       throw new Error('Expected invite acceptance to succeed');
     }
 
-    expect(participantRepository.createParticipant).toHaveBeenCalledWith({
-      groupId: 'group-1',
-      displayName: 'Carlos',
-      userId: 'user-2',
-      role: 'member',
-      status: 'active',
-      createdBy: 'user-2',
-    });
     expect(
-      groupInviteRepository.markGroupInviteAsAccepted
-    ).toHaveBeenCalledWith('invite-1-a-b-c-d');
+      groupInviteRepository.acceptGroupInviteAtomically
+    ).toHaveBeenCalledWith({
+      inviteId: 'invite-1-a-b-c-d',
+      userId: 'user-2',
+      participantId: undefined,
+      displayName: 'Carlos',
+    });
   });
 
   it('allows re-joining a previously left but unlinked participant', async () => {
@@ -256,6 +254,7 @@ describe('inviteService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(
@@ -312,6 +311,7 @@ describe('inviteService', () => {
       description: 'Weekend trip',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
       updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      archivedAt: null,
       createdBy: 'user-1',
     });
     vi.mocked(participantRepository.getParticipantsByGroupId).mockResolvedValue(

@@ -1,4 +1,8 @@
-import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  errorResponse,
+  successResponse,
+  unexpectedErrorResponse,
+} from '@/lib/api/response';
 import {
   readJsonBody,
   updateParticipantBodySchema,
@@ -38,9 +42,7 @@ export async function DELETE(
 
     return successResponse({ success: true });
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }
 
@@ -79,8 +81,6 @@ export async function PATCH(
 
     return successResponse({ success: true });
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }

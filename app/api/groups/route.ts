@@ -1,4 +1,8 @@
-import { errorResponse, successResponse } from '@/lib/api/response';
+import {
+  errorResponse,
+  successResponse,
+  unexpectedErrorResponse,
+} from '@/lib/api/response';
 import {
   createGroupBodySchema,
   leaveGroupBodySchema,
@@ -41,9 +45,7 @@ export async function POST(req: Request) {
 
     return successResponse(result.data.group, 201);
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }
 
@@ -67,9 +69,7 @@ export async function GET() {
 
     return successResponse(result.data.groups);
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }
 
@@ -101,8 +101,6 @@ export async function DELETE(req: Request) {
 
     return successResponse({ success: true });
   } catch (error) {
-    console.error(error);
-
-    return errorResponse('INTERNAL_ERROR', 'Something went wrong', 500);
+    return unexpectedErrorResponse(error);
   }
 }

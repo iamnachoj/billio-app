@@ -3,6 +3,7 @@ import {
   createGroup as createGroupInRepository,
   getGroupById,
   getGroupsByUserId,
+  setGroupArchived,
   updateGroupById as updateGroupByIdInRepository,
 } from '@/lib/repositories/groupRepository';
 import {
@@ -16,6 +17,7 @@ import {
   updateParticipantById as updateParticipantByIdInRepository,
 } from '@/lib/repositories/participantRepository';
 import { Group } from '../models/group';
+import { checkGroupWritable } from './groupArchiveGuard';
 
 export type GroupServiceResult<T> =
   | { ok: true; data: T }
@@ -141,6 +143,9 @@ export async function leaveGroup({
     };
   }
 
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
+
   await updateParticipantByIdInRepository(membership.id, {
     status: 'left',
     userId: null,
@@ -203,6 +208,9 @@ export async function updateGroupName({
   if (!adminResult.ok) {
     return adminResult;
   }
+
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
 
   await updateGroupByIdInRepository(groupId, {
     name: name.trim(),
@@ -315,6 +323,9 @@ export async function addParticipantToGroup({
     return adminResult;
   }
 
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
+
   const participant = await createParticipantInRepository({
     groupId,
     displayName: displayName.trim(),
@@ -370,6 +381,9 @@ export async function updateParticipant({
   if (!adminResult.ok) {
     return adminResult;
   }
+
+  const archivedError = await checkGroupWritable(participant.groupId);
+  if (archivedError) return archivedError;
 
   await updateParticipantByIdInRepository(participantId, {
     displayName: displayName?.trim(),
@@ -431,6 +445,9 @@ export async function deleteParticipant({
     return adminResult;
   }
 
+  const archivedError = await checkGroupWritable(participant.groupId);
+  if (archivedError) return archivedError;
+
   if (participant.role === 'owner' || participant.role === 'admin') {
     return {
       ok: false,
@@ -481,10 +498,75 @@ export async function linkParticipantToUser({
     };
   }
 
+  const participant = await getParticipantById(participantId);
+  if (participant) {
+    const archivedError = await checkGroupWritable(participant.groupId);
+    if (archivedError) return archivedError;
+  }
   await linkParticipantToUserInRepository({ participantId, userId });
 
   return {
     ok: true,
     data: { success: true },
   };
+}
+
+export async function archiveGroup({
+  groupId,
+  userId,
+  archived,
+}: {
+  groupId: string;
+  userId: string;
+  archived: boolean;
+}): Promise<GroupServiceResult<{ group: Group }>> {
+  if (!groupId || !userId || typeof archived !== 'boolean') {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'Invalid archive request',
+        status: 400,
+      },
+    };
+  }
+  const group = await getGroupById(groupId);
+  if (!group) {
+    return {
+      ok: false,
+      error: { code: 'NOT_FOUND', message: 'Group not found', status: 404 },
+    };
+  }
+  const admin = await ensureGroupAdmin(groupId, userId);
+  if (!admin.ok) return admin;
+
+  const changed = await setGroupArchived(groupId, userId, archived);
+  if (!changed) {
+    // The role may have changed after the initial authorization check.
+    const currentGroup = await getGroupById(groupId);
+    if (!currentGroup) {
+      return {
+        ok: false,
+        error: { code: 'NOT_FOUND', message: 'Group not found', status: 404 },
+      };
+    }
+    const currentAdmin = await ensureGroupAdmin(groupId, userId);
+    if (!currentAdmin.ok) return currentAdmin;
+    return {
+      ok: false,
+      error: {
+        code: 'GROUP_NOT_SETTLED',
+        message: 'Group balances must be settled before archiving',
+        status: 409,
+      },
+    };
+  }
+  const updatedGroup = await getGroupById(groupId);
+  if (!updatedGroup) {
+    return {
+      ok: false,
+      error: { code: 'NOT_FOUND', message: 'Group not found', status: 404 },
+    };
+  }
+  return { ok: true, data: { group: updatedGroup } };
 }

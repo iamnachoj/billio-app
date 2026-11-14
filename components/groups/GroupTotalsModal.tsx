@@ -19,6 +19,7 @@ type GroupTotalsModalProps = {
   balances: GroupBalances;
   selectedCurrency: string;
   participantNameById: Map<string, string>;
+  readOnly: boolean;
 };
 
 export default function GroupTotalsModal({
@@ -28,6 +29,7 @@ export default function GroupTotalsModal({
   balances,
   selectedCurrency,
   participantNameById,
+  readOnly,
 }: GroupTotalsModalProps) {
   const t = useTranslations('GROUPS');
   const locale = useLocale();
@@ -222,14 +224,18 @@ export default function GroupTotalsModal({
                         ),
                       })}
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleSettle(settlement)}
-                      disabled={isSettling}
-                      className="shrink-0 rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 transition hover:border-slate-500 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isSettling ? t('TOTALS.SAVING') : t('TOTALS.MARK_PAID')}
-                    </button>
+                    {!readOnly ? (
+                      <button
+                        type="button"
+                        onClick={() => handleSettle(settlement)}
+                        disabled={isSettling}
+                        className="shrink-0 rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 transition hover:border-slate-500 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isSettling
+                          ? t('TOTALS.SAVING')
+                          : t('TOTALS.MARK_PAID')}
+                      </button>
+                    ) : null}
                   </li>
                 );
               })}
@@ -242,6 +248,7 @@ export default function GroupTotalsModal({
           currency={currencySummary.currency}
           participantNameById={participantNameById}
           refreshKey={historyRefreshKey}
+          readOnly={readOnly}
         />
 
         <GroupCategoryStats

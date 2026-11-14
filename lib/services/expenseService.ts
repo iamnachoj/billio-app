@@ -1,3 +1,5 @@
+import { checkGroupWritable } from './groupArchiveGuard';
+
 import {
   createExpenseWithSplits,
   deleteExpenseById,
@@ -479,6 +481,9 @@ export async function createExpense({
     return splitResult;
   }
 
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
+
   const expense = await createExpenseWithSplits({
     expense: {
       title: title.trim(),
@@ -828,6 +833,9 @@ export async function deleteExpenseForGroup({
     };
   }
 
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
+
   await deleteExpenseById(expenseId);
 
   return {
@@ -979,6 +987,9 @@ export async function updateExpenseForGroup({
       },
     };
   }
+
+  const archivedError = await checkGroupWritable(groupId);
+  if (archivedError) return archivedError;
 
   if (splitProvided) {
     const splitResult = await resolveExpenseSplits({
