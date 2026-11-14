@@ -1,0 +1,73 @@
+{
+  "GREETING": "Bonjour {name} 👋",
+  "GROUPS": {
+    "ADD": "Ajouter un groupe",
+    "CREATE_TITLE": "Créer un groupe",
+    "TITLE": "Vos groupes",
+    "SHOW_ARCHIVED": "Afficher les archives",
+    "HIDE_ARCHIVED": "Masquer les archives",
+    "ARCHIVED_TITLE": "Archives",
+    "ARCHIVED_EMPTY": "Vous n’avez aucun groupe archivé.",
+    "REORDER": "Réorganiser {groupName}"
+  },
+  "SETTINGS": {
+    "LANGUAGE": {
+      "TITLE": "Langue"
+    },
+    "NOTIFICATIONS": {
+      "TITLE": "Notifications",
+      "DESCRIPTION": "Recevez une notification sur cet appareil lorsqu’une nouvelle dépense est ajoutée à l’un de vos groupes.",
+      "INSTALL_TITLE": "Installez d’abord Billio",
+      "INSTALL_INSTRUCTIONS": "Sur iPhone et iPad, touchez Partager, choisissez « Sur l’écran d’accueil », puis ouvrez Billio depuis cet écran pour activer les notifications.",
+      "UNSUPPORTED_TITLE": "Non pris en charge",
+      "UNSUPPORTED_DESCRIPTION": "Ce navigateur ne prend pas en charge les notifications push.",
+      "ENABLE": "Activer les notifications",
+      "DISABLE": "Désactiver les notifications",
+      "PERMISSION_DENIED": "Les notifications sont bloquées. Autorisez-les pour Billio dans les réglages de votre appareil, puis réessayez.",
+      "ENABLE_ERROR": "Impossible d’activer les notifications. Veuillez réessayer.",
+      "UPDATE_ERROR": "Impossible de mettre à jour les notifications. Veuillez réessayer."
+    },
+    "ACCOUNT": {
+      "TITLE": "Compte",
+      "DESCRIPTION": "Consultez vos informations, modifiez votre profil ou supprimez votre compte.",
+      "USER_ID": "Identifiant utilisateur",
+      "NAME": "Nom",
+      "EMAIL": "E-mail",
+      "CURRENT_PASSWORD": "Mot de passe actuel",
+      "PASSWORD_PLACEHOLDER": "Requis pour enregistrer les modifications",
+      "SAVE": "Enregistrer les modifications",
+      "RESET": "Réinitialiser",
+      "DANGER_TITLE": "Zone de danger",
+      "DELETE_DESCRIPTION": "La suppression de votre compte efface définitivement votre profil utilisateur de Billio.",
+      "DELETE": "Supprimer le compte",
+      "TERMS": "Conditions d’utilisation",
+      "PRIVACY": "Politique de confidentialité",
+      "DELETE_TITLE": "Supprimer le compte",
+      "DELETE_WARNING": "Cette action est irréversible. Saisissez {confirmation} pour confirmer la suppression.",
+      "DELETE_CONFIRMATION_LABEL": "Confirmation de suppression du compte",
+      "DELETE_PLACEHOLDER": "Saisissez {confirmation}",
+      "CANCEL": "Annuler",
+      "DELETE_PERMANENTLY": "Supprimer définitivement",
+      "DELETE_CONFIRMATION_WORD": "SUPPRIMER",
+      "ALERTS": {
+        "INVALID_NAME_TITLE": "Nom invalide",
+        "NAME_LENGTH": "Le nom doit comporter entre {min} et {max} caractères.",
+        "INVALID_EMAIL_TITLE": "E-mail invalide",
+        "EMAIL_REQUIRED": "L’adresse e-mail est obligatoire.",
+        "EMAIL_INVALID": "Saisissez une adresse e-mail valide.",
+        "NO_CHANGES_TITLE": "Aucune modification détectée",
+        "NO_CHANGES": "Modifiez votre nom ou votre adresse e-mail pour enregistrer les changements.",
+        "PASSWORD_REQUIRED_TITLE": "Mot de passe requis",
+        "PASSWORD_REQUIRED": "Saisissez votre mot de passe actuel pour confirmer les modifications du compte.",
+        "UPDATE_FAILED_TITLE": "Échec de la mise à jour",
+        "PROFILE_UPDATED_TITLE": "Profil mis à jour",
+        "PROFILE_UPDATED": "Les informations de votre compte ont bien été mises à jour.",
+        "UNEXPECTED_TITLE": "Erreur inattendue",
+        "UNEXPECTED": "Une erreur s’est produite. Veuillez réessayer.",
+        "CONFIRMATION_REQUIRED_TITLE": "Confirmation requise",
+        "CONFIRMATION_REQUIRED": "Saisissez {confirmation} pour confirmer la suppression du compte.",
+        "DELETE_FAILED_TITLE": "Échec de la suppression"
+      }
+    }
+  }
+}

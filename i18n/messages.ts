@@ -18,6 +18,16 @@ import legalEs from '@/messages/es/LEGAL.json';
 import metaEs from '@/messages/es/META.json';
 import pagesEs from '@/messages/es/PAGES.json';
 import uiEs from '@/messages/es/UI.json';
+import authFr from '@/messages/fr/AUTH.json';
+import dashboardFr from '@/messages/fr/DASHBOARD.json';
+import errorsFr from '@/messages/fr/ERRORS.json';
+import groupsFr from '@/messages/fr/GROUPS.json';
+import invitesFr from '@/messages/fr/INVITES.json';
+import layoutFr from '@/messages/fr/LAYOUT.json';
+import legalFr from '@/messages/fr/LEGAL.json';
+import metaFr from '@/messages/fr/META.json';
+import pagesFr from '@/messages/fr/PAGES.json';
+import uiFr from '@/messages/fr/UI.json';
 
 export const messages = {
   en: {
@@ -43,5 +53,17 @@ export const messages = {
     META: metaEs,
     PAGES: pagesEs,
     UI: uiEs,
+  },
+  fr: {
+    AUTH: authFr,
+    DASHBOARD: dashboardFr,
+    ERRORS: errorsFr,
+    GROUPS: groupsFr,
+    INVITES: invitesFr,
+    LAYOUT: layoutFr,
+    LEGAL: legalFr,
+    META: metaFr,
+    PAGES: pagesFr,
+    UI: uiFr,
   },
 };

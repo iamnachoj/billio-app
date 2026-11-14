@@ -13,11 +13,11 @@ describe('locale persistence', () => {
       name: 'Ana',
       email: 'ana@example.com',
       password: 'secret123',
-      locale: 'es',
+      locale: 'fr',
     });
     if (!registered.ok) throw new Error('Registration failed');
     const id = registered.data.user.id;
-    expect((await getUserById(id))?.locale).toBe('es');
+    expect((await getUserById(id))?.locale).toBe('fr');
 
     const login = await loginUser({
       email: 'ana@example.com',
@@ -27,8 +27,8 @@ describe('locale persistence', () => {
     expect(login.ok).toBe(true);
     expect((await getUserById(id))?.locale).toBe('en');
 
-    const update = await updateUserAccount(id, { locale: 'es' });
+    const update = await updateUserAccount(id, { locale: 'fr' });
     expect(update.ok).toBe(true);
-    expect((await getUserById(id))?.locale).toBe('es');
+    expect((await getUserById(id))?.locale).toBe('fr');
   });
 });

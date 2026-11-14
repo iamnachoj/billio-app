@@ -20,8 +20,10 @@ describe('request validation', () => {
       [loginBodySchema, { email: 'ana@example.com', password: 'secret' }],
       [updateUserBodySchema, {}],
     ] as const) {
-      expect(schema.safeParse({ ...body, locale: 'es' }).success).toBe(true);
-      expect(schema.safeParse({ ...body, locale: 'fr' }).success).toBe(false);
+      for (const locale of ['en', 'es', 'fr']) {
+        expect(schema.safeParse({ ...body, locale }).success).toBe(true);
+      }
+      expect(schema.safeParse({ ...body, locale: 'de' }).success).toBe(false);
     }
   });
   it('parses valid JSON and strips fields outside the schema', async () => {

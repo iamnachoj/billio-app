@@ -88,9 +88,11 @@ The App Router keeps page and route logic close to the URL structure, while the 
 
 # Internationalization
 
-All page URLs are prefixed with a locale (`/en/...` or `/es/...`); API URLs
+All page URLs are prefixed with a locale (`/en/...`, `/es/...` or `/fr/...`); API URLs
 remain unprefixed. The proxy negotiates the locale from the `NEXT_LOCALE` cookie,
-then `Accept-Language`, and finally English. Use navigation helpers from
+then `Accept-Language`, and finally English. Browser language tags such as
+`fr-CA`, `fr-BE` and `fr-CH` resolve to the supported `fr` locale; the app does
+not infer language from a user's physical location. Use navigation helpers from
 `i18n/navigation.ts` so internal links retain the active locale.
 
 Authenticated users change their saved language in dashboard settings. Public
@@ -98,7 +100,7 @@ pages offer the same selector in the footer; it changes the locale without
 saving an account preference. The selector's options follow `routing.locales`.
 
 Do not hardcode user-facing text. Add matching uppercase, domain-namespaced keys
-to both `messages/en/` and `messages/es/`, use `useTranslations` in client
+to every supported locale under `messages/`, use `useTranslations` in client
 components and `getTranslations` on the server, and translate API errors using
 their stable codes. Use the active locale with `Intl` for dates and numbers.
 Keep currency selection separate from the locale.

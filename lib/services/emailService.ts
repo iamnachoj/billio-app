@@ -8,22 +8,30 @@ export async function sendPasswordResetEmail(
 ) {
   const locale = resolveLocale(requestedLocale);
   const resetLink = `${(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}/${locale}/reset-password?token=${encodeURIComponent(token)}`;
-  const text =
-    locale === 'es'
-      ? {
-          subject: 'Restablece tu contraseña',
-          greeting: 'Hola,',
-          instructions:
-            'Has solicitado restablecer tu contraseña. Haz clic en el enlace para crear una nueva:',
-          ignore: 'Si no lo has solicitado, puedes ignorar este correo.',
-        }
-      : {
-          subject: 'Reset your password',
-          greeting: 'Hello,',
-          instructions:
-            'You requested a password reset. Click the link below to set a new password:',
-          ignore: 'If you did not request this, you can ignore this email.',
-        };
+  const text = {
+    en: {
+      subject: 'Reset your password',
+      greeting: 'Hello,',
+      instructions:
+        'You requested a password reset. Click the link below to set a new password:',
+      ignore: 'If you did not request this, you can ignore this email.',
+    },
+    es: {
+      subject: 'Restablece tu contraseña',
+      greeting: 'Hola,',
+      instructions:
+        'Has solicitado restablecer tu contraseña. Haz clic en el enlace para crear una nueva:',
+      ignore: 'Si no lo has solicitado, puedes ignorar este correo.',
+    },
+    fr: {
+      subject: 'Réinitialisez votre mot de passe',
+      greeting: 'Bonjour,',
+      instructions:
+        'Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous pour en créer un nouveau :',
+      ignore:
+        'Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail.',
+    },
+  }[locale];
   const resendApiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 

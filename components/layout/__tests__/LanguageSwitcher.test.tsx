@@ -92,7 +92,7 @@ describe('LanguageSwitcher', () => {
       select.props.children.map(
         (option: { props: { value: string } }) => option.props.value
       )
-    ).toEqual(['en', 'es']);
+    ).toEqual(['en', 'es', 'fr']);
   });
 
   it.each(['en', 'invalid'])('does not navigate for %s', (locale) => {

@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
-import type { AppLocale } from '@/lib/locale';
-import { resolveLocale } from '@/lib/locale';
+import { isAppLocale, resolveLocale, type AppLocale } from '@/lib/locale';
 
 import { generateToken, verifyToken } from '@/lib/utils/jwt';
 import {
@@ -40,7 +39,7 @@ export async function registerUser({
     user: { id: string; name: string; email: string; locale: AppLocale };
   }>
 > {
-  if (!name || !email || !password || !['en', 'es'].includes(locale)) {
+  if (!name || !email || !password || !isAppLocale(locale)) {
     return {
       ok: false,
       error: {
@@ -101,11 +100,7 @@ export async function loginUser({
     token: string;
   }>
 > {
-  if (
-    !email ||
-    !password ||
-    (locale !== undefined && !['en', 'es'].includes(locale))
-  ) {
+  if (!email || !password || (locale !== undefined && !isAppLocale(locale))) {
     return {
       ok: false,
       error: {
@@ -266,7 +261,7 @@ export async function updateUserAccount(
     };
   }
 
-  if (updates.locale !== undefined && !['en', 'es'].includes(updates.locale)) {
+  if (updates.locale !== undefined && !isAppLocale(updates.locale)) {
     return {
       ok: false,
       error: {

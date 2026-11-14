@@ -1,0 +1,18 @@
+{
+  "CONFLICT": "Cette action est incompatible avec l’état actuel.",
+  "EMAIL_IN_USE": "Cette adresse e-mail est déjà utilisée.",
+  "FORBIDDEN": "Vous n’êtes pas autorisé à effectuer cette action.",
+  "INTERNAL_ERROR": "Une erreur s’est produite. Veuillez réessayer.",
+  "INVALID_CREDENTIALS": "Adresse e-mail ou mot de passe invalide.",
+  "INVALID_INPUT": "Vérifiez les informations saisies, puis réessayez.",
+  "INVALID_PASSWORD": "Le mot de passe est incorrect.",
+  "INVALID_TOKEN": "Ce lien est invalide ou a expiré.",
+  "NAME_IN_USE": "Ce nom est déjà utilisé.",
+  "NOT_FOUND": "L’élément demandé est introuvable.",
+  "NO_UPDATES_PROVIDED": "Aucune modification n’a été indiquée.",
+  "RATE_LIMITED": "Trop de requêtes. Veuillez réessayer plus tard.",
+  "UNAUTHORIZED": "Connectez-vous pour continuer.",
+  "UPDATE_FAILED": "La mise à jour a échoué. Veuillez réessayer.",
+  "WEAK_PASSWORD": "Choisissez un mot de passe plus robuste.",
+  "UNKNOWN": "Une erreur s’est produite. Veuillez réessayer."
+}

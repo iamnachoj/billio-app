@@ -64,7 +64,7 @@ const optionalQueryString = z.preprocess(
   optionalString
 );
 const password = nonEmptyString;
-const locale = z.enum(['en', 'es']).optional();
+const locale = z.enum(['en', 'es', 'fr']).optional();
 
 const splitSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('equal') }),

@@ -29,7 +29,8 @@ Use **next-intl** (new dependency, requires approval before installing) with:
 1. A `[locale]` route segment wrapping all pages (`app/[locale]/(public|dashboard)/...`).
 2. Locale negotiation in `proxy.ts`. Order: `NEXT_LOCALE` cookie, then `Accept-Language`, then default `en`.
 3. **Always-prefixed URLs** (`/en/login`), with no hidden default locale. This keeps links, emails and push URLs unambiguous.
-4. Initial locales: `en` and `es`. More are added after the infrastructure is in place.
+4. Supported locales: `en`, `es` and `fr`. French regional browser language tags
+   (for example `fr-FR`, `fr-CA`, `fr-BE` and `fr-CH`) resolve to `fr`.
 5. `/api/**` stays **unprefixed** and out of the proxy matcher. Locale reaches the API via a header or request field when needed.
 6. API errors keep stable `code` values. The frontend translates by code rather than displaying server `message` text.
 7. Persist the user's locale in the DB (`users.locale`) so emails and push notifications can be localized without a request.
@@ -40,6 +41,7 @@ Use **next-intl** (new dependency, requires approval before installing) with:
 - [x] Approve the schema change `users.locale` (required by AGENTS.md; needed in Step 7).
 - [x] Confirm always-prefixed URLs.
 - [x] Confirm the first locales: `en`, `es`.
+- [x] Add French (`fr`), including browser language negotiation and translated messages.
 - [x] Legal pages (`privacy-policy`, `terms-and-conditions`): professional translation, or keep English only at first?
 
 ## Implementation plan

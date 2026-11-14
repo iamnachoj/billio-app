@@ -74,4 +74,16 @@ describe('emailService', () => {
       })
     );
   });
+
+  it('sends a localized French reset email and URL', async () => {
+    process.env.RESEND_API_KEY = 'test-key';
+    sendMock.mockResolvedValue({ id: 'email-1' });
+    await sendPasswordResetEmail('user@example.com', 'token-123', 'fr');
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Réinitialisez votre mot de passe',
+        html: expect.stringContaining('/fr/reset-password?token=token-123'),
+      })
+    );
+  });
 });

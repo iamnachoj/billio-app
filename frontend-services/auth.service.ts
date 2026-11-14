@@ -1,9 +1,11 @@
+import type { AppLocale } from '@/lib/locale';
+
 const BASE_URL = '/api/auth';
 
 export async function login(
   email: string,
   password: string,
-  locale?: 'en' | 'es'
+  locale?: AppLocale
 ) {
   const response = await fetch(`${BASE_URL}/login`, {
     method: 'POST',
@@ -25,7 +27,7 @@ export async function register(data: {
   name: string;
   email: string;
   password: string;
-  locale?: 'en' | 'es';
+  locale?: AppLocale;
 }) {
   const response = await fetch(`${BASE_URL}/register`, {
     method: 'POST',

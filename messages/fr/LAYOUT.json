@@ -1,0 +1,13 @@
+{
+  "WELCOME": "Bienvenue sur",
+  "NAVIGATION": "Navigation principale",
+  "SETTINGS": "Paramètres",
+  "LOG_OUT": "Se déconnecter",
+  "LANGUAGE_SWITCHER": {
+    "LABEL": "Choisissez la langue à utiliser dans Billio.",
+    "ENGLISH": "Anglais",
+    "SPANISH": "Espagnol",
+    "FRENCH": "Français",
+    "SAVE_ERROR": "Impossible d’enregistrer votre préférence linguistique. Veuillez réessayer."
+  }
+}

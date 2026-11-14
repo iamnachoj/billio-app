@@ -44,7 +44,7 @@ function formatAmount(
   locale: AppLocale
 ) {
   try {
-    return new Intl.NumberFormat(locale === 'es' ? 'es-ES' : 'en-US', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
     }).format(amountCents / 100);
@@ -105,12 +105,23 @@ export async function notifyNewExpense({
     subscriptions.map(async (subscription) => {
       const locale = locales.get(subscription.userId) ?? 'en';
       const amount = formatAmount(amountCents, currency, locale);
-      const body =
-        locale === 'es'
-          ? `${actor?.displayName ?? 'Alguien'} añadió "${title}" (${amount}) a "${group?.name ?? 'tu grupo'}"`
-          : `${actor?.displayName ?? 'Someone'} added "${title}" (${amount}) to "${group?.name ?? 'your group'}"`;
+      const actorName =
+        actor?.displayName ??
+        { en: 'Someone', es: 'Alguien', fr: 'Quelqu’un' }[locale];
+      const groupName =
+        group?.name ??
+        { en: 'your group', es: 'tu grupo', fr: 'votre groupe' }[locale];
+      const body = {
+        en: `${actorName} added "${title}" (${amount}) to "${groupName}"`,
+        es: `${actorName} añadió "${title}" (${amount}) a "${groupName}"`,
+        fr: `${actorName} a ajouté « ${title} » (${amount}) au groupe « ${groupName} »`,
+      }[locale];
       const payload = JSON.stringify({
-        title: locale === 'es' ? '🔔 Nuevo gasto' : '🔔 New expense',
+        title: {
+          en: '🔔 New expense',
+          es: '🔔 Nuevo gasto',
+          fr: '🔔 Nouvelle dépense',
+        }[locale],
         body,
         url: `/${locale}/dashboard/groups/${encodeURIComponent(groupId)}`,
         tag: `group-${groupId}`,

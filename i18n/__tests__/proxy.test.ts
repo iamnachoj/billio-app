@@ -37,6 +37,18 @@ describe('locale and authentication proxy', () => {
     );
   });
 
+  it.each(['fr-FR', 'fr-CA', 'fr-BE', 'fr-CH', 'fr-LU', 'fr-HT'])(
+    'negotiates French from the browser language %s',
+    (language) => {
+      const response = proxy(
+        request('/invites/token', { 'accept-language': `${language},fr;q=0.9` })
+      );
+      expect(response.headers.get('location')).toBe(
+        'https://billio.test/fr/invites/token'
+      );
+    }
+  );
+
   it('negotiates the locale for the legacy manifest URL', () => {
     const response = legacyManifest(
       request('/manifest.webmanifest', { cookie: 'NEXT_LOCALE=es' })
@@ -48,7 +60,7 @@ describe('locale and authentication proxy', () => {
 
   it('falls back to English when no supported language is requested', () => {
     const response = proxy(
-      request('/login', { 'accept-language': 'fr-FR,fr;q=0.9' })
+      request('/login', { 'accept-language': 'zh-CN,zh;q=0.9' })
     );
     expect(response.headers.get('location')).toBe(
       'https://billio.test/en/login'

@@ -106,7 +106,7 @@ Cookie side effect:
 - `maxAge: 7 days`
 - `secure: true` in production
 
-`locale` is optional and must be `en` or `es`. Registration defaults to `en`;
+`locale` is optional and must be `en`, `es` or `fr`. Registration defaults to `en`;
 login updates the saved locale only when supplied, otherwise preserving it.
 
 `POST /api/auth/logout`
@@ -218,7 +218,8 @@ Notes:
 
 - `password` is required when changing `email` or `name`.
 - At least one of `email`, `name`, or `locale` must be provided. A locale-only
-  update requires authentication but no password. `locale` must be `en` or `es`.
+  update requires authentication but no password. `locale` must be `en`, `es` or
+  `fr`.
 
 `DELETE /api/me`
 
@@ -1307,7 +1308,8 @@ expressible in JSON Schema.
       "type": "string",
       "enum": [
         "en",
-        "es"
+        "es",
+        "fr"
       ]
     }
   },
@@ -1410,7 +1412,8 @@ expressible in JSON Schema.
       "type": "string",
       "enum": [
         "en",
-        "es"
+        "es",
+        "fr"
       ]
     }
   },
@@ -1643,7 +1646,8 @@ expressible in JSON Schema.
       "type": "string",
       "enum": [
         "en",
-        "es"
+        "es",
+        "fr"
       ]
     }
   },

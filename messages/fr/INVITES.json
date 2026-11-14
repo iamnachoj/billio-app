@@ -1,0 +1,39 @@
+{
+  "GROUP_INVITE": "Invitation à un groupe",
+  "JOIN_NAMED_GROUP": "Rejoindre {name}",
+  "DEFAULT_DESCRIPTION": "Vous avez été invité à rejoindre ce groupe Billio.",
+  "VALID_UNTIL": "Invitation valable jusqu’au {date}",
+  "LOCKED_TO": "Cette invitation est réservée à <strong>{email}</strong>.",
+  "REUSABLE": "Ce lien d’invitation au groupe peut être réutilisé.",
+  "SIGN_IN_DESCRIPTION": "Connectez-vous ou créez un compte pour accepter cette invitation sans perdre le fil.",
+  "SIGN_IN": "Se connecter",
+  "CREATE_ACCOUNT": "Créer un compte",
+  "ACCEPTING_AS": "Vous acceptez en tant que <strong>{email}</strong>",
+  "CLAIM_PARTICIPANT": "Associer un participant existant",
+  "CREATE_PARTICIPANT": "Créer mon profil de participant",
+  "DISPLAY_NAME": "Nom affiché dans ce groupe",
+  "DISPLAY_NAME_PLACEHOLDER": "Votre nom dans le groupe",
+  "JOIN_GROUP": "Rejoindre le groupe",
+  "ROLES": {
+    "OWNER": "propriétaire",
+    "ADMIN": "administrateur",
+    "MEMBER": "membre",
+    "VIEWER": "observateur"
+  },
+  "STATUSES": {
+    "ACTIVE": "actif",
+    "INVITED": "invité",
+    "LEFT": "a quitté le groupe"
+  },
+  "ERRORS": {
+    "EMAIL_MISMATCH_TITLE": "Adresse e-mail différente",
+    "EMAIL_MISMATCH_MESSAGE": "Cette invitation est réservée à {email}.",
+    "CHOOSE_PARTICIPANT_TITLE": "Choisir un participant",
+    "CHOOSE_PARTICIPANT_MESSAGE": "Sélectionnez un participant existant à associer.",
+    "NAME_REQUIRED_TITLE": "Nom affiché requis",
+    "NAME_REQUIRED_MESSAGE": "Saisissez le nom que vous souhaitez utiliser dans ce groupe.",
+    "JOIN_TITLE": "Impossible de rejoindre le groupe",
+    "UNEXPECTED_TITLE": "Erreur inattendue",
+    "UNEXPECTED_MESSAGE": "Une erreur s’est produite lors de l’acceptation de l’invitation."
+  }
+}

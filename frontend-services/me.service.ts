@@ -1,3 +1,5 @@
+import type { AppLocale } from '@/lib/locale';
+
 type ApiError = {
   success: false;
   error: {
@@ -17,7 +19,7 @@ export type MeUser = {
   id: string;
   name: string;
   email: string;
-  locale: 'en' | 'es';
+  locale: AppLocale;
   createdAt?: string;
   updatedAt?: string;
   isActive?: boolean;
@@ -28,7 +30,7 @@ type UpdateMeInput = {
   name?: string;
   email?: string;
   password?: string;
-  locale?: 'en' | 'es';
+  locale?: AppLocale;
 };
 
 async function parseApiResponse<T>(

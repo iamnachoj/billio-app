@@ -117,6 +117,34 @@ describe('notifyNewExpense', () => {
     expect(spanish.url).toBe('/es/dashboard/groups/g1');
   });
 
+  it('localizes French recipients', async () => {
+    vi.mocked(getPushSubscriptionsByUserIds).mockResolvedValue([
+      {
+        id: 's',
+        userId: 'u2',
+        endpoint: 'https://e',
+        p256dh: 'k',
+        auth: 'a',
+      },
+    ]);
+    vi.mocked(getUserById).mockResolvedValue({ locale: 'fr' } as never);
+
+    await notifyNewExpense({
+      groupId: 'g1',
+      actorUserId: 'u1',
+      title: 'Dinner',
+      amountCents: 4250,
+      currency: 'EUR',
+    });
+
+    const payload = JSON.parse(
+      vi.mocked(webpush.sendNotification).mock.calls[0][1] as string
+    );
+    expect(payload.title).toBe('🔔 Nouvelle dépense');
+    expect(payload.body).toContain('a ajouté');
+    expect(payload.url).toBe('/fr/dashboard/groups/g1');
+  });
+
   it('removes expired subscriptions', async () => {
     vi.mocked(getPushSubscriptionsByUserIds).mockResolvedValue([
       { id: 's', userId: 'u2', endpoint: 'https://e', p256dh: 'k', auth: 'a' },

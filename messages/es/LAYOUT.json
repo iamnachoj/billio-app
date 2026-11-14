@@ -1,5 +1,5 @@
 {
-  "WELCOME": "Te damos la bienvenida a",
+  "WELCOME": "Bienvenid@ a",
   "NAVIGATION": "Navegación principal",
   "SETTINGS": "Ajustes",
   "LOG_OUT": "Cerrar sesión",
@@ -7,6 +7,7 @@
     "LABEL": "Elige el idioma que quieres usar en Billio.",
     "ENGLISH": "Inglés",
     "SPANISH": "Español",
+    "FRENCH": "Francés",
     "SAVE_ERROR": "No se pudo guardar tu preferencia de idioma. Inténtalo de nuevo."
   }
 }

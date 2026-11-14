@@ -17,6 +17,11 @@ describe('localeSwitchHref', () => {
     );
   });
 
+  it('switches to French without losing the current path', () => {
+    const href = localeSwitchHref('/dashboard', '', '', 'fr');
+    expect(getPathname({ href, locale: 'fr' })).toBe('/fr/dashboard');
+  });
+
   it('updates the locale in the login return path while preserving its query and fragment', () => {
     const href = localeSwitchHref(
       '/login',

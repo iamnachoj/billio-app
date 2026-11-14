@@ -7,6 +7,7 @@
     "LABEL": "Choose the language used in Billio.",
     "ENGLISH": "English",
     "SPANISH": "Spanish",
+    "FRENCH": "French",
     "SAVE_ERROR": "Could not save your language preference. Please try again."
   }
 }

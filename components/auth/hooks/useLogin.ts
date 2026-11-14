@@ -7,6 +7,7 @@ import { login, register } from '@/frontend-services/auth.service';
 import { useApiError } from '@/i18n/errors';
 import { useRouter } from '@/i18n/navigation';
 import { safeNextPath } from '@/components/auth/safeNextPath';
+import type { AppLocale } from '@/lib/locale';
 
 type AlertState = {
   variant: 'success' | 'error';
@@ -21,7 +22,7 @@ export function useLogin(
   const router = useRouter();
   const t = useTranslations('AUTH');
   const apiError = useApiError();
-  const locale = useLocale() === 'es' ? 'es' : 'en';
+  const locale = useLocale() as AppLocale;
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
 

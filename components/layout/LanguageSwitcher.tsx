@@ -11,9 +11,10 @@ import { localeSwitchHref } from './localeSwitchHref';
 
 type Locale = (typeof routing.locales)[number];
 
-const languageKeys: Record<Locale, 'ENGLISH' | 'SPANISH'> = {
+const languageKeys: Record<Locale, 'ENGLISH' | 'SPANISH' | 'FRENCH'> = {
   en: 'ENGLISH',
   es: 'SPANISH',
+  fr: 'FRENCH',
 };
 
 type Props = {

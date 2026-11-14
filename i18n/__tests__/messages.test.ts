@@ -35,13 +35,16 @@ function placeholders(message: string) {
 describe('locale messages', () => {
   it('uses matching uppercase keys for every locale', () => {
     expect(keys(messages.es).sort()).toEqual(keys(messages.en).sort());
+    expect(keys(messages.fr).sort()).toEqual(keys(messages.en).sort());
   });
 
   it('uses the same interpolation variables and rich-text tags in each locale', () => {
     const english = entries(messages.en);
     const spanish = entries(messages.es);
+    const french = entries(messages.fr);
     for (const [key, message] of Object.entries(english)) {
       expect(placeholders(spanish[key]), key).toEqual(placeholders(message));
+      expect(placeholders(french[key]), key).toEqual(placeholders(message));
     }
   });
 });

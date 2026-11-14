@@ -395,7 +395,7 @@ describe('authService', () => {
         existingUser as never
       );
       const result = await updateUserAccount('user-1', {
-        locale: 'fr' as never,
+        locale: 'de' as never,
       });
       expect(result.ok).toBe(false);
       if (result.ok) throw new Error('Expected failure');

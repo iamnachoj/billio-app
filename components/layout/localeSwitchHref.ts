@@ -1,6 +1,6 @@
 import { safeNextPath } from '@/components/auth/safeNextPath';
 
-type Locale = 'en' | 'es';
+type Locale = 'en' | 'es' | 'fr';
 
 function localizeNext(value: string, locale: Locale) {
   const { href } = safeNextPath(value);
@@ -13,7 +13,7 @@ function localizeNext(value: string, locale: Locale) {
       decoded
         .split('/')
         .some((segment) => segment === '.' || segment === '..') ||
-      /^\/(?:en|es)(?:\/|$)/.test(decoded)
+      /^\/(?:en|es|fr)(?:\/|$)/.test(decoded)
     ) {
       return `/${locale}/dashboard`;
     }
