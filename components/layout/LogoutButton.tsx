@@ -1,8 +1,10 @@
 'use client';
 
 import { useLogout } from '../auth/hooks/useLogout';
+import { useTranslations } from 'next-intl';
 
 export function LogoutButton() {
+  const t = useTranslations('LAYOUT');
   const { handleLogout } = useLogout();
 
   return (
@@ -11,7 +13,7 @@ export function LogoutButton() {
       onClick={handleLogout}
     >
       <span aria-hidden="true">🚪</span>
-      Log out
+      {t('LOG_OUT')}
     </button>
   );
 }

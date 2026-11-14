@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 
 import Modal from '@/components/ui/Modal';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 import Button from '../ui/Button';
+import { formatGroupDate } from './groupTotalsUtils';
 
 type GroupParticipantsModalProps = {
   open: boolean;
@@ -30,25 +32,6 @@ type GroupParticipantsModalProps = {
   removingParticipantId: string | null;
   onRemoveParticipant: (participantId: string) => void;
 };
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat('en-GB', {
-    dateStyle: 'medium',
-  }).format(new Date(date));
-}
-
-function statusLabel(status: GroupParticipant['status']) {
-  if (status === 'active') return 'Active';
-  if (status === 'invited') return 'Invited';
-  return 'Left';
-}
-
-function roleLabel(role: GroupParticipant['role']) {
-  if (role === 'owner') return 'Owner';
-  if (role === 'admin') return 'Admin';
-  if (role === 'viewer') return 'Viewer';
-  return 'Member';
-}
 
 function byRoleThenName(a: GroupParticipant, b: GroupParticipant) {
   const roleWeight: Record<GroupParticipant['role'], number> = {
@@ -87,7 +70,20 @@ export default function GroupParticipantsModal({
   removingParticipantId,
   onRemoveParticipant,
 }: GroupParticipantsModalProps) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
   const sortedParticipants = [...participants].sort(byRoleThenName);
+  const statusLabels: Record<GroupParticipant['status'], string> = {
+    active: t('PARTICIPANTS.STATUS_ACTIVE'),
+    invited: t('PARTICIPANTS.STATUS_INVITED'),
+    left: t('PARTICIPANTS.STATUS_LEFT'),
+  };
+  const roleLabels: Record<GroupParticipant['role'], string> = {
+    owner: t('PARTICIPANTS.ROLE_OWNER'),
+    admin: t('PARTICIPANTS.ROLE_ADMIN'),
+    member: t('PARTICIPANTS.ROLE_MEMBER'),
+    viewer: t('PARTICIPANTS.ROLE_VIEWER'),
+  };
   const [isAddParticipantOpenManually, setIsAddParticipantOpenManually] =
     useState(false);
   const [isGenerateInviteOpenManually, setIsGenerateInviteOpenManually] =
@@ -116,11 +112,16 @@ export default function GroupParticipantsModal({
   };
 
   return (
-    <Modal open={open} onClose={handleClose} title="Participants" size="lg">
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title={t('PARTICIPANTS.TITLE')}
+      size="lg"
+    >
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-slate-600">
-            {participants.length} total participants
+            {t('PARTICIPANTS.TOTAL', { count: participants.length })}
           </p>
           <Button
             onClick={handleToggleInviteOpen}
@@ -128,15 +129,15 @@ export default function GroupParticipantsModal({
             className="px-3 py-2 text-sm"
           >
             {isGenerateInviteOpen
-              ? 'Close invite link'
-              : 'Generate invite link'}
+              ? t('PARTICIPANTS.CLOSE_INVITE')
+              : t('PARTICIPANTS.GENERATE_INVITE')}
           </Button>
         </div>
 
         {isGenerateInviteOpen ? (
           <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-semibold text-slate-800">
-              Generate invite link
+              {t('PARTICIPANTS.GENERATE_INVITE')}
             </p>
             <div className="space-y-2">
               <input
@@ -144,19 +145,19 @@ export default function GroupParticipantsModal({
                 value={inviteEmailDraft}
                 onChange={(event) => setInviteEmailDraft(event.target.value)}
                 maxLength={120}
-                placeholder="friend@example.com (optional)"
+                placeholder={t('PARTICIPANTS.EMAIL_PLACEHOLDER')}
                 disabled={!canAddParticipants || isGeneratingInvite}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
               />
               <p className="text-xs text-slate-500">
-                Leave empty to create a reusable link for anyone.
+                {t('PARTICIPANTS.INVITE_EMPTY_HELP')}
               </p>
             </div>
 
             <div className="flex items-center justify-between gap-2">
               {!canAddParticipants ? (
                 <p className="text-xs text-slate-500">
-                  Only owners and admins can generate invite links.
+                  {t('PARTICIPANTS.PERMISSION_INVITE')}
                 </p>
               ) : (
                 <div />
@@ -172,7 +173,9 @@ export default function GroupParticipantsModal({
                 disabled={!canAddParticipants || isGeneratingInvite}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isGeneratingInvite ? 'Generating...' : 'Generate link'}
+                {isGeneratingInvite
+                  ? t('PARTICIPANTS.GENERATING')
+                  : t('PARTICIPANTS.GENERATE_LINK')}
               </button>
             </div>
           </div>
@@ -182,14 +185,24 @@ export default function GroupParticipantsModal({
           <table className="min-w-full divide-y divide-slate-200">
             <thead>
               <tr className="text-left text-xs uppercase tracking-[0.08em] text-slate-500">
-                <th className="px-3 py-2 font-semibold">Name</th>
-                <th className="px-3 py-2 font-semibold">Role</th>
-                <th className="px-3 py-2 font-semibold">Status</th>
-                <th className="px-3 py-2 font-semibold">Linked User</th>
-                <th className="px-3 py-2 font-semibold">Joined</th>
+                <th className="px-3 py-2 font-semibold">
+                  {t('PARTICIPANTS.NAME')}
+                </th>
+                <th className="px-3 py-2 font-semibold">
+                  {t('PARTICIPANTS.ROLE')}
+                </th>
+                <th className="px-3 py-2 font-semibold">
+                  {t('PARTICIPANTS.STATUS')}
+                </th>
+                <th className="px-3 py-2 font-semibold">
+                  {t('PARTICIPANTS.LINKED_USER')}
+                </th>
+                <th className="px-3 py-2 font-semibold">
+                  {t('PARTICIPANTS.JOINED')}
+                </th>
                 {canAddParticipants ? (
                   <th className="px-3 py-2 font-semibold text-right">
-                    Actions
+                    {t('PARTICIPANTS.ACTIONS')}
                   </th>
                 ) : null}
               </tr>
@@ -213,19 +226,25 @@ export default function GroupParticipantsModal({
                       {participant.displayName}
                       {isCurrentUser ? (
                         <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800">
-                          You
+                          {t('PARTICIPANTS.YOU')}
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-3 py-3">{roleLabel(participant.role)}</td>
                     <td className="px-3 py-3">
-                      {statusLabel(participant.status)}
+                      {roleLabels[participant.role]}
                     </td>
                     <td className="px-3 py-3">
-                      {participant.userId ? 'Linked' : 'Unlinked'}
+                      {statusLabels[participant.status]}
                     </td>
                     <td className="px-3 py-3">
-                      {formatDate(participant.joinedAt)}
+                      {participant.userId
+                        ? t('PARTICIPANTS.LINKED')
+                        : t('PARTICIPANTS.UNLINKED')}
+                    </td>
+                    <td className="px-3 py-3">
+                      {formatGroupDate(participant.joinedAt, locale, {
+                        dateStyle: 'medium',
+                      })}
                     </td>
                     {canAddParticipants ? (
                       <td className="px-3 py-3 text-right">
@@ -239,7 +258,7 @@ export default function GroupParticipantsModal({
                                 }
                                 className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
                               >
-                                Cancel
+                                {t('PARTICIPANTS.CANCEL')}
                               </button>
                               <button
                                 type="button"
@@ -250,8 +269,8 @@ export default function GroupParticipantsModal({
                                 className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {isRemovingParticipant
-                                  ? 'Removing...'
-                                  : 'Confirm remove'}
+                                  ? t('PARTICIPANTS.REMOVING')
+                                  : t('PARTICIPANTS.CONFIRM_REMOVE')}
                               </button>
                             </div>
                           ) : (
@@ -262,7 +281,7 @@ export default function GroupParticipantsModal({
                               }
                               className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-100"
                             >
-                              Remove
+                              {t('PARTICIPANTS.REMOVE')}
                             </button>
                           )
                         ) : (
@@ -287,14 +306,14 @@ export default function GroupParticipantsModal({
             className="text-sm my-4"
           >
             {isAddParticipantOpen
-              ? 'Close add participant'
-              : 'Add new participant'}
+              ? t('PARTICIPANTS.CLOSE_ADD')
+              : t('PARTICIPANTS.ADD_NEW')}
           </Button>
         </div>
         {isAddParticipantOpen ? (
           <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-semibold text-slate-800">
-              Add participant
+              {t('PARTICIPANTS.ADD_TITLE')}
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
               <input
@@ -303,7 +322,7 @@ export default function GroupParticipantsModal({
                   setNewParticipantNameDraft(event.target.value)
                 }
                 maxLength={80}
-                placeholder="Participant name"
+                placeholder={t('PARTICIPANTS.NAME_PLACEHOLDER')}
                 disabled={!canAddParticipants || isAddingParticipant}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
               />
@@ -322,16 +341,16 @@ export default function GroupParticipantsModal({
                 disabled={!canAddParticipants || isAddingParticipant}
                 className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100"
               >
-                <option value="member">Member</option>
-                <option value="viewer">Viewer</option>
-                <option value="admin">Admin</option>
+                <option value="member">{t('PARTICIPANTS.MEMBER')}</option>
+                <option value="viewer">{t('PARTICIPANTS.VIEWER')}</option>
+                <option value="admin">{t('PARTICIPANTS.ADMIN')}</option>
               </select>
             </div>
 
             <div className="flex items-center justify-between gap-2">
               {!canAddParticipants ? (
                 <p className="text-xs text-slate-500">
-                  Only owners and admins can add participants.
+                  {t('PARTICIPANTS.PERMISSION_ADD')}
                 </p>
               ) : (
                 <div />
@@ -347,7 +366,9 @@ export default function GroupParticipantsModal({
                 disabled={!canAddParticipants || isAddingParticipant}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isAddingParticipant ? 'Adding...' : 'Add participant'}
+                {isAddingParticipant
+                  ? t('PARTICIPANTS.ADDING')
+                  : t('PARTICIPANTS.ADD')}
               </button>
             </div>
           </div>

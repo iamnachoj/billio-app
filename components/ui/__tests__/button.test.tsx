@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) =>
+    key === 'LOADING' ? 'Loading...' : key,
+}));
 
 import Button from '../Button';
 

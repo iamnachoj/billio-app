@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 
 import {
   deletePayment,
   getPayments,
   type PaymentData,
 } from '@/frontend-services/payments.service';
-import { formatMoney } from './groupTotalsUtils';
+import { useApiError } from '@/i18n/errors';
+import { formatMoney, formatGroupDate } from './groupTotalsUtils';
 
 const PAGE_SIZE = 5;
 
@@ -25,6 +27,9 @@ export default function GroupPaymentHistory({
   participantNameById,
   refreshKey,
 }: Props) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
+  const apiError = useApiError();
   const router = useRouter();
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -53,7 +58,7 @@ export default function GroupPaymentHistory({
       setLoadedKey(historyKey);
 
       if (!result.success) {
-        setError(result.error.message);
+        setError(apiError(result.error));
         return;
       }
 
@@ -65,7 +70,7 @@ export default function GroupPaymentHistory({
     return () => {
       cancelled = true;
     };
-  }, [groupId, currency, historyKey]);
+  }, [groupId, currency, historyKey, apiError]);
 
   async function loadMore() {
     if (!cursor || isLoadingMore) {
@@ -82,7 +87,7 @@ export default function GroupPaymentHistory({
     setIsLoadingMore(false);
 
     if (!result.success) {
-      setError(result.error.message);
+      setError(apiError(result.error));
       return;
     }
 
@@ -97,7 +102,7 @@ export default function GroupPaymentHistory({
     setUndoingPaymentId(null);
 
     if (!result.success) {
-      setError(result.error.message);
+      setError(apiError(result.error));
       return;
     }
 
@@ -107,22 +112,24 @@ export default function GroupPaymentHistory({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-900">Payment history</h3>
+      <h3 className="text-sm font-semibold text-slate-900">
+        {t('PAYMENTS.HISTORY')}
+      </h3>
       {error ? <p className="text-sm text-rose-700">{error}</p> : null}
       {isLoading ? (
-        <p className="text-sm text-slate-600">Loading payments…</p>
+        <p className="text-sm text-slate-600">{t('PAYMENTS.LOADING')}</p>
       ) : payments.length === 0 ? (
-        <p className="text-sm text-slate-600">No payments recorded yet.</p>
+        <p className="text-sm text-slate-600">{t('PAYMENTS.EMPTY')}</p>
       ) : (
         <>
           <ul className="space-y-2">
             {payments.map((payment) => {
               const fromName =
                 participantNameById.get(payment.fromParticipantId) ??
-                'Unknown participant';
+                t('PAYMENTS.UNKNOWN_PARTICIPANT');
               const toName =
                 participantNameById.get(payment.toParticipantId) ??
-                'Unknown participant';
+                t('PAYMENTS.UNKNOWN_PARTICIPANT');
 
               return (
                 <li
@@ -130,15 +137,19 @@ export default function GroupPaymentHistory({
                   className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800"
                 >
                   <p>
-                    <span className="font-medium">{fromName}</span> paid{' '}
-                    <span className="font-medium">{toName}</span>{' '}
-                    <span className="font-semibold">
-                      {formatMoney(payment.amount, payment.currency)}
-                    </span>
+                    {t('PAYMENTS.PAID', {
+                      fromName,
+                      toName,
+                      amount: formatMoney(
+                        payment.amount,
+                        payment.currency,
+                        locale
+                      ),
+                    })}
                     <span className="ml-2 text-xs text-slate-400">
-                      {new Intl.DateTimeFormat('en-GB', {
+                      {formatGroupDate(payment.createdAt, locale, {
                         dateStyle: 'medium',
-                      }).format(new Date(payment.createdAt))}
+                      })}
                     </span>
                   </p>
                   <button
@@ -147,7 +158,9 @@ export default function GroupPaymentHistory({
                     disabled={undoingPaymentId === payment.id}
                     className="shrink-0 text-xs text-slate-400 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {undoingPaymentId === payment.id ? 'Undoing…' : 'Undo'}
+                    {undoingPaymentId === payment.id
+                      ? t('PAYMENTS.UNDOING')
+                      : t('PAYMENTS.UNDO')}
                   </button>
                 </li>
               );
@@ -161,7 +174,9 @@ export default function GroupPaymentHistory({
               disabled={isLoadingMore}
               className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoadingMore ? 'Loading…' : 'View more'}
+              {isLoadingMore
+                ? t('PAYMENTS.LOADING_MORE')
+                : t('PAYMENTS.VIEW_MORE')}
             </button>
           ) : null}
         </>

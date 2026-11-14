@@ -32,7 +32,7 @@ describe('emailService', () => {
       '[password-reset] RESEND_API_KEY is not configured; skipping email send.'
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[password-reset] reset link for user@example.com: http://localhost:3000/reset-password?token=token-123'
+      '[password-reset] reset link for user@example.com: http://localhost:3000/en/reset-password?token=token-123'
     );
   });
 
@@ -51,7 +51,7 @@ describe('emailService', () => {
       to: 'user@example.com',
       subject: 'Reset your password',
       html: expect.stringContaining(
-        'https://billio.app/reset-password?token=token-123'
+        'https://billio.app/en/reset-password?token=token-123'
       ),
     });
     expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -60,6 +60,18 @@ describe('emailService', () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(
       '[password-reset] email sent successfully',
       { id: 'email-1' }
+    );
+  });
+
+  it('sends a localized Spanish reset email and URL', async () => {
+    process.env.RESEND_API_KEY = 'test-key';
+    sendMock.mockResolvedValue({ id: 'email-1' });
+    await sendPasswordResetEmail('user@example.com', 'token-123', 'es');
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Restablece tu contraseña',
+        html: expect.stringContaining('/es/reset-password?token=token-123'),
+      })
     );
   });
 });

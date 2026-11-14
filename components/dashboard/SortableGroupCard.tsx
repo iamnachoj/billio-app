@@ -4,6 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import GroupCard from './GroupCard';
+import { useTranslations } from 'next-intl';
 
 type Props = {
   group: {
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function SortableGroupCard({ group }: Props) {
+  const t = useTranslations('DASHBOARD');
   const {
     attributes,
     listeners,
@@ -40,7 +42,7 @@ export default function SortableGroupCard({ group }: Props) {
         {...attributes}
         {...listeners}
         onClick={(e) => e.stopPropagation()}
-        aria-label={`Reorder ${group.name}`}
+        aria-label={t('GROUPS.REORDER', { groupName: group.name })}
         className="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded-md bg-white/90 p-1 text-gray-500 backdrop-blur-sm hover:border-gray-300 hover:text-gray-800 active:cursor-grabbing"
       >
         <svg

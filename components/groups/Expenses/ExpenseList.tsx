@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import Button from '@/components/ui/Button';
 import { Expense } from '@/lib/models/expense';
@@ -39,6 +40,7 @@ export default function ExpenseList({
   loadError,
   onLoadMore,
 }: ExpenseListProps) {
+  const t = useTranslations('GROUPS');
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
   return (
@@ -46,14 +48,16 @@ export default function ExpenseList({
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-slate-900">
-            Expenses
+            {t('EXPENSES.TITLE')}
           </h2>
           <button
             type="button"
             onClick={() => setIsFilterPanelOpen((open) => !open)}
             className="cursor-pointer text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
           >
-            {isFilterPanelOpen ? '🔎 Close filters' : '🔎 Search & filter'}
+            {isFilterPanelOpen
+              ? t('EXPENSES.CLOSE_FILTERS')
+              : t('EXPENSES.SEARCH_FILTER')}
           </button>
         </div>
 
@@ -62,7 +66,7 @@ export default function ExpenseList({
             onClick={onOpenAddExpenseModal}
             className="px-4 py-2 text-sm shadow-sm"
           >
-            Add expense
+            {t('EXPENSES.ADD')}
           </Button>
         ) : null}
       </div>
@@ -79,11 +83,11 @@ export default function ExpenseList({
 
       {isLoadingInitial ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500 animate-pulse">
-          Loading expenses…
+          {t('EXPENSES.LOADING')}
         </div>
       ) : expenses.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-          No expenses match your filters.
+          {t('EXPENSES.EMPTY')}
         </div>
       ) : (
         <>
@@ -91,7 +95,7 @@ export default function ExpenseList({
             {expenses.map((expense) => {
               const payerName =
                 participantNameById.get(expense.paidByParticipantId) ??
-                'Unknown participant';
+                t('EXPENSES.UNKNOWN_PARTICIPANT');
 
               return (
                 <ExpenseCard

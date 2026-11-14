@@ -1,10 +1,13 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
+
+import { Expense, getExpenseCategoryEmoji } from '@/lib/models/expense';
 import {
-  Expense,
-  getExpenseCategoryEmoji,
-  getExpenseCategoryLabel,
-} from '@/lib/models/expense';
+  formatGroupDate,
+  formatMoney,
+  getGroupCategoryLabel,
+} from '@/components/groups/groupTotalsUtils';
 
 type ExpenseCardProps = {
   expense: Expense;
@@ -12,27 +15,14 @@ type ExpenseCardProps = {
   onOpenDetails: () => void;
 };
 
-function formatMoney(amountCents: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amountCents / 100);
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat('en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(date));
-}
-
 export default function ExpenseCard({
   expense,
   payerName,
   onOpenDetails,
 }: ExpenseCardProps) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
+
   return (
     <li>
       <button
@@ -48,12 +38,18 @@ export default function ExpenseCard({
               </h3>
               <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
                 {getExpenseCategoryEmoji(expense.category)}{' '}
-                {getExpenseCategoryLabel(expense.category)}
+                {getGroupCategoryLabel(
+                  expense.category,
+                  t as (key: string) => string
+                )}
               </span>
             </div>
 
             <p className="text-xs text-slate-500">
-              Paid by {payerName} | {formatDate(expense.createdAt)}
+              {t('EXPENSES.PAID_BY', {
+                name: payerName,
+                date: formatGroupDate(expense.createdAt, locale),
+              })}
             </p>
 
             {expense.description ? (
@@ -65,11 +61,13 @@ export default function ExpenseCard({
 
           <div className="text-left md:text-right">
             <p className="text-xl font-semibold tracking-tight text-slate-900">
-              {formatMoney(expense.amount, expense.currency)}
+              {formatMoney(expense.amount, expense.currency, locale)}
             </p>
             {expense.lastEditedAt ? (
               <p className="mt-1 text-xs text-slate-500">
-                Edited {formatDate(expense.lastEditedAt)}
+                {t('EXPENSES.EDITED', {
+                  date: formatGroupDate(expense.lastEditedAt, locale),
+                })}
               </p>
             ) : null}
           </div>

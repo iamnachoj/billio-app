@@ -1,0 +1,13 @@
+{
+  "WELCOME": "Welcome to",
+  "NAVIGATION": "Main navigation",
+  "SETTINGS": "Settings",
+  "LOG_OUT": "Log out",
+  "LANGUAGE_SWITCHER": {
+    "LABEL": "Language",
+    "ENGLISH": "English",
+    "SPANISH": "Spanish",
+    "CHANGE_TO": "Switch language to {language}",
+    "SAVE_ERROR": "Could not save your language preference. Please try again."
+  }
+}

@@ -17,6 +17,7 @@ export type MeUser = {
   id: string;
   name: string;
   email: string;
+  locale: 'en' | 'es';
   createdAt?: string;
   updatedAt?: string;
   isActive?: boolean;
@@ -26,7 +27,8 @@ export type MeUser = {
 type UpdateMeInput = {
   name?: string;
   email?: string;
-  password: string;
+  password?: string;
+  locale?: 'en' | 'es';
 };
 
 async function parseApiResponse<T>(

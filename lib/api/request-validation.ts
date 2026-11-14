@@ -50,7 +50,9 @@ export function readSearchParams<T>(
   request: Request,
   schema: ZodType<T>
 ): RequestValidation<T> {
-  const params = Object.fromEntries(new URL(request.url).searchParams.entries());
+  const params = Object.fromEntries(
+    new URL(request.url).searchParams.entries()
+  );
   return validate(params, schema);
 }
 
@@ -62,6 +64,7 @@ const optionalQueryString = z.preprocess(
   optionalString
 );
 const password = nonEmptyString;
+const locale = z.enum(['en', 'es']).optional();
 
 const splitSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('equal') }),
@@ -84,11 +87,13 @@ export const registerBodySchema = z.object({
   name: nonEmptyString,
   email: z.string().email(),
   password,
+  locale,
 });
 
 export const loginBodySchema = z.object({
   email: z.string().email(),
   password,
+  locale,
 });
 
 export const forgotPasswordBodySchema = z.object({
@@ -104,6 +109,7 @@ export const updateUserBodySchema = z.object({
   email: z.string().email().optional(),
   name: optionalNonEmptyString,
   password: optionalString,
+  locale,
 });
 
 export const createGroupBodySchema = z.object({
@@ -157,8 +163,12 @@ function optionalQueryInteger(minimum: number, maximum?: number) {
   const numberSchema = z.number().finite().int().min(minimum);
 
   return z.preprocess(
-    (value) => (value === '' || value === undefined ? undefined : Number(value)),
-    (maximum === undefined ? numberSchema : numberSchema.max(maximum)).optional()
+    (value) =>
+      value === '' || value === undefined ? undefined : Number(value),
+    (maximum === undefined
+      ? numberSchema
+      : numberSchema.max(maximum)
+    ).optional()
   );
 }
 

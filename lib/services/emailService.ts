@@ -1,7 +1,29 @@
 import { Resend } from 'resend';
+import { resolveLocale, type AppLocale } from '@/lib/locale';
 
-export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+  requestedLocale?: AppLocale
+) {
+  const locale = resolveLocale(requestedLocale);
+  const resetLink = `${(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}/${locale}/reset-password?token=${encodeURIComponent(token)}`;
+  const text =
+    locale === 'es'
+      ? {
+          subject: 'Restablece tu contraseña',
+          greeting: 'Hola,',
+          instructions:
+            'Has solicitado restablecer tu contraseña. Haz clic en el enlace para crear una nueva:',
+          ignore: 'Si no lo has solicitado, puedes ignorar este correo.',
+        }
+      : {
+          subject: 'Reset your password',
+          greeting: 'Hello,',
+          instructions:
+            'You requested a password reset. Click the link below to set a new password:',
+          ignore: 'If you did not request this, you can ignore this email.',
+        };
   const resendApiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
@@ -21,12 +43,12 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     const response = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: 'Reset your password',
+      subject: text.subject,
       html: `
-        <p>Hello,</p>
-        <p>You requested a password reset. Click the link below to set a new password:</p>
+        <p>${text.greeting}</p>
+        <p>${text.instructions}</p>
         <p><a href="${resetLink}">${resetLink}</a></p>
-        <p>If you did not request this, you can ignore this email.</p>
+        <p>${text.ignore}</p>
       `,
     });
 

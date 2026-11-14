@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { getMonthPeriod } from '../groupTotalsUtils';
+import {
+  formatGroupDate,
+  formatGroupNumber,
+  formatMoney,
+  getGroupCategoryLabel,
+  getMonthPeriod,
+} from '../groupTotalsUtils';
 
 describe('getMonthPeriod', () => {
   it('uses the local start of the current month through the current instant', () => {
@@ -21,6 +27,46 @@ describe('getMonthPeriod', () => {
       dateFrom: new Date(2025, 11, 1).toISOString(),
       dateTo: new Date(new Date(2026, 0, 1).getTime() - 1).toISOString(),
       label: 'December 2025',
+    });
+  });
+
+  describe('group locale formatters', () => {
+    it('formats the current month label and date in the active locale', () => {
+      const now = new Date(2026, 10, 14, 11, 44);
+      const currentPeriod = getMonthPeriod(now, 0, 'es', 'Este mes');
+      const previousPeriod = getMonthPeriod(now, -1, 'es', 'Este mes');
+
+      expect(currentPeriod.label).toBe('Este mes');
+      expect(previousPeriod.label).toBe('octubre de 2026');
+      expect(formatGroupDate(now, 'es', { dateStyle: 'medium' })).toContain(
+        'nov'
+      );
+    });
+
+    it('formats currency using the selected locale', () => {
+      expect(formatMoney(123456, 'EUR', 'es')).toBe(
+        new Intl.NumberFormat('es', {
+          style: 'currency',
+          currency: 'EUR',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(1234.56)
+      );
+    });
+
+    it('formats decimal values using the selected locale', () => {
+      expect(formatGroupNumber(12.34, 'es')).toBe('12,34');
+    });
+
+    it('translates known expense categories and keeps legacy labels readable', () => {
+      const translate = (key: string) => `translated:${key}`;
+
+      expect(getGroupCategoryLabel('eating_out', translate)).toBe(
+        'translated:CATEGORIES.EATING_OUT'
+      );
+      expect(getGroupCategoryLabel('legacy_category', translate)).toBe(
+        'Legacy Category'
+      );
     });
   });
 

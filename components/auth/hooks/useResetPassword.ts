@@ -1,9 +1,11 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 import { resetPassword } from '@/frontend-services/auth.service';
+import { useApiError } from '@/i18n/errors';
+import { useRouter } from '@/i18n/navigation';
 
 type AlertState = {
   variant: 'success' | 'error';
@@ -13,6 +15,8 @@ type AlertState = {
 
 export function useResetPassword(token: string | null) {
   const router = useRouter();
+  const t = useTranslations('AUTH');
+  const apiError = useApiError();
 
   const [password, setPassword] = useState('');
 
@@ -30,24 +34,24 @@ export function useResetPassword(token: string | null) {
     if (!token) {
       return setAlert({
         variant: 'error',
-        title: 'Invalid link',
-        message: 'The password reset link is invalid or missing.',
+        title: t('RESET.INVALID_LINK_TITLE'),
+        message: t('RESET.INVALID_LINK_MESSAGE'),
       });
     }
 
     if (password.length < 6) {
       return setAlert({
         variant: 'error',
-        title: 'Weak password',
-        message: 'Password must contain at least 6 characters.',
+        title: t('RESET.WEAK_PASSWORD_TITLE'),
+        message: t('RESET.WEAK_PASSWORD_MESSAGE'),
       });
     }
 
     if (password !== confirmPassword) {
       return setAlert({
         variant: 'error',
-        title: 'Passwords do not match',
-        message: 'Please make sure both passwords are identical.',
+        title: t('RESET.MISMATCH_TITLE'),
+        message: t('RESET.MISMATCH_MESSAGE'),
       });
     }
 
@@ -62,16 +66,15 @@ export function useResetPassword(token: string | null) {
       if (!response.success) {
         return setAlert({
           variant: 'error',
-          title: 'Unable to reset password',
-          message: response.error.message,
+          title: t('RESET.FAILURE_TITLE'),
+          message: apiError(response.error),
         });
       }
 
       setAlert({
         variant: 'success',
-        title: 'Password updated',
-        message:
-          'Your password has been updated successfully. Redirecting to login...',
+        title: t('RESET.SUCCESS_TITLE'),
+        message: t('RESET.SUCCESS_MESSAGE'),
       });
 
       setTimeout(() => {
@@ -80,8 +83,8 @@ export function useResetPassword(token: string | null) {
     } catch {
       setAlert({
         variant: 'error',
-        title: 'Unexpected error',
-        message: 'Something went wrong. Please try again.',
+        title: t('ERRORS.UNEXPECTED_TITLE'),
+        message: t('ERRORS.UNEXPECTED_MESSAGE'),
       });
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
+import { useTranslations } from 'next-intl';
 
 import ExpenseDetailsView from './ExpenseDetailsView';
 import ExpenseEditForm from './ExpenseEditForm';
@@ -25,18 +26,19 @@ type ExpenseDetailsModalProps = {
 };
 
 export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
+  const t = useTranslations('GROUPS');
   const model = useExpenseDetailsModal(props);
 
   return (
     <Modal
       open={props.open}
       onClose={model.closeModal}
-      title="Expense details"
+      title={t('EXPENSE_DETAILS.TITLE')}
       size="lg"
     >
       {model.isFetching ? (
         <div className="py-8 text-center text-sm text-slate-500 animate-pulse">
-          Loading expense...
+          {t('EXPENSE_DETAILS.LOADING')}
         </div>
       ) : null}
 
@@ -52,11 +54,10 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
               {model.isDeleteConfirmOpen ? (
                 <div className="space-y-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
                   <p className="text-sm font-semibold text-rose-900">
-                    Delete this expense?
+                    {t('EXPENSE_DETAILS.DELETE_CONFIRM_TITLE')}
                   </p>
                   <p className="text-sm text-rose-700">
-                    This permanently removes the expense and its splits. It will
-                    disappear from history and stop counting in balances.
+                    {t('EXPENSE_DETAILS.DELETE_CONFIRM_DESCRIPTION')}
                   </p>
                   <div className="flex justify-end gap-2">
                     <Button
@@ -65,7 +66,7 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
                       onClick={model.cancelDeleteConfirm}
                       disabled={model.isDeleting}
                     >
-                      Cancel
+                      {t('EXPENSE_DETAILS.CANCEL')}
                     </Button>
                     <Button
                       type="button"
@@ -73,7 +74,7 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
                       onClick={model.confirmDeleteExpense}
                       loading={model.isDeleting}
                     >
-                      Delete expense
+                      {t('EXPENSE_DETAILS.DELETE')}
                     </Button>
                   </div>
                 </div>
@@ -88,13 +89,13 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
                           onClick={model.openDeleteConfirm}
                           className="cursor-pointer rounded-xl border border-rose-200 bg-transparent px-4 py-3 font-semibold text-rose-700 transition-colors duration-200 hover:bg-rose-50"
                         >
-                          Delete expense
+                          {t('EXPENSE_DETAILS.DELETE')}
                         </button>
                       </div>
                     ) : null}
                     <div className="flex justify-end">
                       <Button type="button" onClick={model.startEditing}>
-                        Edit expense
+                        {t('EXPENSE_DETAILS.EDIT')}
                       </Button>
                     </div>
                   </>
@@ -106,7 +107,7 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
                     variant="secondary"
                     onClick={model.closeModal}
                   >
-                    Close
+                    {t('EXPENSE_DETAILS.CLOSE')}
                   </Button>
                 </div>
               </div>
@@ -151,7 +152,7 @@ export default function ExpenseDetailsModal(props: ExpenseDetailsModalProps) {
               variant="secondary"
               onClick={model.closeModal}
             >
-              Close
+              {t('EXPENSE_DETAILS.CLOSE')}
             </Button>
           </div>
         </div>

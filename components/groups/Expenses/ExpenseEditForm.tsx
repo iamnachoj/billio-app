@@ -1,12 +1,15 @@
+'use client';
+
 import { FormEvent, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import Button from '@/components/ui/Button';
 import {
   ExpenseCategories,
   getExpenseCategoryEmoji,
-  getExpenseCategoryLabel,
 } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
+import { getGroupCategoryLabel } from '@/components/groups/groupTotalsUtils';
 
 type SplitMode = 'equal' | 'selected' | 'percentage';
 
@@ -63,6 +66,7 @@ export default function ExpenseEditForm({
   toggleSelectedParticipant,
   updatePercentage,
 }: ExpenseEditFormProps) {
+  const t = useTranslations('GROUPS');
   const [isSplitOptionsOpen, setIsSplitOptionsOpen] = useState(false);
 
   return (
@@ -73,7 +77,7 @@ export default function ExpenseEditForm({
       <div className="grid grid-cols-1 gap-3">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Title
+            {t('EXPENSE_EDIT.TITLE')}
           </label>
           <input
             value={title}
@@ -85,14 +89,14 @@ export default function ExpenseEditForm({
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Description
+            {t('EXPENSE_EDIT.DESCRIPTION')}
           </label>
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={300}
             rows={3}
-            placeholder="Optional details"
+            placeholder={t('EXPENSE_EDIT.DESCRIPTION_PLACEHOLDER')}
             className="h-22 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           />
         </div>
@@ -100,7 +104,7 @@ export default function ExpenseEditForm({
         <div className="grid grid-cols-12 gap-1 space-y-2">
           <div className="col-span-8">
             <label className="block text-sm font-medium text-slate-700">
-              Amount
+              {t('EXPENSE_EDIT.AMOUNT')}
             </label>
             <input
               type="number"
@@ -113,7 +117,7 @@ export default function ExpenseEditForm({
           </div>
           <div className="col-span-4">
             <label className="block text-sm font-medium text-slate-700">
-              Currency
+              {t('EXPENSE_EDIT.CURRENCY')}
             </label>
             <select
               value={currency}
@@ -131,7 +135,7 @@ export default function ExpenseEditForm({
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Category
+            {t('EXPENSE_EDIT.CATEGORY')}
           </label>
           <select
             value={category}
@@ -141,7 +145,10 @@ export default function ExpenseEditForm({
             {ExpenseCategories.map((expenseCategory) => (
               <option key={expenseCategory} value={expenseCategory}>
                 {getExpenseCategoryEmoji(expenseCategory)}{' '}
-                {getExpenseCategoryLabel(expenseCategory)}
+                {getGroupCategoryLabel(
+                  expenseCategory,
+                  t as (key: string) => string
+                )}
               </option>
             ))}
           </select>
@@ -149,7 +156,7 @@ export default function ExpenseEditForm({
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Paid by
+            {t('EXPENSE_EDIT.PAID_BY')}
           </label>
           <select
             value={paidByParticipantId}
@@ -168,26 +175,28 @@ export default function ExpenseEditForm({
       <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
         <div className="flex items-center justify-between gap-3">
           <span className="block text-sm font-medium text-slate-700">
-            Split
+            {t('EXPENSE_EDIT.SPLIT')}
           </span>
           <button
             type="button"
             onClick={() => setIsSplitOptionsOpen((open) => !open)}
             className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
           >
-            {isSplitOptionsOpen ? 'Hide split options' : 'Split options'}
+            {isSplitOptionsOpen
+              ? t('EXPENSE_EDIT.HIDE_SPLIT_OPTIONS')
+              : t('EXPENSE_EDIT.SPLIT_OPTIONS')}
           </button>
         </div>
 
         {!isSplitOptionsOpen ? (
           <p className="text-xs text-slate-600">
-            The amount will be split equally across all participants.
+            {t('EXPENSE_EDIT.EQUAL_DESCRIPTION')}
           </p>
         ) : (
           <>
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">
-                Split mode
+                {t('EXPENSE_EDIT.SPLIT_MODE')}
               </label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <button
@@ -199,7 +208,7 @@ export default function ExpenseEditForm({
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Equal
+                  {t('EXPENSE_EDIT.EQUAL')}
                 </button>
                 <button
                   type="button"
@@ -210,7 +219,7 @@ export default function ExpenseEditForm({
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Selected people
+                  {t('EXPENSE_EDIT.SELECTED')}
                 </button>
                 <button
                   type="button"
@@ -221,21 +230,21 @@ export default function ExpenseEditForm({
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Percentage
+                  {t('EXPENSE_EDIT.PERCENTAGE')}
                 </button>
               </div>
             </div>
 
             {splitMode === 'equal' ? (
               <p className="text-xs text-slate-600">
-                The amount will be split equally across all participants.
+                {t('EXPENSE_EDIT.EQUAL_DESCRIPTION')}
               </p>
             ) : null}
 
             {splitMode === 'selected' ? (
               <div className="space-y-1">
                 <p className="text-xs text-slate-600">
-                  Choose who shares this expense.
+                  {t('EXPENSE_EDIT.SELECTED_DESCRIPTION')}
                 </p>
                 <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                   {participants.map((participant) => {
@@ -266,8 +275,7 @@ export default function ExpenseEditForm({
             {splitMode === 'percentage' ? (
               <div className="space-y-1">
                 <p className="text-xs text-slate-600">
-                  Set the percentage for each participant. Total must be exactly
-                  100.
+                  {t('EXPENSE_EDIT.PERCENTAGE_DESCRIPTION')}
                 </p>
                 <div className="space-y-1">
                   {participants.map((participant) => (
@@ -308,10 +316,10 @@ export default function ExpenseEditForm({
           onClick={onCancel}
           disabled={isSaving}
         >
-          Cancel edit
+          {t('EXPENSE_EDIT.CANCEL')}
         </Button>
         <Button type="submit" loading={isSaving}>
-          Save changes
+          {t('EXPENSE_EDIT.SAVE')}
         </Button>
       </div>
     </form>

@@ -49,6 +49,7 @@ describe('authService', () => {
       id: '123-123-123-123-123',
       name: 'Ana',
       email: 'ana@example.com',
+      locale: 'en',
     });
 
     const result = await registerUser({
@@ -66,11 +67,13 @@ describe('authService', () => {
       id: '123-123-123-123-123',
       name: 'Ana',
       email: 'ana@example.com',
+      locale: 'en',
     });
     expect(userRepository.createUserByEmail).toHaveBeenCalledWith({
       name: 'Ana',
       email: 'ana@example.com',
       passwordHash: 'hashed-password',
+      locale: 'en',
     });
   });
 
@@ -79,6 +82,7 @@ describe('authService', () => {
       id: 'user-1',
       name: 'Ana',
       email: 'ana@example.com',
+      locale: 'en',
       passwordHash: 'hashed-password',
     } as never);
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
@@ -99,9 +103,27 @@ describe('authService', () => {
         id: 'user-1',
         name: 'Ana',
         email: 'ana@example.com',
+        locale: 'en',
       },
       token: 'jwt-token',
     });
+  });
+
+  it('preserves the stored locale when login omits it', async () => {
+    vi.mocked(userRepository.getUserByEmail).mockResolvedValue({
+      id: 'user-1',
+      name: 'Ana',
+      email: 'ana@example.com',
+      passwordHash: 'hash',
+      locale: 'es',
+    } as never);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    const result = await loginUser({
+      email: 'ana@example.com',
+      password: 'secret',
+    });
+    expect(result.ok && result.data.user.locale).toBe('es');
+    expect(userRepository.updateUserById).not.toHaveBeenCalled();
   });
 
   it('returns the current user from a valid token', async () => {
@@ -118,6 +140,7 @@ describe('authService', () => {
       name: 'Ana',
       email: 'ana@example.com',
       passwordHash: 'hashed-password',
+      locale: 'en',
     } as never);
 
     const result = await getCurrentUser();
@@ -126,6 +149,7 @@ describe('authService', () => {
       id: 'user-1',
       name: 'Ana',
       email: 'ana@example.com',
+      locale: 'en',
     });
   });
 
@@ -212,6 +236,7 @@ describe('authService', () => {
 
       const result = await updateUserAccount('user-1', {
         email: 'new@example.com',
+        locale: 'en',
       });
 
       expect(result.ok).toBe(false);
@@ -307,11 +332,75 @@ describe('authService', () => {
         id: 'user-1',
         name: 'Ana',
         email: 'new@example.com',
+        locale: 'en',
       });
       expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', {
         email: 'new@example.com',
-        name: 'Ana',
+        name: undefined,
+        locale: undefined,
       });
+    });
+
+    it('updates locale only after successful login', async () => {
+      vi.mocked(userRepository.getUserByEmail).mockResolvedValue({
+        id: 'user-1',
+        name: 'Ana',
+        email: 'ana@example.com',
+        passwordHash: 'hash',
+        locale: 'en',
+      } as never);
+      vi.mocked(bcrypt.compare)
+        .mockResolvedValueOnce(false as never)
+        .mockResolvedValueOnce(true as never);
+      vi.mocked(generateToken).mockReturnValue('jwt-token');
+      const input = {
+        email: 'ana@example.com',
+        password: 'secret',
+        locale: 'es' as const,
+      };
+      expect((await loginUser(input)).ok).toBe(false);
+      expect(userRepository.updateUserById).not.toHaveBeenCalled();
+      const result = await loginUser(input);
+      expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', {
+        locale: 'es',
+      });
+      expect(result.ok && result.data.user.locale).toBe('es');
+    });
+
+    it('updates locale without a password but not identity fields', async () => {
+      const user = {
+        id: 'user-1',
+        name: 'Ana',
+        email: 'ana@example.com',
+        passwordHash: 'hash',
+        locale: 'en',
+      };
+      vi.mocked(userRepository.getUserById).mockResolvedValue(user as never);
+      vi.mocked(userRepository.updateUserById).mockResolvedValue({
+        ...user,
+        locale: 'es',
+      } as never);
+      const result = await updateUserAccount('user-1', { locale: 'es' });
+      expect(result.ok && result.data.locale).toBe('es');
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', {
+        email: undefined,
+        name: undefined,
+        locale: 'es',
+      });
+    });
+
+    it('rejects unsupported locale changes', async () => {
+      vi.mocked(userRepository.getUserById).mockResolvedValue(
+        existingUser as never
+      );
+      const result = await updateUserAccount('user-1', {
+        locale: 'fr' as never,
+      });
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected failure');
+      expect(result.error.code).toBe('INVALID_INPUT');
+      expect(userRepository.updateUserById).not.toHaveBeenCalled();
     });
 
     it('successfully updates name with correct password', async () => {
@@ -337,10 +426,12 @@ describe('authService', () => {
         id: 'user-1',
         name: 'NewName',
         email: 'ana@example.com',
+        locale: 'en',
       });
       expect(userRepository.updateUserById).toHaveBeenCalledWith('user-1', {
-        email: 'ana@example.com',
+        email: undefined,
         name: 'NewName',
+        locale: undefined,
       });
     });
 

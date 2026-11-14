@@ -1,7 +1,8 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -13,11 +14,12 @@ import {
 import {
   ExpenseCategories,
   getExpenseCategoryEmoji,
-  getExpenseCategoryLabel,
 } from '@/lib/models/expense';
+import { getGroupCategoryLabel } from '@/components/groups/groupTotalsUtils';
 import { suggestExpenseCategory } from '@/lib/utils/expenseCategorySuggestion';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
 import { type GroupPageUser } from '@/components/groups/GroupPage';
+import { useApiError } from '@/i18n/errors';
 
 type AddExpenseModalProps = {
   open: boolean;
@@ -61,8 +63,15 @@ export default function AddExpenseModal({
   defaultCurrency,
   onExpenseCreated,
 }: AddExpenseModalProps) {
+  const t = useTranslations('GROUPS');
+
   return (
-    <Modal open={open} onClose={onClose} title="Add expense" size="md">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('EXPENSE_FORM.ADD_TITLE')}
+      size="md"
+    >
       {open ? (
         <AddExpenseModalForm
           user={user}
@@ -97,6 +106,8 @@ function AddExpenseModalForm({
   onExpenseCreated,
   onClose,
 }: AddExpenseModalFormProps) {
+  const t = useTranslations('GROUPS');
+  const apiError = useApiError();
   const router = useRouter();
 
   const currencyOptions = useMemo(() => {
@@ -181,7 +192,7 @@ function AddExpenseModalForm({
       if (participantIds.length === 0) {
         return {
           ok: false,
-          message: 'Select at least one participant for selected split.',
+          message: t('ERRORS.SELECT_SPLIT_PARTICIPANT'),
         };
       }
 
@@ -211,8 +222,7 @@ function AddExpenseModalForm({
     ) {
       return {
         ok: false,
-        message:
-          'All percentages must be valid numbers greater than or equal to 0.',
+        message: t('ERRORS.INVALID_PERCENTAGES'),
       };
     }
 
@@ -223,7 +233,7 @@ function AddExpenseModalForm({
     if (Math.abs(percentageSum - 100) > 0.0001) {
       return {
         ok: false,
-        message: 'Percentage split must sum exactly 100.',
+        message: t('ERRORS.PERCENTAGE_SUM'),
       };
     }
 
@@ -245,27 +255,27 @@ function AddExpenseModalForm({
     const amountCents = Math.round(amount * 100);
 
     if (!title.trim()) {
-      setError('Title is required.');
+      setError(t('ERRORS.TITLE_REQUIRED'));
       return;
     }
 
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError('Amount must be a positive number.');
+      setError(t('ERRORS.AMOUNT_POSITIVE'));
       return;
     }
 
     if (!currency) {
-      setError('Currency is required.');
+      setError(t('ERRORS.CURRENCY_REQUIRED'));
       return;
     }
 
     if (!paidByParticipantIdValue) {
-      setError('Please select who paid.');
+      setError(t('ERRORS.SELECT_PAYER'));
       return;
     }
 
     if (participants.length === 0) {
-      setError('No participants are available to split this expense.');
+      setError(t('ERRORS.NO_PARTICIPANTS'));
       return;
     }
 
@@ -289,7 +299,11 @@ function AddExpenseModalForm({
       });
 
       if (!response.success) {
-        setError(response.error?.message ?? 'Unable to create expense.');
+        setError(
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.CREATE_EXPENSE_FAILED')
+        );
         return;
       }
 
@@ -297,7 +311,7 @@ function AddExpenseModalForm({
       onClose();
       router.refresh();
     } catch {
-      setError('Something went wrong while creating the expense.');
+      setError(t('ERRORS.CREATE_EXPENSE_FAILED'));
     } finally {
       setLoading(false);
     }
@@ -307,13 +321,13 @@ function AddExpenseModalForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <label className="block text-sm font-medium text-slate-700">
-          Title
+          {t('EXPENSE_FORM.TITLE')}
         </label>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           maxLength={120}
-          placeholder="Dinner in Madrid"
+          placeholder={t('EXPENSE_FORM.TITLE_PLACEHOLDER')}
           className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
         />
         {!isDescriptionOpen ? (
@@ -322,7 +336,7 @@ function AddExpenseModalForm({
             onClick={() => setIsDescriptionOpen(true)}
             className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
           >
-            + Add description
+            {t('EXPENSE_FORM.ADD_DESCRIPTION')}
           </button>
         ) : null}
       </div>
@@ -330,14 +344,14 @@ function AddExpenseModalForm({
       {isDescriptionOpen ? (
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Description
+            {t('EXPENSE_FORM.DESCRIPTION')}
           </label>
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={300}
             rows={2}
-            placeholder="Optional details"
+            placeholder={t('EXPENSE_FORM.DESCRIPTION_PLACEHOLDER')}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           />
         </div>
@@ -346,21 +360,21 @@ function AddExpenseModalForm({
       <div className="grid grid-cols-12 gap-3">
         <div className="col-span-8 space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Amount
+            {t('EXPENSE_FORM.AMOUNT')}
           </label>
           <input
             type="text"
             inputMode="decimal"
             value={amountInput}
             onChange={(event) => setAmountInput(event.target.value)}
-            placeholder="12.34"
+            placeholder={t('EXPENSE_FORM.AMOUNT_PLACEHOLDER')}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
           />
         </div>
 
         <div className="col-span-4 space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Currency
+            {t('EXPENSE_FORM.CURRENCY')}
           </label>
           <select
             value={currency}
@@ -379,7 +393,7 @@ function AddExpenseModalForm({
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Category
+            {t('EXPENSE_FORM.CATEGORY')}
           </label>
           <select
             value={category}
@@ -392,7 +406,10 @@ function AddExpenseModalForm({
             {ExpenseCategories.map((expenseCategory) => (
               <option key={expenseCategory} value={expenseCategory}>
                 {getExpenseCategoryEmoji(expenseCategory)}{' '}
-                {getExpenseCategoryLabel(expenseCategory)}
+                {getGroupCategoryLabel(
+                  expenseCategory,
+                  t as (key: string) => string
+                )}
               </option>
             ))}
           </select>
@@ -400,7 +417,7 @@ function AddExpenseModalForm({
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Paid by
+            {t('EXPENSE_FORM.PAID_BY')}
           </label>
           <select
             value={paidByParticipantIdValue}
@@ -419,26 +436,28 @@ function AddExpenseModalForm({
       <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
         <div className="flex items-center justify-between gap-3">
           <span className="block text-sm font-medium text-slate-700">
-            Split
+            {t('EXPENSE_FORM.SPLIT')}
           </span>
           <button
             type="button"
             onClick={() => setIsSplitOptionsOpen((open) => !open)}
             className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
           >
-            {isSplitOptionsOpen ? 'Hide split options' : 'Split options'}
+            {isSplitOptionsOpen
+              ? t('EXPENSE_FORM.HIDE_SPLIT_OPTIONS')
+              : t('EXPENSE_FORM.SPLIT_OPTIONS')}
           </button>
         </div>
 
         {!isSplitOptionsOpen ? (
           <p className="text-xs text-slate-600">
-            The amount will be split equally across all participants.
+            {t('EXPENSE_FORM.EQUAL_DESCRIPTION')}
           </p>
         ) : (
           <>
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">
-                Split mode
+                {t('EXPENSE_FORM.SPLIT_MODE')}
               </label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <button
@@ -450,7 +469,7 @@ function AddExpenseModalForm({
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Equal
+                  {t('EXPENSE_FORM.EQUAL')}
                 </button>
                 <button
                   type="button"
@@ -461,7 +480,7 @@ function AddExpenseModalForm({
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Selected people
+                  {t('EXPENSE_FORM.SELECTED')}
                 </button>
                 <button
                   type="button"
@@ -472,21 +491,21 @@ function AddExpenseModalForm({
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  Percentage
+                  {t('EXPENSE_FORM.PERCENTAGE')}
                 </button>
               </div>
             </div>
 
             {splitMode === 'equal' ? (
               <p className="text-xs text-slate-600">
-                The amount will be split equally across all participants.
+                {t('EXPENSE_FORM.EQUAL_DESCRIPTION')}
               </p>
             ) : null}
 
             {splitMode === 'selected' ? (
               <div className="space-y-1">
                 <p className="text-xs text-slate-600">
-                  Choose who shares this expense.
+                  {t('EXPENSE_FORM.SELECTED_DESCRIPTION')}
                 </p>
                 <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                   {participants.map((participant) => {
@@ -517,8 +536,7 @@ function AddExpenseModalForm({
             {splitMode === 'percentage' ? (
               <div className="space-y-1">
                 <p className="text-xs text-slate-600">
-                  Set the percentage for each participant. Total must be exactly
-                  100.
+                  {t('EXPENSE_FORM.PERCENTAGE_DESCRIPTION')}
                 </p>
                 <div className="space-y-1">
                   {participants.map((participant) => (
@@ -557,10 +575,10 @@ function AddExpenseModalForm({
           onClick={onClose}
           disabled={loading}
         >
-          Cancel
+          {t('EXPENSE_FORM.CANCEL')}
         </Button>
         <Button type="submit" loading={loading}>
-          Add expense
+          {t('EXPENSE_FORM.ADD')}
         </Button>
       </div>
     </form>

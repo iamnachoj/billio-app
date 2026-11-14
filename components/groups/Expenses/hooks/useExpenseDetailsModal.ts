@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 
 import {
   deleteExpense,
@@ -10,6 +11,7 @@ import {
 } from '@/frontend-services/expenses.service';
 import { ExpenseCategories } from '@/lib/models/expense';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
+import { useApiError } from '@/i18n/errors';
 
 export type SplitMode = 'equal' | 'selected' | 'percentage';
 
@@ -228,6 +230,8 @@ export function useExpenseDetailsModal({
   onExpenseUpdated,
   onExpenseDeleted,
 }: UseExpenseDetailsModalParams) {
+  const t = useTranslations('GROUPS');
+  const apiError = useApiError();
   const router = useRouter();
 
   const participantNameById = useMemo(() => {
@@ -373,12 +377,18 @@ export function useExpenseDetailsModal({
 
         if (!response.success) {
           setError(
-            response.error?.message ?? 'Unable to load expense details.'
+            response.error
+              ? apiError(response.error)
+              : t('ERRORS.LOAD_EXPENSE_FAILED')
           );
           return;
         }
 
         hydrateFormFromDetails(response.data);
+      } catch {
+        if (!cancelled) {
+          setError(t('ERRORS.LOAD_EXPENSE_FAILED'));
+        }
       } finally {
         if (!cancelled) {
           setIsFetching(false);
@@ -391,7 +401,7 @@ export function useExpenseDetailsModal({
     return () => {
       cancelled = true;
     };
-  }, [open, expenseId, groupId, hydrateFormFromDetails]);
+  }, [open, expenseId, groupId, hydrateFormFromDetails, apiError, t]);
 
   function closeModal() {
     if (isSaving || isDeleting) {
@@ -468,7 +478,7 @@ export function useExpenseDetailsModal({
       if (participantIds.length === 0) {
         return {
           ok: false,
-          message: 'Select at least one participant for selected split.',
+          message: t('ERRORS.SELECT_SPLIT_PARTICIPANT'),
         };
       }
 
@@ -498,8 +508,7 @@ export function useExpenseDetailsModal({
     ) {
       return {
         ok: false,
-        message:
-          'All percentages must be valid numbers greater than or equal to 0.',
+        message: t('ERRORS.INVALID_PERCENTAGES'),
       };
     }
 
@@ -511,7 +520,7 @@ export function useExpenseDetailsModal({
     if (Math.abs(percentageSum - 100) > 0.0001) {
       return {
         ok: false,
-        message: 'Percentage split must sum exactly 100.',
+        message: t('ERRORS.PERCENTAGE_SUM'),
       };
     }
 
@@ -539,27 +548,27 @@ export function useExpenseDetailsModal({
     const amountCents = Math.round(amount * 100);
 
     if (!title.trim()) {
-      setError('Title is required.');
+      setError(t('ERRORS.TITLE_REQUIRED'));
       return;
     }
 
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError('Amount must be a positive number.');
+      setError(t('ERRORS.AMOUNT_POSITIVE'));
       return;
     }
 
     if (!currency) {
-      setError('Currency is required.');
+      setError(t('ERRORS.CURRENCY_REQUIRED'));
       return;
     }
 
     if (!paidByParticipantId) {
-      setError('Please select who paid.');
+      setError(t('ERRORS.SELECT_PAYER'));
       return;
     }
 
     if (participants.length === 0) {
-      setError('No participants are available to split this expense.');
+      setError(t('ERRORS.NO_PARTICIPANTS'));
       return;
     }
 
@@ -628,7 +637,7 @@ export function useExpenseDetailsModal({
     }
 
     if (Object.keys(body).length === 0) {
-      setError('No changes to save.');
+      setError(t('ERRORS.NO_CHANGES'));
       return;
     }
 
@@ -638,7 +647,11 @@ export function useExpenseDetailsModal({
       const response = await updateExpense(groupId, targetExpenseId, body);
 
       if (!response.success) {
-        setError(response.error?.message ?? 'Unable to update expense.');
+        setError(
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.UPDATE_EXPENSE_FAILED')
+        );
         return;
       }
 
@@ -663,7 +676,11 @@ export function useExpenseDetailsModal({
       const response = await deleteExpense(groupId, expenseId);
 
       if (!response.success) {
-        setError(response.error?.message ?? 'Unable to delete expense.');
+        setError(
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.DELETE_EXPENSE_FAILED')
+        );
         return;
       }
 
@@ -673,7 +690,7 @@ export function useExpenseDetailsModal({
       onClose();
       router.refresh();
     } catch {
-      setError('Something went wrong while deleting the expense.');
+      setError(t('ERRORS.DELETE_EXPENSE_UNEXPECTED'));
     } finally {
       setIsDeleting(false);
     }

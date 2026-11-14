@@ -2,6 +2,8 @@ import webpush from 'web-push';
 
 import { getGroupById } from '@/lib/repositories/groupRepository';
 import { getParticipantsByGroupId } from '@/lib/repositories/participantRepository';
+import { getUserById } from '@/lib/repositories/userRepository';
+import { resolveLocale, type AppLocale } from '@/lib/locale';
 import {
   deletePushSubscriptionByEndpoint,
   getPushSubscriptionsByUserIds,
@@ -36,9 +38,13 @@ function configureVapid() {
   return true;
 }
 
-function formatAmount(amountCents: number, currency: string) {
+function formatAmount(
+  amountCents: number,
+  currency: string,
+  locale: AppLocale
+) {
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(locale === 'es' ? 'es-ES' : 'en-US', {
       style: 'currency',
       currency,
     }).format(amountCents / 100);
@@ -86,18 +92,29 @@ export async function notifyNewExpense({
     return;
   }
 
-  const payload = JSON.stringify({
-    title: '🔔 New expense',
-    body: `${actor?.displayName ?? 'Someone'} added "${title}" (${formatAmount(
-      amountCents,
-      currency
-    )}) to "${group?.name ?? 'your group'}"`,
-    url: `/dashboard/groups/${groupId}`,
-    tag: `group-${groupId}`,
-  });
+  const recipients = await Promise.all(
+    [...new Set(subscriptions.map((subscription) => subscription.userId))].map(
+      async (userId) => [userId, await getUserById(userId)] as const
+    )
+  );
+  const locales = new Map(
+    recipients.map(([userId, user]) => [userId, resolveLocale(user?.locale)])
+  );
 
   await Promise.allSettled(
     subscriptions.map(async (subscription) => {
+      const locale = locales.get(subscription.userId) ?? 'en';
+      const amount = formatAmount(amountCents, currency, locale);
+      const body =
+        locale === 'es'
+          ? `${actor?.displayName ?? 'Alguien'} añadió "${title}" (${amount}) a "${group?.name ?? 'tu grupo'}"`
+          : `${actor?.displayName ?? 'Someone'} added "${title}" (${amount}) to "${group?.name ?? 'your group'}"`;
+      const payload = JSON.stringify({
+        title: locale === 'es' ? '🔔 Nuevo gasto' : '🔔 New expense',
+        body,
+        url: `/${locale}/dashboard/groups/${encodeURIComponent(groupId)}`,
+        tag: `group-${groupId}`,
+      });
       try {
         await webpush.sendNotification(
           {

@@ -1,0 +1,13 @@
+{
+  "WELCOME": "Te damos la bienvenida a",
+  "NAVIGATION": "Navegación principal",
+  "SETTINGS": "Ajustes",
+  "LOG_OUT": "Cerrar sesión",
+  "LANGUAGE_SWITCHER": {
+    "LABEL": "Idioma",
+    "ENGLISH": "Inglés",
+    "SPANISH": "Español",
+    "CHANGE_TO": "Cambiar idioma a {language}",
+    "SAVE_ERROR": "No se pudo guardar tu preferencia de idioma. Inténtalo de nuevo."
+  }
+}

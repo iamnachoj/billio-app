@@ -67,7 +67,7 @@ export async function requestPasswordReset(
     expiresAt,
   });
 
-  await sendPasswordResetEmail(user.email, token);
+  await sendPasswordResetEmail(user.email, token, user.locale);
 
   return {
     ok: true,

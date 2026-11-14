@@ -1,11 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 
 import { createGroup } from '@/frontend-services/groups.service';
+import { useApiError } from '@/i18n/errors';
 
 export function useCreateGroup(onSuccess?: () => void) {
+  const t = useTranslations('GROUPS');
+  const apiError = useApiError();
   const router = useRouter();
 
   const [name, setName] = useState('');
@@ -21,7 +25,7 @@ export function useCreateGroup(onSuccess?: () => void) {
     setError('');
 
     if (!name.trim()) {
-      setError('Group name is required.');
+      setError(t('ERRORS.GROUP_NAME_REQUIRED'));
       return;
     }
 
@@ -34,7 +38,7 @@ export function useCreateGroup(onSuccess?: () => void) {
       });
 
       if (!response.success) {
-        setError(response.error.message);
+        setError(apiError(response.error));
         return;
       }
 

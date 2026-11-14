@@ -1,0 +1,39 @@
+{
+  "GROUP_INVITE": "Group invite",
+  "JOIN_NAMED_GROUP": "Join {name}",
+  "DEFAULT_DESCRIPTION": "You were invited to this Billio group.",
+  "VALID_UNTIL": "Invite valid until {date}",
+  "LOCKED_TO": "This invite is locked to <strong>{email}</strong>.",
+  "REUSABLE": "This is a reusable group invite link.",
+  "SIGN_IN_DESCRIPTION": "Sign in or create an account to accept this invite without losing the flow.",
+  "SIGN_IN": "Sign in",
+  "CREATE_ACCOUNT": "Create account",
+  "ACCEPTING_AS": "Accepting as <strong>{email}</strong>",
+  "CLAIM_PARTICIPANT": "Claim existing participant",
+  "CREATE_PARTICIPANT": "Create my participant",
+  "DISPLAY_NAME": "Display name in this group",
+  "DISPLAY_NAME_PLACEHOLDER": "Your group name",
+  "JOIN_GROUP": "Join group",
+  "ROLES": {
+    "OWNER": "owner",
+    "ADMIN": "admin",
+    "MEMBER": "member",
+    "VIEWER": "viewer"
+  },
+  "STATUSES": {
+    "ACTIVE": "active",
+    "INVITED": "invited",
+    "LEFT": "left"
+  },
+  "ERRORS": {
+    "EMAIL_MISMATCH_TITLE": "Email mismatch",
+    "EMAIL_MISMATCH_MESSAGE": "This invite is tied to {email}.",
+    "CHOOSE_PARTICIPANT_TITLE": "Choose a participant",
+    "CHOOSE_PARTICIPANT_MESSAGE": "Select an existing participant to claim.",
+    "NAME_REQUIRED_TITLE": "Display name required",
+    "NAME_REQUIRED_MESSAGE": "Enter the name you want to use in this group.",
+    "JOIN_TITLE": "Unable to join group",
+    "UNEXPECTED_TITLE": "Unexpected error",
+    "UNEXPECTED_MESSAGE": "Something went wrong while accepting the invite."
+  }
+}

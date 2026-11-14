@@ -1,0 +1,70 @@
+{
+  "GREETING": "Hello {name} 👋",
+  "GROUPS": {
+    "ADD": "Add new group",
+    "CREATE_TITLE": "Create group",
+    "TITLE": "Your groups",
+    "SHOW_ARCHIVED": "Show archived",
+    "HIDE_ARCHIVED": "Hide archived",
+    "ARCHIVED_TITLE": "Archived",
+    "ARCHIVED_EMPTY": "You don't have any archived groups.",
+    "REORDER": "Reorder {groupName}"
+  },
+  "SETTINGS": {
+    "NOTIFICATIONS": {
+      "TITLE": "Notifications",
+      "DESCRIPTION": "Get notified on this device when someone adds a new expense to one of your groups.",
+      "INSTALL_TITLE": "Install Billio first",
+      "INSTALL_INSTRUCTIONS": "On iPhone and iPad, tap Share and choose “Add to Home Screen”, then open Billio from your Home Screen to enable notifications.",
+      "UNSUPPORTED_TITLE": "Not supported",
+      "UNSUPPORTED_DESCRIPTION": "This browser does not support push notifications.",
+      "ENABLE": "Enable notifications",
+      "DISABLE": "Disable notifications",
+      "PERMISSION_DENIED": "Notifications are blocked. Allow them for Billio in your device settings and try again.",
+      "ENABLE_ERROR": "Could not enable notifications. Please try again.",
+      "UPDATE_ERROR": "Could not update notifications. Please try again."
+    },
+    "ACCOUNT": {
+      "TITLE": "Account",
+      "DESCRIPTION": "Review your user details, update your profile, or delete your account.",
+      "USER_ID": "User ID",
+      "NAME": "Name",
+      "EMAIL": "Email",
+      "CURRENT_PASSWORD": "Current password",
+      "PASSWORD_PLACEHOLDER": "Required to save changes",
+      "SAVE": "Save changes",
+      "RESET": "Reset",
+      "DANGER_TITLE": "Danger zone",
+      "DELETE_DESCRIPTION": "Deleting your account permanently removes your user from Billio.",
+      "DELETE": "Delete account",
+      "TERMS": "Terms of Service",
+      "PRIVACY": "Privacy Policy",
+      "DELETE_TITLE": "Delete account",
+      "DELETE_WARNING": "This action cannot be undone. Type {confirmation} to confirm deletion.",
+      "DELETE_CONFIRMATION_LABEL": "Account deletion confirmation",
+      "DELETE_PLACEHOLDER": "Type {confirmation}",
+      "CANCEL": "Cancel",
+      "DELETE_PERMANENTLY": "Delete permanently",
+      "DELETE_CONFIRMATION_WORD": "DELETE",
+      "ALERTS": {
+        "INVALID_NAME_TITLE": "Invalid name",
+        "NAME_LENGTH": "Name must contain between {min} and {max} characters.",
+        "INVALID_EMAIL_TITLE": "Invalid email",
+        "EMAIL_REQUIRED": "Email is required.",
+        "EMAIL_INVALID": "Enter a valid email address.",
+        "NO_CHANGES_TITLE": "No changes detected",
+        "NO_CHANGES": "Update your name or email to save changes.",
+        "PASSWORD_REQUIRED_TITLE": "Password required",
+        "PASSWORD_REQUIRED": "Enter your current password to confirm account changes.",
+        "UPDATE_FAILED_TITLE": "Update failed",
+        "PROFILE_UPDATED_TITLE": "Profile updated",
+        "PROFILE_UPDATED": "Your account information was updated successfully.",
+        "UNEXPECTED_TITLE": "Unexpected error",
+        "UNEXPECTED": "Something went wrong. Please try again.",
+        "CONFIRMATION_REQUIRED_TITLE": "Confirmation required",
+        "CONFIRMATION_REQUIRED": "Type {confirmation} to confirm account deletion.",
+        "DELETE_FAILED_TITLE": "Deletion failed"
+      }
+    }
+  }
+}

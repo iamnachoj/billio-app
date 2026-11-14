@@ -1,8 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-
 import { logout } from '@/frontend-services/auth.service';
+import { useRouter } from '@/i18n/navigation';
 
 export function useLogout() {
   const router = useRouter();

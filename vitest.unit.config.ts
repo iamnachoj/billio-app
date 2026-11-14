@@ -11,6 +11,11 @@ export default defineConfig({
     },
   },
   test: {
+    server: {
+      deps: {
+        inline: ['next-intl'],
+      },
+    },
     include: ['**/*.{test,spec}.{ts,tsx}'],
     exclude: [
       '**/node_modules/**',

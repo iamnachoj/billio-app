@@ -1,0 +1,18 @@
+{
+  "CONFLICT": "This action conflicts with the current state.",
+  "EMAIL_IN_USE": "This email address is already in use.",
+  "FORBIDDEN": "You don't have permission to do this.",
+  "INTERNAL_ERROR": "Something went wrong. Please try again.",
+  "INVALID_CREDENTIALS": "Invalid email or password.",
+  "INVALID_INPUT": "Please check your information and try again.",
+  "INVALID_PASSWORD": "The password is incorrect.",
+  "INVALID_TOKEN": "This link is invalid or has expired.",
+  "NAME_IN_USE": "This name is already in use.",
+  "NOT_FOUND": "The requested item could not be found.",
+  "NO_UPDATES_PROVIDED": "No changes were provided.",
+  "RATE_LIMITED": "Too many requests. Please try again later.",
+  "UNAUTHORIZED": "Please sign in to continue.",
+  "UPDATE_FAILED": "The update failed. Please try again.",
+  "WEAK_PASSWORD": "Please choose a stronger password.",
+  "UNKNOWN": "Something went wrong. Please try again."
+}

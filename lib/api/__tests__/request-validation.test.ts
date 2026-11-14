@@ -3,11 +3,27 @@ import { describe, expect, it } from 'vitest';
 import {
   createInviteBodySchema,
   expenseListQuerySchema,
+  loginBodySchema,
   readJsonBody,
   readSearchParams,
+  registerBodySchema,
+  updateUserBodySchema,
 } from '../request-validation';
 
 describe('request validation', () => {
+  it('accepts supported optional locales and rejects unsupported locales', () => {
+    for (const [schema, body] of [
+      [
+        registerBodySchema,
+        { name: 'Ana', email: 'ana@example.com', password: 'secret' },
+      ],
+      [loginBodySchema, { email: 'ana@example.com', password: 'secret' }],
+      [updateUserBodySchema, {}],
+    ] as const) {
+      expect(schema.safeParse({ ...body, locale: 'es' }).success).toBe(true);
+      expect(schema.safeParse({ ...body, locale: 'fr' }).success).toBe(false);
+    }
+  });
   it('parses valid JSON and strips fields outside the schema', async () => {
     const request = new Request('http://localhost/api/groups', {
       method: 'POST',
@@ -75,10 +91,7 @@ describe('request validation', () => {
     const validRequest = new Request(
       'http://localhost/api/groups/group-1/expenses?limit=25&minAmountCents=0'
     );
-    const validResult = readSearchParams(
-      validRequest,
-      expenseListQuerySchema
-    );
+    const validResult = readSearchParams(validRequest, expenseListQuerySchema);
 
     expect(validResult).toEqual({
       success: true,

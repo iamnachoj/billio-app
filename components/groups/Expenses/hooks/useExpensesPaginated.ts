@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useApiError } from '@/i18n/errors';
 
 import { Expense, ExpenseCategory } from '@/lib/models/expense';
 import { getExpenses } from '@/frontend-services/expenses.service';
@@ -46,6 +47,7 @@ export function useExpensesPaginated({
   initialExpenses: Expense[];
   initialNextCursor: string | null;
 }) {
+  const apiError = useApiError();
   const [filters, setFilters] = useState<ExpenseFilters>(emptyExpenseFilters);
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [nextCursor, setNextCursor] = useState<string | null>(
@@ -92,7 +94,7 @@ export function useExpensesPaginated({
       setIsLoadingInitial(false);
 
       if (!result.success) {
-        setError(result.error.message);
+        setError(apiError(result.error));
         return;
       }
 
@@ -117,13 +119,20 @@ export function useExpensesPaginated({
     setIsLoadingMore(false);
 
     if (!result.success) {
-      setError(result.error.message);
+      setError(apiError(result.error));
       return;
     }
 
     setExpenses((current) => [...current, ...result.data.expenses]);
     setNextCursor(result.data.nextCursor);
-  }, [groupId, nextCursor, isLoadingMore, isLoadingInitial, buildParams]);
+  }, [
+    groupId,
+    nextCursor,
+    isLoadingMore,
+    isLoadingInitial,
+    buildParams,
+    apiError,
+  ]);
 
   return {
     expenses,

@@ -1,11 +1,14 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db/db';
 import { mapUser, UserRow } from '@/lib/mappers/userMapper';
+import type { AppLocale } from '@/lib/locale';
+import { ensureUserLocaleColumn } from '@/lib/db/user-locale-migration';
 
 type CreateUserInput = {
   name: string;
   email: string;
   passwordHash: string;
+  locale?: AppLocale;
 };
 
 export async function getUserByEmail(email: string) {
@@ -31,8 +34,11 @@ export async function createUserByEmail({
   name,
   email,
   passwordHash,
+  locale = 'en',
 }: CreateUserInput) {
   const id = randomUUID();
+
+  await ensureUserLocaleColumn(db);
 
   await db.execute({
     sql: `
@@ -42,17 +48,19 @@ export async function createUserByEmail({
         email,
         password_hash,
         is_active,
+        locale,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
-    args: [id, name, email, passwordHash, 1, new Date().toISOString()],
+    args: [id, name, email, passwordHash, 1, locale, new Date().toISOString()],
   });
 
   return {
     id,
     name,
     email,
+    locale,
   };
 }
 
@@ -96,7 +104,7 @@ export async function getUserByName(name: string) {
 
 export async function updateUserById(
   id: string,
-  { email, name }: { email?: string; name?: string }
+  { email, name, locale }: { email?: string; name?: string; locale?: AppLocale }
 ) {
   const updates = [];
   const args = [];
@@ -109,6 +117,12 @@ export async function updateUserById(
   if (name) {
     updates.push('name = ?');
     args.push(name);
+  }
+
+  if (locale) {
+    await ensureUserLocaleColumn(db);
+    updates.push('locale = ?');
+    args.push(locale);
   }
 
   if (updates.length === 0) {

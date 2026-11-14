@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import { formatGroupDate } from './groupTotalsUtils';
 
 type InviteLinkModalProps = {
   open: boolean;
@@ -13,7 +15,7 @@ type InviteLinkModalProps = {
   expiresAt?: string;
 };
 
-function formatExpiry(value?: string) {
+function formatExpiry(value: string | undefined, locale: string) {
   if (!value) {
     return null;
   }
@@ -23,10 +25,10 @@ function formatExpiry(value?: string) {
     return null;
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return formatGroupDate(date, locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  }).format(date);
+  });
 }
 
 export default function InviteLinkModal({
@@ -36,6 +38,8 @@ export default function InviteLinkModal({
   email,
   expiresAt,
 }: InviteLinkModalProps) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
   const [copied, setCopied] = useState(false);
 
   function handleClose() {
@@ -52,18 +56,23 @@ export default function InviteLinkModal({
     }
   }
 
-  const formattedExpiry = formatExpiry(expiresAt);
+  const formattedExpiry = formatExpiry(expiresAt, locale);
 
   return (
-    <Modal open={open} onClose={handleClose} title="Invite link" size="md">
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title={t('INVITE.TITLE')}
+      size="md"
+    >
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
-          Share this link so someone can join and link themselves to the group.
+          {t('INVITE.SHARE_DESCRIPTION')}
         </p>
 
         <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
           <label className="block text-xs font-medium uppercase tracking-[0.08em] text-slate-500">
-            Invite URL
+            {t('INVITE.URL')}
           </label>
           <input
             readOnly
@@ -74,27 +83,24 @@ export default function InviteLinkModal({
 
         {email ? (
           <p className="text-sm text-slate-600">
-            This link is locked to{' '}
-            <span className="font-medium text-slate-900">{email}</span>.
+            {t('INVITE.LOCKED_TO', { email })}
           </p>
         ) : (
-          <p className="text-sm text-slate-600">
-            This is a reusable invite link and is not locked to one email.
-          </p>
+          <p className="text-sm text-slate-600">{t('INVITE.REUSABLE')}</p>
         )}
 
         {formattedExpiry ? (
           <p className="text-xs text-slate-500">
-            Valid until {formattedExpiry}
+            {t('INVITE.VALID_UNTIL', { date: formattedExpiry })}
           </p>
         ) : null}
 
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="secondary" onClick={handleClose}>
-            Close
+            {t('INVITE.CLOSE')}
           </Button>
           <Button type="button" onClick={copyInviteLink}>
-            {copied ? 'Copied' : 'Copy link'}
+            {copied ? t('INVITE.COPIED') : t('INVITE.COPY')}
           </Button>
         </div>
       </div>

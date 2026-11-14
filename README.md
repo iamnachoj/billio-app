@@ -18,6 +18,11 @@ environment files or database files. Integration tests use a separate local
 database. See [Integration Testing](./docs/integration-testing.md) before
 running them.
 
+For existing databases, the approved `users.locale` migration is applied when
+a user is registered or a language preference is saved. The database account
+must have permission to alter the users table. You can also apply migrations
+explicitly with `npm run db:init` before deploying.
+
 ## Common commands
 
 ```bash

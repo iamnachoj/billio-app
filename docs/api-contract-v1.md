@@ -53,7 +53,8 @@ Request:
 {
   "name": "Ana",
   "email": "ana@example.com",
-  "password": "secret123"
+  "password": "secret123",
+  "locale": "es"
 }
 ```
 
@@ -65,7 +66,8 @@ Response `201`:
   "data": {
     "id": "user-id",
     "name": "Ana",
-    "email": "ana@example.com"
+    "email": "ana@example.com",
+    "locale": "es"
   }
 }
 ```
@@ -77,7 +79,8 @@ Request:
 ```json
 {
   "email": "ana@example.com",
-  "password": "secret123"
+  "password": "secret123",
+  "locale": "es"
 }
 ```
 
@@ -89,7 +92,8 @@ Response `200`:
   "data": {
     "id": "user-id",
     "name": "Ana",
-    "email": "ana@example.com"
+    "email": "ana@example.com",
+    "locale": "es"
   }
 }
 ```
@@ -101,6 +105,9 @@ Cookie side effect:
 - `path: "/"`
 - `maxAge: 7 days`
 - `secure: true` in production
+
+`locale` is optional and must be `en` or `es`. Registration defaults to `en`;
+login updates the saved locale only when supplied, otherwise preserving it.
 
 `POST /api/auth/logout`
 
@@ -174,7 +181,8 @@ Response `200`:
   "data": {
     "id": "user-id",
     "name": "Ana",
-    "email": "ana@example.com"
+    "email": "ana@example.com",
+    "locale": "es"
   }
 }
 ```
@@ -187,7 +195,8 @@ Request:
 {
   "email": "ana-new@example.com",
   "name": "Ana New",
-  "password": "currentPassword"
+  "password": "currentPassword",
+  "locale": "es"
 }
 ```
 
@@ -199,15 +208,17 @@ Response `200`:
   "data": {
     "id": "user-id",
     "name": "Ana New",
-    "email": "ana-new@example.com"
+    "email": "ana-new@example.com",
+    "locale": "es"
   }
 }
 ```
 
 Notes:
 
-- `password` is required by the current implementation to authorize profile updates
-- at least one of `email` or `name` must be provided
+- `password` is required when changing `email` or `name`.
+- At least one of `email`, `name`, or `locale` must be provided. A locale-only
+  update requires authentication but no password. `locale` must be `en` or `es`.
 
 `DELETE /api/me`
 
@@ -1291,6 +1302,13 @@ expressible in JSON Schema.
     "password": {
       "type": "string",
       "minLength": 1
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es"
+      ]
     }
   },
   "required": [
@@ -1387,6 +1405,13 @@ expressible in JSON Schema.
     "password": {
       "type": "string",
       "minLength": 1
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es"
+      ]
     }
   },
   "required": [
@@ -1613,6 +1638,13 @@ expressible in JSON Schema.
     },
     "password": {
       "type": "string"
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es"
+      ]
     }
   },
   "additionalProperties": false

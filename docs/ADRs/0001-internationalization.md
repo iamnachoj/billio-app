@@ -34,13 +34,13 @@ Use **next-intl** (new dependency, requires approval before installing) with:
 6. API errors keep stable `code` values. The frontend translates by code rather than displaying server `message` text.
 7. Persist the user's locale in the DB (`users.locale`) so emails and push notifications can be localized without a request.
 
-## Open questions (confirm before Step 1)
+## Open questions (already answered)
 
-- [ ] Approve adding `next-intl` (AGENTS.md requires asking before adding dependencies).
-- [ ] Approve the schema change `users.locale` (required by AGENTS.md; needed in Step 7).
-- [ ] Confirm always-prefixed URLs.
-- [ ] Confirm the first locales: `en`, `es`.
-- [ ] Legal pages (`privacy-policy`, `terms-and-conditions`): professional translation, or keep English only at first?
+- [x] Approve adding `next-intl` (AGENTS.md requires asking before adding dependencies).
+- [x] Approve the schema change `users.locale` (required by AGENTS.md; needed in Step 7).
+- [x] Confirm always-prefixed URLs.
+- [x] Confirm the first locales: `en`, `es`.
+- [x] Legal pages (`privacy-policy`, `terms-and-conditions`): professional translation, or keep English only at first?
 
 ## Implementation plan
 

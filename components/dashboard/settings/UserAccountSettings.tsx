@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 
 import { logout } from '@/frontend-services/auth.service';
 import { deleteMe, updateMe } from '@/frontend-services/me.service';
@@ -9,6 +9,8 @@ import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
+import { useApiError } from '@/i18n/errors';
+import { Link, useRouter } from '@/i18n/navigation';
 
 type UserAccountSettingsProps = {
   initialUser: {
@@ -27,7 +29,12 @@ type AlertState = {
 export default function UserAccountSettings({
   initialUser,
 }: UserAccountSettingsProps) {
+  const t = useTranslations('DASHBOARD.SETTINGS.ACCOUNT');
+  const apiError = useApiError();
+  const format = useFormatter();
+  const locale = useLocale() as 'en' | 'es';
   const router = useRouter();
+  const confirmationWord = t('DELETE_CONFIRMATION_WORD');
 
   const [savedProfile, setSavedProfile] = useState({
     name: initialUser.name,
@@ -65,17 +72,22 @@ export default function UserAccountSettings({
     if (!trimmedName || trimmedName.length > 30) {
       setAlert({
         variant: 'error',
-        title: 'Invalid name',
-        message: 'Name must contain between 1 and 30 characters.',
+        title: t('ALERTS.INVALID_NAME_TITLE'),
+        message: t('ALERTS.NAME_LENGTH', {
+          min: format.number(1),
+          max: format.number(30),
+        }),
       });
       return;
     }
 
-    if (!trimmedEmail) {
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       setAlert({
         variant: 'error',
-        title: 'Invalid email',
-        message: 'Email is required.',
+        title: t('ALERTS.INVALID_EMAIL_TITLE'),
+        message: trimmedEmail
+          ? t('ALERTS.EMAIL_INVALID')
+          : t('ALERTS.EMAIL_REQUIRED'),
       });
       return;
     }
@@ -83,8 +95,8 @@ export default function UserAccountSettings({
     if (!hasChanges) {
       setAlert({
         variant: 'info',
-        title: 'No changes detected',
-        message: 'Update your name or email to save changes.',
+        title: t('ALERTS.NO_CHANGES_TITLE'),
+        message: t('ALERTS.NO_CHANGES'),
       });
       return;
     }
@@ -92,8 +104,8 @@ export default function UserAccountSettings({
     if (!password) {
       setAlert({
         variant: 'error',
-        title: 'Password required',
-        message: 'Enter your current password to confirm account changes.',
+        title: t('ALERTS.PASSWORD_REQUIRED_TITLE'),
+        message: t('ALERTS.PASSWORD_REQUIRED'),
       });
       return;
     }
@@ -105,13 +117,14 @@ export default function UserAccountSettings({
         name: trimmedName,
         email: trimmedEmail,
         password,
+        locale,
       });
 
       if (!response.success) {
         setAlert({
           variant: 'error',
-          title: 'Update failed',
-          message: response.error.message,
+          title: t('ALERTS.UPDATE_FAILED_TITLE'),
+          message: apiError(response.error),
         });
         return;
       }
@@ -126,16 +139,16 @@ export default function UserAccountSettings({
       setPassword('');
       setAlert({
         variant: 'success',
-        title: 'Profile updated',
-        message: 'Your account information was updated successfully.',
+        title: t('ALERTS.PROFILE_UPDATED_TITLE'),
+        message: t('ALERTS.PROFILE_UPDATED'),
       });
 
       router.refresh();
     } catch {
       setAlert({
         variant: 'error',
-        title: 'Unexpected error',
-        message: 'Something went wrong. Please try again.',
+        title: t('ALERTS.UNEXPECTED_TITLE'),
+        message: t('ALERTS.UNEXPECTED'),
       });
     } finally {
       setIsSaving(false);
@@ -160,11 +173,13 @@ export default function UserAccountSettings({
   async function handleDeleteAccount() {
     setAlert(null);
 
-    if (deleteConfirmation !== 'DELETE') {
+    if (deleteConfirmation !== confirmationWord) {
       setAlert({
         variant: 'warning',
-        title: 'Confirmation required',
-        message: 'Type DELETE to confirm account deletion.',
+        title: t('ALERTS.CONFIRMATION_REQUIRED_TITLE'),
+        message: t('ALERTS.CONFIRMATION_REQUIRED', {
+          confirmation: confirmationWord,
+        }),
       });
       return;
     }
@@ -177,8 +192,8 @@ export default function UserAccountSettings({
       if (!response.success) {
         setAlert({
           variant: 'error',
-          title: 'Deletion failed',
-          message: response.error.message,
+          title: t('ALERTS.DELETE_FAILED_TITLE'),
+          message: apiError(response.error),
         });
         return;
       }
@@ -190,8 +205,8 @@ export default function UserAccountSettings({
     } catch {
       setAlert({
         variant: 'error',
-        title: 'Unexpected error',
-        message: 'Something went wrong. Please try again.',
+        title: t('ALERTS.UNEXPECTED_TITLE'),
+        message: t('ALERTS.UNEXPECTED'),
       });
     } finally {
       setIsDeleting(false);
@@ -201,20 +216,20 @@ export default function UserAccountSettings({
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-gray-900">Account</h2>
-      <p className="mt-2 text-sm text-gray-600">
-        Review your user details, update your profile, or delete your account.
-      </p>
+      <h2 className="text-xl font-semibold text-gray-900">{t('TITLE')}</h2>
+      <p className="mt-2 text-sm text-gray-600">{t('DESCRIPTION')}</p>
 
       <div className="mt-5 rounded-xl bg-gray-50 p-4 text-sm text-gray-700">
         <p>
-          <span className="font-medium">User ID:</span> {initialUser.id}
+          <span className="font-medium">{t('USER_ID')}:</span> {initialUser.id}
         </p>
       </div>
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+      <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
         <Input
-          label="Name"
+          label={t('NAME')}
+          autoComplete="name"
+          required
           maxLength={30}
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -223,7 +238,9 @@ export default function UserAccountSettings({
 
         <Input
           type="email"
-          label="Email"
+          label={t('EMAIL')}
+          autoComplete="email"
+          required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           disabled={isSaving || isDeleting}
@@ -231,10 +248,12 @@ export default function UserAccountSettings({
 
         <Input
           type="password"
-          label="Current password"
+          label={t('CURRENT_PASSWORD')}
+          autoComplete="current-password"
+          required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="Required to save changes"
+          placeholder={t('PASSWORD_PLACEHOLDER')}
           disabled={isSaving || isDeleting}
         />
 
@@ -246,7 +265,7 @@ export default function UserAccountSettings({
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button type="submit" loading={isSaving}>
-            Save changes
+            {t('SAVE')}
           </Button>
           <Button
             type="button"
@@ -254,16 +273,16 @@ export default function UserAccountSettings({
             onClick={resetDraft}
             disabled={isSaving || isDeleting}
           >
-            Reset
+            {t('RESET')}
           </Button>
         </div>
       </form>
 
       <div className="mt-8 border-t border-gray-200 pt-6">
-        <h3 className="text-base font-semibold text-red-600">Danger zone</h3>
-        <p className="mt-2 text-sm text-gray-600">
-          Deleting your account permanently removes your user from Billio.
-        </p>
+        <h3 className="text-base font-semibold text-red-600">
+          {t('DANGER_TITLE')}
+        </h3>
+        <p className="mt-2 text-sm text-gray-600">{t('DELETE_DESCRIPTION')}</p>
 
         <div className="mt-4">
           <Button
@@ -272,44 +291,49 @@ export default function UserAccountSettings({
             onClick={openDeleteModal}
             disabled={isSaving || isDeleting}
           >
-            Delete account
+            {t('DELETE')}
           </Button>
         </div>
       </div>
 
       <div className="mt-6 pt-6 space-x-4 border-t border-gray-200">
-        <a
+        <Link
           href="/terms-and-conditions"
           target="_blank"
+          rel="noopener noreferrer"
           className="text-gray-500 hover:underline"
         >
-          Terms of Service
-        </a>
+          {t('TERMS')}
+        </Link>
         <span className="text-gray-500">|</span>
-        <a
+        <Link
           href="/privacy-policy"
           target="_blank"
+          rel="noopener noreferrer"
           className="text-gray-500 hover:underline"
         >
-          Privacy Policy
-        </a>
+          {t('PRIVACY')}
+        </Link>
       </div>
 
       <Modal
         open={isDeleteModalOpen}
         onClose={closeDeleteModal}
-        title="Delete account"
+        title={t('DELETE_TITLE')}
         size="sm"
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-700">
-            This action cannot be undone. Type DELETE to confirm deletion.
+            {t('DELETE_WARNING', { confirmation: confirmationWord })}
           </p>
 
           <Input
+            label={t('DELETE_CONFIRMATION_LABEL')}
             value={deleteConfirmation}
             onChange={(event) => setDeleteConfirmation(event.target.value)}
-            placeholder="Type DELETE"
+            placeholder={t('DELETE_PLACEHOLDER', {
+              confirmation: confirmationWord,
+            })}
             disabled={isDeleting}
           />
 
@@ -320,7 +344,7 @@ export default function UserAccountSettings({
               onClick={closeDeleteModal}
               disabled={isDeleting}
             >
-              Cancel
+              {t('CANCEL')}
             </Button>
             <Button
               type="button"
@@ -329,7 +353,7 @@ export default function UserAccountSettings({
               loading={isDeleting}
               disabled={deleteConfirmation !== 'DELETE'}
             >
-              Delete permanently
+              {t('DELETE_PERMANENTLY')}
             </Button>
           </div>
         </div>

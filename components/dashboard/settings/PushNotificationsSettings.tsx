@@ -11,8 +11,10 @@ import {
   getPushSupport,
   type PushSupport,
 } from '@/frontend-services/push.service';
+import { useTranslations } from 'next-intl';
 
 export default function PushNotificationsSettings() {
+  const t = useTranslations('DASHBOARD.SETTINGS.NOTIFICATIONS');
   const [support, setSupport] = useState<PushSupport | null>(null);
   const [isEnabled, setIsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,14 +53,12 @@ export default function PushNotificationsSettings() {
       if (result.ok) {
         setIsEnabled(true);
       } else if (result.reason === 'permission-denied') {
-        setError(
-          'Notifications are blocked. Allow them for Billio in your device settings and try again.'
-        );
+        setError(t('PERMISSION_DENIED'));
       } else {
-        setError('Could not enable notifications. Please try again.');
+        setError(t('ENABLE_ERROR'));
       }
     } catch {
-      setError('Could not update notifications. Please try again.');
+      setError(t('UPDATE_ERROR'));
     } finally {
       setIsLoading(false);
     }
@@ -70,23 +70,19 @@ export default function PushNotificationsSettings() {
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-gray-900">Notifications</h2>
-      <p className="mt-2 text-sm text-gray-600">
-        Get notified on this device when someone adds a new expense to one of
-        your groups.
-      </p>
+      <h2 className="text-xl font-semibold text-gray-900">{t('TITLE')}</h2>
+      <p className="mt-2 text-sm text-gray-600">{t('DESCRIPTION')}</p>
 
       <div className="mt-5 space-y-4">
         {support === 'ios-needs-install' && (
-          <Alert variant="info" title="Install Billio first">
-            On iPhone and iPad, tap Share and choose “Add to Home Screen”, then
-            open Billio from your Home Screen to enable notifications.
+          <Alert variant="info" title={t('INSTALL_TITLE')}>
+            {t('INSTALL_INSTRUCTIONS')}
           </Alert>
         )}
 
         {support === 'unsupported' && (
-          <Alert variant="warning" title="Not supported">
-            This browser does not support push notifications.
+          <Alert variant="warning" title={t('UNSUPPORTED_TITLE')}>
+            {t('UNSUPPORTED_DESCRIPTION')}
           </Alert>
         )}
 
@@ -98,7 +94,7 @@ export default function PushNotificationsSettings() {
             loading={isLoading}
             onClick={handleToggle}
           >
-            {isEnabled ? 'Disable notifications' : 'Enable notifications'}
+            {isEnabled ? t('DISABLE') : t('ENABLE')}
           </Button>
         )}
       </div>

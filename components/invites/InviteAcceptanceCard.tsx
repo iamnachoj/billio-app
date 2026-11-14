@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 
 import {
   acceptInvite,
@@ -11,6 +10,8 @@ import {
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useApiError } from '@/i18n/errors';
+import { Link, useRouter } from '@/i18n/navigation';
 
 type InviteAcceptanceCardProps = {
   token: string;
@@ -22,10 +23,10 @@ type InviteAcceptanceCardProps = {
   } | null;
 };
 
-function formatDate(value: string | Date) {
+function formatDate(value: string | Date, locale: string) {
   const date = new Date(value);
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
@@ -37,6 +38,9 @@ export default function InviteAcceptanceCard({
   currentUser,
 }: InviteAcceptanceCardProps) {
   const router = useRouter();
+  const t = useTranslations('INVITES');
+  const locale = useLocale();
+  const apiError = useApiError();
 
   const defaultMode =
     preview.claimableParticipants.length > 0 ? 'claim' : 'create';
@@ -71,8 +75,10 @@ export default function InviteAcceptanceCard({
     if (emailMismatch) {
       setAlert({
         variant: 'error',
-        title: 'Email mismatch',
-        message: `This invite is tied to ${preview.invite.email}.`,
+        title: t('ERRORS.EMAIL_MISMATCH_TITLE'),
+        message: t('ERRORS.EMAIL_MISMATCH_MESSAGE', {
+          email: preview.invite.email ?? '',
+        }),
       });
       return;
     }
@@ -80,8 +86,8 @@ export default function InviteAcceptanceCard({
     if (mode === 'claim' && !selectedParticipantId) {
       setAlert({
         variant: 'error',
-        title: 'Choose a participant',
-        message: 'Select an existing participant to claim.',
+        title: t('ERRORS.CHOOSE_PARTICIPANT_TITLE'),
+        message: t('ERRORS.CHOOSE_PARTICIPANT_MESSAGE'),
       });
       return;
     }
@@ -89,8 +95,8 @@ export default function InviteAcceptanceCard({
     if (mode === 'create' && !displayName.trim()) {
       setAlert({
         variant: 'error',
-        title: 'Display name required',
-        message: 'Enter the name you want to use in this group.',
+        title: t('ERRORS.NAME_REQUIRED_TITLE'),
+        message: t('ERRORS.NAME_REQUIRED_MESSAGE'),
       });
       return;
     }
@@ -108,8 +114,8 @@ export default function InviteAcceptanceCard({
       if (!response.success) {
         setAlert({
           variant: 'error',
-          title: 'Unable to join group',
-          message: response.error.message,
+          title: t('ERRORS.JOIN_TITLE'),
+          message: apiError(response.error),
         });
         return;
       }
@@ -119,8 +125,8 @@ export default function InviteAcceptanceCard({
     } catch {
       setAlert({
         variant: 'error',
-        title: 'Unexpected error',
-        message: 'Something went wrong while accepting the invite.',
+        title: t('ERRORS.UNEXPECTED_TITLE'),
+        message: t('ERRORS.UNEXPECTED_MESSAGE'),
       });
     } finally {
       setLoading(false);
@@ -132,30 +138,30 @@ export default function InviteAcceptanceCard({
       <div className="w-full rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-10">
         <div className="space-y-3">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-teal-700">
-            Group invite
+            {t('GROUP_INVITE')}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-            Join {preview.group.name}
+            {t('JOIN_NAMED_GROUP', { name: preview.group.name })}
           </h1>
           <p className="text-sm text-slate-600">
-            {preview.group.description?.trim() ||
-              'You were invited to this Billio group.'}
+            {preview.group.description?.trim() || t('DEFAULT_DESCRIPTION')}
           </p>
           <p className="text-xs text-slate-500">
-            Invite valid until {formatDate(preview.invite.expiresAt)}
+            {t('VALID_UNTIL', {
+              date: formatDate(preview.invite.expiresAt, locale),
+            })}
           </p>
           {preview.invite.email ? (
             <p className="text-sm text-slate-600">
-              This invite is locked to{' '}
-              <span className="font-medium text-slate-900">
-                {preview.invite.email}
-              </span>
-              .
+              {t.rich('LOCKED_TO', {
+                email: preview.invite.email,
+                strong: (chunks) => (
+                  <span className="font-medium text-slate-900">{chunks}</span>
+                ),
+              })}
             </p>
           ) : (
-            <p className="text-sm text-slate-600">
-              This is a reusable group invite link.
-            </p>
+            <p className="text-sm text-slate-600">{t('REUSABLE')}</p>
           )}
         </div>
 
@@ -163,31 +169,32 @@ export default function InviteAcceptanceCard({
           {!currentUser ? (
             <div className="space-y-4">
               <p className="text-sm text-slate-600">
-                Sign in or create an account to accept this invite without
-                losing the flow.
+                {t('SIGN_IN_DESCRIPTION')}
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
                   href={signInHref}
                   className="inline-flex flex-1 items-center justify-center rounded-xl bg-teal-500 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-teal-600"
                 >
-                  Sign in
+                  {t('SIGN_IN')}
                 </Link>
                 <Link
                   href={registerHref}
                   className="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-3 font-semibold text-gray-800 transition-colors duration-200 hover:bg-gray-100"
                 >
-                  Create account
+                  {t('CREATE_ACCOUNT')}
                 </Link>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                Accepting as{' '}
-                <span className="font-medium text-slate-900">
-                  {currentUser.email}
-                </span>
+                {t.rich('ACCEPTING_AS', {
+                  email: currentUser.email,
+                  strong: (chunks) => (
+                    <span className="font-medium text-slate-900">{chunks}</span>
+                  ),
+                })}
               </div>
 
               {preview.claimableParticipants.length > 0 ? (
@@ -202,7 +209,7 @@ export default function InviteAcceptanceCard({
                           : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                       }`}
                     >
-                      Claim existing participant
+                      {t('CLAIM_PARTICIPANT')}
                     </button>
                     <button
                       type="button"
@@ -213,7 +220,7 @@ export default function InviteAcceptanceCard({
                           : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
                       }`}
                     >
-                      Create my participant
+                      {t('CREATE_PARTICIPANT')}
                     </button>
                   </div>
 
@@ -237,7 +244,13 @@ export default function InviteAcceptanceCard({
                               {participant.displayName}
                             </span>
                             <span className="block text-xs text-slate-500">
-                              {participant.role} | {participant.status}
+                              {t(
+                                `ROLES.${participant.role.toUpperCase() as Uppercase<typeof participant.role>}`
+                              )}{' '}
+                              |{' '}
+                              {t(
+                                `STATUSES.${participant.status.toUpperCase() as Uppercase<typeof participant.status>}`
+                              )}
                             </span>
                           </span>
                         </label>
@@ -250,13 +263,13 @@ export default function InviteAcceptanceCard({
               {mode === 'create' ? (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-slate-700">
-                    Display name in this group
+                    {t('DISPLAY_NAME')}
                   </label>
                   <Input
                     value={displayName}
                     maxLength={80}
                     onChange={(event) => setDisplayName(event.target.value)}
-                    placeholder="Your group name"
+                    placeholder={t('DISPLAY_NAME_PLACEHOLDER')}
                   />
                 </div>
               ) : null}
@@ -269,7 +282,7 @@ export default function InviteAcceptanceCard({
 
               <div className="flex justify-end">
                 <Button onClick={handleAccept} loading={loading}>
-                  Join group
+                  {t('JOIN_GROUP')}
                 </Button>
               </div>
             </div>

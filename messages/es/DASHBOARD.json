@@ -1,0 +1,70 @@
+{
+  "GREETING": "Hola, {name} 👋",
+  "GROUPS": {
+    "ADD": "Añadir grupo",
+    "CREATE_TITLE": "Crear grupo",
+    "TITLE": "Tus grupos",
+    "SHOW_ARCHIVED": "Mostrar archivados",
+    "HIDE_ARCHIVED": "Ocultar archivados",
+    "ARCHIVED_TITLE": "Archivados",
+    "ARCHIVED_EMPTY": "No tienes grupos archivados.",
+    "REORDER": "Reordenar {groupName}"
+  },
+  "SETTINGS": {
+    "NOTIFICATIONS": {
+      "TITLE": "Notificaciones",
+      "DESCRIPTION": "Recibe notificaciones en este dispositivo cuando alguien añada un gasto a uno de tus grupos.",
+      "INSTALL_TITLE": "Instala Billio primero",
+      "INSTALL_INSTRUCTIONS": "En iPhone y iPad, toca Compartir y elige «Añadir a pantalla de inicio». Después, abre Billio desde la pantalla de inicio para activar las notificaciones.",
+      "UNSUPPORTED_TITLE": "No compatible",
+      "UNSUPPORTED_DESCRIPTION": "Este navegador no admite notificaciones push.",
+      "ENABLE": "Activar notificaciones",
+      "DISABLE": "Desactivar notificaciones",
+      "PERMISSION_DENIED": "Las notificaciones están bloqueadas. Permítelas para Billio en los ajustes de tu dispositivo e inténtalo de nuevo.",
+      "ENABLE_ERROR": "No se pudieron activar las notificaciones. Inténtalo de nuevo.",
+      "UPDATE_ERROR": "No se pudieron actualizar las notificaciones. Inténtalo de nuevo."
+    },
+    "ACCOUNT": {
+      "TITLE": "Cuenta",
+      "DESCRIPTION": "Consulta tus datos, actualiza tu perfil o elimina tu cuenta.",
+      "USER_ID": "ID de usuario",
+      "NAME": "Nombre",
+      "EMAIL": "Correo electrónico",
+      "CURRENT_PASSWORD": "Contraseña actual",
+      "PASSWORD_PLACEHOLDER": "Necesaria para guardar los cambios",
+      "SAVE": "Guardar cambios",
+      "RESET": "Restablecer",
+      "DANGER_TITLE": "Zona peligrosa",
+      "DELETE_DESCRIPTION": "Al eliminar tu cuenta, se eliminará permanentemente tu usuario de Billio.",
+      "DELETE": "Eliminar cuenta",
+      "TERMS": "Términos del servicio",
+      "PRIVACY": "Política de privacidad",
+      "DELETE_TITLE": "Eliminar cuenta",
+      "DELETE_WARNING": "Esta acción no se puede deshacer. Escribe {confirmation} para confirmar la eliminación.",
+      "DELETE_CONFIRMATION_LABEL": "Confirmación de eliminación de cuenta",
+      "DELETE_PLACEHOLDER": "Escribe {confirmation}",
+      "CANCEL": "Cancelar",
+      "DELETE_PERMANENTLY": "Eliminar permanentemente",
+      "DELETE_CONFIRMATION_WORD": "ELIMINAR",
+      "ALERTS": {
+        "INVALID_NAME_TITLE": "Nombre no válido",
+        "NAME_LENGTH": "El nombre debe tener entre {min} y {max} caracteres.",
+        "INVALID_EMAIL_TITLE": "Correo electrónico no válido",
+        "EMAIL_REQUIRED": "El correo electrónico es obligatorio.",
+        "EMAIL_INVALID": "Introduce una dirección de correo electrónico válida.",
+        "NO_CHANGES_TITLE": "No hay cambios",
+        "NO_CHANGES": "Actualiza tu nombre o correo electrónico para guardar los cambios.",
+        "PASSWORD_REQUIRED_TITLE": "Se necesita la contraseña",
+        "PASSWORD_REQUIRED": "Introduce tu contraseña actual para confirmar los cambios de la cuenta.",
+        "UPDATE_FAILED_TITLE": "No se pudo actualizar",
+        "PROFILE_UPDATED_TITLE": "Perfil actualizado",
+        "PROFILE_UPDATED": "La información de tu cuenta se actualizó correctamente.",
+        "UNEXPECTED_TITLE": "Error inesperado",
+        "UNEXPECTED": "Algo salió mal. Inténtalo de nuevo.",
+        "CONFIRMATION_REQUIRED_TITLE": "Se necesita confirmación",
+        "CONFIRMATION_REQUIRED": "Escribe {confirmation} para confirmar la eliminación de la cuenta.",
+        "DELETE_FAILED_TITLE": "No se pudo eliminar"
+      }
+    }
+  }
+}

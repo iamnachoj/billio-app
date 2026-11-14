@@ -1,0 +1,39 @@
+{
+  "GROUP_INVITE": "Invitación al grupo",
+  "JOIN_NAMED_GROUP": "Únete a {name}",
+  "DEFAULT_DESCRIPTION": "Te han invitado a este grupo de Billio.",
+  "VALID_UNTIL": "Invitación válida hasta {date}",
+  "LOCKED_TO": "Esta invitación está vinculada a <strong>{email}</strong>.",
+  "REUSABLE": "Este enlace de invitación al grupo es reutilizable.",
+  "SIGN_IN_DESCRIPTION": "Inicia sesión o crea una cuenta para aceptar esta invitación sin perder el acceso.",
+  "SIGN_IN": "Iniciar sesión",
+  "CREATE_ACCOUNT": "Crear cuenta",
+  "ACCEPTING_AS": "Aceptando como <strong>{email}</strong>",
+  "CLAIM_PARTICIPANT": "Reclamar participante existente",
+  "CREATE_PARTICIPANT": "Crear mi participante",
+  "DISPLAY_NAME": "Nombre visible en este grupo",
+  "DISPLAY_NAME_PLACEHOLDER": "Tu nombre en el grupo",
+  "JOIN_GROUP": "Unirse al grupo",
+  "ROLES": {
+    "OWNER": "propietario",
+    "ADMIN": "administrador",
+    "MEMBER": "miembro",
+    "VIEWER": "observador"
+  },
+  "STATUSES": {
+    "ACTIVE": "activo",
+    "INVITED": "invitado",
+    "LEFT": "retirado"
+  },
+  "ERRORS": {
+    "EMAIL_MISMATCH_TITLE": "El correo no coincide",
+    "EMAIL_MISMATCH_MESSAGE": "Esta invitación está vinculada a {email}.",
+    "CHOOSE_PARTICIPANT_TITLE": "Elige un participante",
+    "CHOOSE_PARTICIPANT_MESSAGE": "Selecciona un participante existente para reclamarlo.",
+    "NAME_REQUIRED_TITLE": "Se requiere un nombre visible",
+    "NAME_REQUIRED_MESSAGE": "Introduce el nombre que quieres usar en este grupo.",
+    "JOIN_TITLE": "No se pudo unir al grupo",
+    "UNEXPECTED_TITLE": "Error inesperado",
+    "UNEXPECTED_MESSAGE": "Algo salió mal al aceptar la invitación."
+  }
+}

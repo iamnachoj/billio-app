@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent } from 'react';
+import { useTranslations } from 'next-intl';
 
 import Modal from '@/components/ui/Modal';
 
@@ -41,12 +42,14 @@ export default function GroupSettingsModal({
   currencies,
   onRequestLeaveGroup,
 }: GroupSettingsModalProps) {
+  const t = useTranslations('GROUPS');
+
   return (
-    <Modal open={open} onClose={onClose} title="Group settings" size="md">
+    <Modal open={open} onClose={onClose} title={t('SETTINGS.TITLE')} size="md">
       <form onSubmit={onSubmit} className="space-y-5">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Name
+            {t('SETTINGS.NAME')}
           </label>
           <input
             value={groupNameDraft}
@@ -57,14 +60,14 @@ export default function GroupSettingsModal({
           />
           {!canEditGroupName ? (
             <p className="text-xs text-slate-500">
-              Only owners and admins can change the group name.
+              {t('SETTINGS.PERMISSION_NAME')}
             </p>
           ) : null}
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Description
+            {t('SETTINGS.DESCRIPTION')}
           </label>
           <textarea
             value={groupDescriptionDraft}
@@ -76,14 +79,14 @@ export default function GroupSettingsModal({
           />
           {!canEditGroupName ? (
             <p className="text-xs text-slate-500">
-              Only owners and admins can change the group description.
+              {t('SETTINGS.PERMISSION_DESCRIPTION')}
             </p>
           ) : null}
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
-            Currency
+            {t('SETTINGS.CURRENCY')}
           </label>
           <select
             value={currencyDraft}
@@ -109,7 +112,7 @@ export default function GroupSettingsModal({
               disabled={isSaving || isLeavingGroup}
               className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isLeavingGroup ? 'Leaving...' : 'Leave group'}
+              {isLeavingGroup ? t('SETTINGS.LEAVING') : t('SETTINGS.LEAVE')}
             </button>
           ) : (
             <div />
@@ -122,14 +125,14 @@ export default function GroupSettingsModal({
               disabled={isSaving || isLeavingGroup}
               className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Cancel
+              {t('SETTINGS.CANCEL')}
             </button>
             <button
               type="submit"
               disabled={isSaving || isLeavingGroup}
               className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSaving ? 'Saving...' : 'Save changes'}
+              {isSaving ? t('SETTINGS.SAVING') : t('SETTINGS.SAVE')}
             </button>
           </div>
         </div>

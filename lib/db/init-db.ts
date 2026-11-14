@@ -5,6 +5,7 @@ dotenv.config({
 });
 
 import { db } from './db';
+import { ensureUserLocaleColumn } from './user-locale-migration';
 
 export async function initDB() {
   await db.execute(`
@@ -15,10 +16,13 @@ export async function initDB() {
       password_hash TEXT NOT NULL,
       avatar_url TEXT,
       is_active INTEGER NOT NULL,
+      locale TEXT NOT NULL DEFAULT 'en',
       created_at TEXT NOT NULL,
       updated_at TEXT
     );
   `);
+
+  await ensureUserLocaleColumn(db);
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS groups (

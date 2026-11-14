@@ -42,6 +42,7 @@ describe('passwordResetService', () => {
       name: 'Ana',
       email: 'ana@example.com',
       passwordHash: 'hash',
+      locale: 'es',
     } as never);
     vi.mocked(
       passwordResetRepository.getRecentPasswordResetRequests
@@ -63,7 +64,8 @@ describe('passwordResetService', () => {
     expect(passwordResetRepository.createPasswordResetToken).toHaveBeenCalled();
     expect(sendPasswordResetEmail).toHaveBeenCalledWith(
       'ana@example.com',
-      expect.any(String)
+      expect.any(String),
+      'es'
     );
   });
 

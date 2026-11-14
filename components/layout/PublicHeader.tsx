@@ -1,12 +1,18 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import BillioLogo from '@/components/layout/BillioLogo';
+import { getTranslations } from 'next-intl/server';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default async function Header() {
+  const t = await getTranslations('LAYOUT');
   return (
     <header className="bg-gray-800 text-white p-4 lg:py-4 lg:px-16">
-      <Link href="/" className="text-3xl text-center">
-        Welcome to <BillioLogo />
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-3xl text-center">
+          {t('WELCOME')} <BillioLogo />
+        </Link>
+        <LanguageSwitcher />
+      </div>
     </header>
   );
 }

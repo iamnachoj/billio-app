@@ -1,6 +1,10 @@
 const BASE_URL = '/api/auth';
 
-export async function login(email: string, password: string) {
+export async function login(
+  email: string,
+  password: string,
+  locale?: 'en' | 'es'
+) {
   const response = await fetch(`${BASE_URL}/login`, {
     method: 'POST',
     headers: {
@@ -10,6 +14,7 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({
       email,
       password,
+      locale,
     }),
   });
 
@@ -20,6 +25,7 @@ export async function register(data: {
   name: string;
   email: string;
   password: string;
+  locale?: 'en' | 'es';
 }) {
   const response = await fetch(`${BASE_URL}/register`, {
     method: 'POST',

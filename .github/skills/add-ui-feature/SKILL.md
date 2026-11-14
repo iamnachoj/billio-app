@@ -18,6 +18,19 @@ app/ page (server, small)  →  components/<domain>/Feature.tsx  →  hooks/useF
 - **Hooks** in `components/<domain>/hooks/` own state, validation and submit handlers. Pattern (see `useCreateGroup.ts`): `loading`, `error` strings, `handleSubmit`; on `!response.success` set `error` to `response.error.message`; on success call `onSuccess?.()` and `router.refresh()`.
 - **Never call `fetch` in a component or hook.** Add or reuse a function in `frontend-services/`. If the endpoint is new, use the `add-api-endpoint` skill first.
 - Frontend services return `{ success, data } | { success: false, error }`; always branch on `result.success`.
+- Use locale-aware navigation from `@/i18n/navigation`, not `next/link` or
+  `next/navigation` for links and router navigation.
+
+## Internationalization
+
+- Never hardcode user-facing strings. Add uppercase, domain-namespaced keys to
+  every supported locale in `messages/`; use `useTranslations` in client
+  components and `getTranslations` on the server.
+- Translate API errors by stable code with the shared i18n error helper. Format
+  dates and numbers using the active locale; keep the group's currency.
+- For a new locale, update routing and the server locale definitions, add every
+  message namespace to `i18n/messages.ts`, translate emails and notifications,
+  professionally review legal text, and run parity and flow tests.
 
 ## UI primitives
 
@@ -42,4 +55,5 @@ Reuse `components/ui/` before writing new markup: `Button` (`variant`: primary/s
 5. Check the result in the browser if the change is visual (`npm run dev`).
 6. `npm run verify`.
 
-Note: unit tests only cover `lib/**/*.test.ts`; there is no component test setup. Put testable logic in `lib/` or pure helper functions.
+The unit config also discovers component tests. Put testable logic in pure
+helpers where a DOM environment is not needed.

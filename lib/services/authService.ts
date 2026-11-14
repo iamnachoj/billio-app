@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
+import type { AppLocale } from '@/lib/locale';
+import { resolveLocale } from '@/lib/locale';
 
 import { generateToken, verifyToken } from '@/lib/utils/jwt';
 import {
@@ -19,21 +21,26 @@ type RegisterInput = {
   name: string;
   email: string;
   password: string;
+  locale?: AppLocale;
 };
 
 type LoginInput = {
   email: string;
   password: string;
+  locale?: AppLocale;
 };
 
 export async function registerUser({
   name,
   email,
   password,
+  locale = 'en',
 }: RegisterInput): Promise<
-  AuthResult<{ user: { id: string; name: string; email: string } }>
+  AuthResult<{
+    user: { id: string; name: string; email: string; locale: AppLocale };
+  }>
 > {
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !['en', 'es'].includes(locale)) {
     return {
       ok: false,
       error: {
@@ -69,7 +76,7 @@ export async function registerUser({
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await createUserByEmail({ name, email, passwordHash });
+  const user = await createUserByEmail({ name, email, passwordHash, locale });
 
   return {
     ok: true,
@@ -78,18 +85,27 @@ export async function registerUser({
         id: user.id,
         name: user.name,
         email: user.email,
+        locale,
       },
     },
   };
 }
 
-export async function loginUser({ email, password }: LoginInput): Promise<
+export async function loginUser({
+  email,
+  password,
+  locale,
+}: LoginInput): Promise<
   AuthResult<{
-    user: { id: string; name: string; email: string };
+    user: { id: string; name: string; email: string; locale: AppLocale };
     token: string;
   }>
 > {
-  if (!email || !password) {
+  if (
+    !email ||
+    !password ||
+    (locale !== undefined && !['en', 'es'].includes(locale))
+  ) {
     return {
       ok: false,
       error: {
@@ -126,6 +142,9 @@ export async function loginUser({ email, password }: LoginInput): Promise<
     };
   }
 
+  if (locale && locale !== user.locale) {
+    await updateUserById(user.id, { locale });
+  }
   const token = generateToken(user.id);
 
   return {
@@ -135,6 +154,7 @@ export async function loginUser({ email, password }: LoginInput): Promise<
         id: user.id,
         name: user.name,
         email: user.email,
+        locale: locale ?? resolveLocale(user.locale),
       },
       token,
     },
@@ -213,8 +233,15 @@ export async function deleteUserAccount(
 
 export async function updateUserAccount(
   currentUserId: string | null,
-  updates: { email?: string; name?: string; password?: string }
-): Promise<AuthResult<{ id: string; name: string; email: string }>> {
+  updates: {
+    email?: string;
+    name?: string;
+    password?: string;
+    locale?: AppLocale;
+  }
+): Promise<
+  AuthResult<{ id: string; name: string; email: string; locale: AppLocale }>
+> {
   if (!currentUserId) {
     return {
       ok: false,
@@ -239,7 +266,18 @@ export async function updateUserAccount(
     };
   }
 
-  if (!updates.email && !updates.name) {
+  if (updates.locale !== undefined && !['en', 'es'].includes(updates.locale)) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'Unsupported locale',
+        status: 400,
+      },
+    };
+  }
+
+  if (!updates.email && !updates.name && !updates.locale) {
     return {
       ok: false,
       error: {
@@ -250,9 +288,12 @@ export async function updateUserAccount(
     };
   }
 
-  const isSamePassword = updates.password
-    ? await bcrypt.compare(updates.password, user.passwordHash)
-    : false;
+  const isSamePassword =
+    !updates.email && !updates.name
+      ? true
+      : updates.password
+        ? await bcrypt.compare(updates.password, user.passwordHash)
+        : false;
 
   if (!isSamePassword) {
     return {
@@ -294,8 +335,9 @@ export async function updateUserAccount(
   }
 
   const updatedUser = await updateUserById(currentUserId, {
-    email: updates.email ?? user.email,
-    name: updates.name ?? user.name,
+    email: updates.email,
+    name: updates.name,
+    locale: updates.locale,
   });
 
   if (
@@ -320,6 +362,7 @@ export async function updateUserAccount(
       id: updatedUser.id,
       name: updatedUser.name,
       email: updatedUser.email,
+      locale: resolveLocale(updatedUser.locale),
     },
   };
 }

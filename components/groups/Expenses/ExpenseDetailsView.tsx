@@ -1,8 +1,15 @@
+'use client';
+
+import { useLocale, useTranslations } from 'next-intl';
+
 import { ExpenseDetailsData } from '@/frontend-services/expenses.service';
+import { getExpenseCategoryEmoji } from '@/lib/models/expense';
 import {
-  getExpenseCategoryEmoji,
-  getExpenseCategoryLabel,
-} from '@/lib/models/expense';
+  formatGroupDate,
+  formatGroupNumber,
+  formatMoney,
+  getGroupCategoryLabel,
+} from '@/components/groups/groupTotalsUtils';
 
 type SplitSummaryRow = {
   participantId: string;
@@ -15,27 +22,14 @@ type ExpenseDetailsViewProps = {
   participantNameById: Map<string, string>;
 };
 
-function formatMoney(amountCents: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amountCents / 100);
-}
-
-function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat('en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(date));
-}
-
 export default function ExpenseDetailsView({
   details,
   splitSummaryRows,
   participantNameById,
 }: ExpenseDetailsViewProps) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
+
   return (
     <>
       <section className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -45,46 +39,72 @@ export default function ExpenseDetailsView({
           </h3>
           <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700">
             {getExpenseCategoryEmoji(details.expense.category)}{' '}
-            {getExpenseCategoryLabel(details.expense.category)}
+            {getGroupCategoryLabel(
+              details.expense.category,
+              t as (key: string) => string
+            )}
           </span>
         </div>
 
         <p className="text-sm text-slate-700">
-          {formatMoney(details.expense.amount, details.expense.currency)} paid
-          by{' '}
-          {participantNameById.get(details.expense.paidByParticipantId) ??
-            'Unknown participant'}
+          {t('EXPENSE_DETAILS.PAID_BY', {
+            amount: formatMoney(
+              details.expense.amount,
+              details.expense.currency,
+              locale
+            ),
+            name:
+              participantNameById.get(details.expense.paidByParticipantId) ??
+              t('EXPENSE_DETAILS.UNKNOWN_PARTICIPANT'),
+          })}
         </p>
 
         <p className="text-xs text-slate-500">
-          Created {formatDate(details.expense.createdAt)}
+          {t('EXPENSE_DETAILS.CREATED', {
+            date: formatGroupDate(details.expense.createdAt, locale),
+          })}
           {details.expense.lastEditedAt
-            ? ` | Edited ${formatDate(details.expense.lastEditedAt)}`
+            ? ` | ${t('EXPENSE_DETAILS.EDITED', {
+                date: formatGroupDate(details.expense.lastEditedAt, locale),
+              })}`
             : ''}
         </p>
 
         <p className="text-sm text-slate-700">
           {details.expense.description?.trim()
             ? details.expense.description
-            : 'No description.'}
+            : t('EXPENSE_DETAILS.NO_DESCRIPTION')}
         </p>
       </section>
 
       <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
         <h4 className="text-sm font-semibold text-slate-900">
-          Split breakdown
+          {t('EXPENSE_DETAILS.SPLIT_BREAKDOWN')}
         </h4>
         {splitSummaryRows.length === 0 ? (
           <p className="text-sm text-slate-500">
-            No one owes for this expense.
+            {t('EXPENSE_DETAILS.NO_OWES')}
           </p>
         ) : (
           <ul className="space-y-2">
             {splitSummaryRows.map((row) => {
               const percentage =
                 details.expense.amount > 0
-                  ? ((row.amount / details.expense.amount) * 100).toFixed(2)
-                  : '0.00';
+                  ? (row.amount / details.expense.amount) * 100
+                  : 0;
+              const formattedAmount = formatMoney(
+                row.amount,
+                details.expense.currency,
+                locale
+              );
+              const formattedPercentage = `${formatGroupNumber(
+                percentage,
+                locale,
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              )}%`;
 
               return (
                 <li
@@ -93,11 +113,10 @@ export default function ExpenseDetailsView({
                 >
                   <span className="text-slate-700">
                     {participantNameById.get(row.participantId) ??
-                      'Unknown participant'}
+                      t('EXPENSE_DETAILS.UNKNOWN_PARTICIPANT')}
                   </span>
                   <span className="font-medium text-slate-900">
-                    {formatMoney(row.amount, details.expense.currency)} (
-                    {percentage}%)
+                    {formattedAmount} ({formattedPercentage})
                   </span>
                 </li>
               );

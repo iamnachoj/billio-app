@@ -1,10 +1,14 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { requestPasswordReset } from '@/frontend-services/auth.service';
+import { useApiError } from '@/i18n/errors';
 
 export function useForgotPassword() {
+  const t = useTranslations('AUTH');
+  const apiError = useApiError();
   const [email, setEmail] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -25,15 +29,13 @@ export function useForgotPassword() {
       const response = await requestPasswordReset(email);
 
       if (!response.success) {
-        setError(response.error.message);
+        setError(apiError(response.error));
         return;
       }
 
-      setMessage(
-        'If an account with that email exists, we have sent password reset instructions.'
-      );
+      setMessage(t('FORGOT.SUCCESS_MESSAGE'));
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(t('ERRORS.UNEXPECTED_MESSAGE'));
     } finally {
       setLoading(false);
     }

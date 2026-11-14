@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 
 import {
   addParticipantToGroup,
@@ -7,6 +8,7 @@ import {
 } from '@/frontend-services/groups.service';
 import { createGroupInvite } from '@/frontend-services/invites.service';
 import { GroupParticipant } from '@/lib/models/groupParticipant';
+import { useApiError } from '@/i18n/errors';
 
 type UseGroupParticipantsSectionParams = {
   groupId: string;
@@ -34,6 +36,9 @@ export function useGroupParticipantsSection({
   onParticipantCreated,
   onParticipantDeleted,
 }: UseGroupParticipantsSectionParams) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
+  const apiError = useApiError();
   const router = useRouter();
 
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
@@ -81,7 +86,7 @@ export function useGroupParticipantsSection({
 
     const nextDisplayName = newParticipantNameDraft.trim();
     if (!nextDisplayName) {
-      setAddParticipantError('Participant name is required.');
+      setAddParticipantError(t('ERRORS.PARTICIPANT_NAME_REQUIRED'));
       return;
     }
 
@@ -97,7 +102,9 @@ export function useGroupParticipantsSection({
 
       if (!response.success) {
         setAddParticipantError(
-          response.error?.message ?? 'Unable to add participant.'
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.ADD_PARTICIPANT_FAILED')
         );
         return;
       }
@@ -129,7 +136,9 @@ export function useGroupParticipantsSection({
 
       if (!response.success) {
         setRemoveParticipantError(
-          response.error?.message ?? 'Unable to remove participant.'
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.REMOVE_PARTICIPANT_FAILED')
         );
         return;
       }
@@ -156,11 +165,15 @@ export function useGroupParticipantsSection({
       });
 
       if (!response.success) {
-        setInviteError(response.error?.message ?? 'Unable to generate invite.');
+        setInviteError(
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.GENERATE_INVITE_FAILED')
+        );
         return;
       }
 
-      const invitePath = `/invites/${response.data.token}`;
+      const invitePath = `/${locale}/invites/${response.data.token}`;
       const inviteUrl =
         typeof window === 'undefined'
           ? invitePath

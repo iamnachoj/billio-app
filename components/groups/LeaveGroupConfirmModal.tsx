@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
@@ -18,16 +20,19 @@ export default function LeaveGroupConfirmModal({
   isLeavingGroup,
   groupName,
 }: LeaveGroupConfirmModalProps) {
+  const t = useTranslations('GROUPS');
+
   return (
-    <Modal open={open} onClose={onClose} title="Leave group" size="sm">
+    <Modal open={open} onClose={onClose} title={t('LEAVE.TITLE')} size="sm">
       <div className="space-y-5">
         <p className="text-sm leading-6 text-slate-700">
-          You are about to leave <strong>{groupName}</strong>. You will lose
-          access to this group unless you are invited again.
+          {t.rich('LEAVE.CONFIRMATION', {
+            groupName: () => <strong>{groupName}</strong>,
+          })}
         </p>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-          This action is intended to be permanent for your current membership.
+          {t('LEAVE.WARNING')}
         </div>
 
         <div className="flex items-center justify-end gap-2">
@@ -37,7 +42,7 @@ export default function LeaveGroupConfirmModal({
             onClick={onClose}
             disabled={isLeavingGroup}
           >
-            Cancel
+            {t('LEAVE.CANCEL')}
           </Button>
           <Button
             type="button"
@@ -45,7 +50,7 @@ export default function LeaveGroupConfirmModal({
             onClick={onConfirm}
             loading={isLeavingGroup}
           >
-            Leave group
+            {t('LEAVE.CONFIRM')}
           </Button>
         </div>
       </div>

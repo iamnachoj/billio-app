@@ -1,5 +1,9 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
+
+import { formatMoney } from './groupTotalsUtils';
+
 type GroupHeaderProps = {
   groupName: string;
   description?: string;
@@ -13,15 +17,6 @@ type GroupHeaderProps = {
   onOpenTotalsModal: () => void;
 };
 
-function formatMoney(amountCents: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amountCents / 100);
-}
-
 export default function GroupHeader({
   groupName,
   description,
@@ -34,11 +29,14 @@ export default function GroupHeader({
   onOpenSettingsModal,
   onOpenTotalsModal,
 }: GroupHeaderProps) {
+  const t = useTranslations('GROUPS');
+  const locale = useLocale();
+
   return (
     <header className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 md:p-8 shadow-sm">
       <button
         type="button"
-        aria-label="Open group settings"
+        aria-label={t('GROUP_HEADER.SETTINGS_ARIA_LABEL')}
         onClick={onOpenSettingsModal}
         className="cursor-pointer md:inline-flex absolute right-4 top-4 h-9 w-9 items-center justify-center rounded-lg text-xl leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
       >
@@ -48,7 +46,7 @@ export default function GroupHeader({
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-            Group Overview
+            {t('GROUP_HEADER.OVERVIEW')}
           </p>
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">
             {groupName}
@@ -62,9 +60,9 @@ export default function GroupHeader({
               onClick={onOpenParticipantsModal}
               className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
             >
-              👥 {participantsCount} participants (+ add more)
+              👥 {t('GROUP_HEADER.PARTICIPANTS', { count: participantsCount })}
             </button>{' '}
-            · {expensesCount} expenses
+            · {t('GROUP_HEADER.EXPENSES', { count: expensesCount })}
           </p>
           <p className="text-sm text-slate-500">
             <button
@@ -72,7 +70,7 @@ export default function GroupHeader({
               onClick={onOpenTotalsModal}
               className="cursor-pointer font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
             >
-              📓 View totals and settlements
+              📓 {t('GROUP_HEADER.VIEW_TOTALS')}
             </button>
           </p>
         </div>
@@ -91,7 +89,7 @@ export default function GroupHeader({
                   : 'text-slate-900'
             }`}
           >
-            {formatMoney(Math.abs(myNetBalanceCents), selectedCurrency)}
+            {formatMoney(Math.abs(myNetBalanceCents), selectedCurrency, locale)}
           </p>
         </div>
       </div>

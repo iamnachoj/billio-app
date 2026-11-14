@@ -17,11 +17,14 @@ The overall goal is to keep the app easy to work on without over-engineering it:
 
 ```text
 app/
-├── (public)/
+├── [locale]/
+│   ├── (public)/
+│   ├── (dashboard)/
+│   └── layout.tsx
 ├── api/
 ├── globals.css
-├── layout.tsx
-├── page.tsx
+i18n/
+messages/
 components/
 ├── auth/
 ├── dashboard/
@@ -56,19 +59,21 @@ The `app` folder contains the routing tree and server-side route handlers for th
 
 The main groups are:
 
-- `app/(public)` for marketing/public pages such as login, reset-password and invite acceptance
+- `app/[locale]/(public)` for marketing/public pages such as login, reset-password and invite acceptance
+- `app/[locale]/(dashboard)` for authenticated pages
 - `app/api` for the backend endpoints consumed by the frontend
-- `app/layout.tsx` for the root shell and global styling
+- `app/[locale]/layout.tsx` for the localized root shell and global styling
 
 Example routes in the project today:
 
 ```text
 app/
-  (public)/
-    login/page.tsx
-    forgot-password/page.tsx
-    reset-password/page.tsx
-    invites/[token]/page.tsx
+  [locale]/
+    (public)/
+      login/page.tsx
+      forgot-password/page.tsx
+      reset-password/page.tsx
+      invites/[token]/page.tsx
   api/
     auth/login/route.ts
     auth/register/route.ts
@@ -78,6 +83,31 @@ app/
 ```
 
 The App Router keeps page and route logic close to the URL structure, while the business logic remains in the `lib` layer.
+
+---
+
+# Internationalization
+
+All page URLs are prefixed with a locale (`/en/...` or `/es/...`); API URLs
+remain unprefixed. The proxy negotiates the locale from the `NEXT_LOCALE` cookie,
+then `Accept-Language`, and finally English. Use navigation helpers from
+`i18n/navigation.ts` so internal links retain the active locale.
+
+Do not hardcode user-facing text. Add matching uppercase, domain-namespaced keys
+to both `messages/en/` and `messages/es/`, use `useTranslations` in client
+components and `getTranslations` on the server, and translate API errors using
+their stable codes. Use the active locale with `Intl` for dates and numbers.
+Keep currency selection separate from the locale.
+
+To add a locale:
+
+1. Add it to the routing and supported server locale definitions.
+2. Provide every namespace and key under `messages/<locale>/`, and register the
+   messages in `i18n/messages.ts`.
+3. Translate server-originated emails and push notifications and review legal
+   translations professionally.
+4. Run the message parity tests and `npm run verify`; exercise locale switching,
+   authentication redirects, invitations, password reset and notifications.
 
 ---
 

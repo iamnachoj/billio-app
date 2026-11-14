@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import clsx from 'clsx';
+import { useTranslations } from 'next-intl';
 
 type Props = {
   open: boolean;
@@ -22,6 +23,9 @@ export default function Modal({
   closeOnOverlayClick = true,
   showCloseButton = true,
 }: Props) {
+  const t = useTranslations('UI');
+  const titleId = useId();
+
   useEffect(() => {
     if (!open) {
       return;
@@ -58,6 +62,10 @@ export default function Modal({
     >
       <div className="flex min-h-full w-full items-center justify-center pt-2 sm:items-center sm:pt-0">
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? titleId : undefined}
+          aria-label={title ? undefined : t('MODAL.DIALOG')}
           onClick={(e) => e.stopPropagation()}
           className={clsx(
             'relative flex w-full max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-3rem)]',
@@ -71,7 +79,10 @@ export default function Modal({
         >
           <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-4 sm:px-8 sm:py-6 md:px-4 md:py-2">
             {title ? (
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+              <h2
+                id={titleId}
+                className="text-xl sm:text-2xl font-semibold text-gray-800"
+              >
                 {title}
               </h2>
             ) : (
@@ -82,7 +93,7 @@ export default function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Close modal"
+                aria-label={t('MODAL.CLOSE')}
                 className="cursor-pointer rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
               >
                 ✕

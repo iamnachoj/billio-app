@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Alert from '@/components/ui/Alert';
@@ -11,6 +13,7 @@ type Props = {
 };
 
 export default function CreateGroupForm({ onSuccess }: Props) {
+  const t = useTranslations('GROUPS');
   const {
     name,
     description,
@@ -24,29 +27,29 @@ export default function CreateGroupForm({ onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <Input
-        label="Group name"
-        placeholder="Summer Holidays"
+        label={t('CREATE_GROUP.NAME_LABEL')}
+        placeholder={t('CREATE_GROUP.NAME_PLACEHOLDER')}
         value={name}
         maxLength={60}
         onChange={(e) => setName(e.target.value)}
       />
 
       <Input
-        label="Description"
-        placeholder="Optional description..."
+        label={t('CREATE_GROUP.DESCRIPTION_LABEL')}
+        placeholder={t('CREATE_GROUP.DESCRIPTION_PLACEHOLDER')}
         value={description}
         maxLength={200}
         onChange={(e) => setDescription(e.target.value)}
       />
 
       {error && (
-        <Alert variant="error" title="Unable to create group">
+        <Alert variant="error" title={t('CREATE_GROUP.ERROR_TITLE')}>
           {error}
         </Alert>
       )}
 
       <Button type="submit" loading={loading} fullWidth>
-        Create group
+        {t('CREATE_GROUP.SUBMIT')}
       </Button>
     </form>
   );

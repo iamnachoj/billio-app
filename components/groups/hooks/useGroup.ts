@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 
 import {
   leaveGroup,
@@ -11,6 +12,7 @@ import type { GroupPageProps } from '../GroupPage';
 import { useGroupParticipantsSection } from './useGroupParticipantsSection';
 import { useOptimisticCollection } from './useOptimisticCollection';
 import { useExpensesPaginated } from '../Expenses/hooks/useExpensesPaginated';
+import { useApiError } from '@/i18n/errors';
 
 function byNewestExpenseFirst(a: { createdAt: Date }, b: { createdAt: Date }) {
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -55,6 +57,8 @@ function computeMyExpenseNetDeltaCents(
 }
 
 export function useGroup(props: GroupPageProps) {
+  const t = useTranslations('GROUPS');
+  const apiError = useApiError();
   const router = useRouter();
 
   const [showArchived, setShowArchived] = useState(false);
@@ -174,10 +178,10 @@ export function useGroup(props: GroupPageProps) {
 
   const summaryLabel =
     myNetBalanceCents > 0
-      ? 'You are owed'
+      ? t('GROUP_BALANCE.YOU_ARE_OWED')
       : myNetBalanceCents < 0
-        ? 'You owe'
-        : 'You are settled';
+        ? t('GROUP_BALANCE.YOU_OWE')
+        : t('GROUP_BALANCE.YOU_ARE_SETTLED');
 
   const expensesSorted = useMemo(() => {
     return [...expenses].sort(byNewestExpenseFirst);
@@ -325,12 +329,12 @@ export function useGroup(props: GroupPageProps) {
     const nextCurrency = settingsCurrencyDraft;
 
     if (!nextCurrency) {
-      setSettingsError('Currency is required.');
+      setSettingsError(t('ERRORS.CURRENCY_REQUIRED'));
       return;
     }
 
     if (canEditGroupName && !nextName) {
-      setSettingsError('Group name is required.');
+      setSettingsError(t('ERRORS.GROUP_NAME_REQUIRED'));
       return;
     }
 
@@ -359,7 +363,9 @@ export function useGroup(props: GroupPageProps) {
 
         if (!response.success) {
           setSettingsError(
-            response.error?.message ?? 'Unable to update group settings.'
+            response.error
+              ? apiError(response.error)
+              : t('ERRORS.UPDATE_GROUP_FAILED')
           );
           return;
         }
@@ -413,7 +419,9 @@ export function useGroup(props: GroupPageProps) {
 
       if (!response.success) {
         setSettingsError(
-          response.error?.message ?? 'Unable to leave the group.'
+          response.error
+            ? apiError(response.error)
+            : t('ERRORS.LEAVE_GROUP_FAILED')
         );
         setIsLeaveConfirmModalOpen(false);
         setIsSettingsModalOpen(true);

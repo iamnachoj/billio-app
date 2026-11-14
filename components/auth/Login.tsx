@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function Login({ initialMode, redirectTo }: Props) {
+  const t = useTranslations('AUTH');
   const {
     mode,
     loading,
@@ -40,35 +42,34 @@ export default function Login({ initialMode, redirectTo }: Props) {
           <h1 className="text-5xl font-bold">Billio</h1>
 
           <p className="mt-6 max-w-md text-xl leading-9 text-teal-50">
-            Track shared expenses, split bills fairly and settle debts
-            effortlessly.
+            {t('LOGIN.TAGLINE')}
           </p>
         </div>
 
         <div className="space-y-6">
-          <Feature text="Unlimited groups" />
-          <Feature text="Automatic balances" />
-          <Feature text="Smart settlements" />
-          <Feature text="Privacy first" />
+          <Feature text={t('LOGIN.FEATURE_GROUPS')} />
+          <Feature text={t('LOGIN.FEATURE_BALANCES')} />
+          <Feature text={t('LOGIN.FEATURE_SETTLEMENTS')} />
+          <Feature text={t('LOGIN.FEATURE_PRIVACY')} />
         </div>
       </section>
 
       <section className="flex items-center justify-center bg-gray-50 px-8">
         <div className="w-full max-w-md rounded-2xl bg-white p-10 shadow-xl">
           <h2 className="text-3xl font-bold text-gray-800">
-            {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            {mode === 'login' ? t('LOGIN.WELCOME') : t('LOGIN.CREATE_TITLE')}
           </h2>
 
           <p className="mt-2 text-gray-500">
             {mode === 'login'
-              ? 'Sign in to continue.'
-              : 'Join Billio for free.'}
+              ? t('LOGIN.SIGN_IN_DESCRIPTION')
+              : t('LOGIN.REGISTER_DESCRIPTION')}
           </p>
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             {mode === 'register' && (
               <Input
-                placeholder="Full name"
+                placeholder={t('LOGIN.NAME')}
                 maxLength={30}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -77,14 +78,14 @@ export default function Login({ initialMode, redirectTo }: Props) {
 
             <Input
               type="email"
-              placeholder="Email"
+              placeholder={t('EMAIL')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
 
             <Input
               type="password"
-              placeholder="Password"
+              placeholder={t('LOGIN.PASSWORD')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -93,7 +94,7 @@ export default function Login({ initialMode, redirectTo }: Props) {
               <>
                 <Input
                   type="password"
-                  placeholder="Repeat password"
+                  placeholder={t('LOGIN.REPEAT_PASSWORD')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
@@ -106,23 +107,26 @@ export default function Login({ initialMode, redirectTo }: Props) {
                   />
 
                   <span>
-                    I accept the{' '}
-                    <Link
-                      href="/terms-and-conditions"
-                      target="_blank"
-                      className="text-teal-600 hover:underline"
-                    >
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link
-                      href="/privacy-policy"
-                      target="_blank"
-                      className="text-teal-600 hover:underline"
-                    >
-                      Privacy Policy
-                    </Link>
-                    .
+                    {t.rich('LOGIN.ACCEPT_TERMS', {
+                      terms: (chunks) => (
+                        <Link
+                          href="/terms-and-conditions"
+                          target="_blank"
+                          className="text-teal-600 hover:underline"
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                      privacy: (chunks) => (
+                        <Link
+                          href="/privacy-policy"
+                          target="_blank"
+                          className="text-teal-600 hover:underline"
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
                   </span>
                 </label>
               </>
@@ -140,22 +144,20 @@ export default function Login({ initialMode, redirectTo }: Props) {
                   href="/forgot-password"
                   className="text-teal-600 hover:underline"
                 >
-                  Forgot password?
+                  {t('LOGIN.FORGOT_PASSWORD')}
                 </Link>
               </div>
             )}
 
             <Button loading={loading} fullWidth>
-              {mode === 'login' ? 'Sign in' : 'Create account'}
+              {mode === 'login' ? t('SIGN_IN') : t('LOGIN.CREATE_ACCOUNT')}
             </Button>
           </form>
 
           <div className="mt-8 text-center text-sm text-gray-600">
-            {mode === 'login'
-              ? "Don't have an account?"
-              : 'Already have an account?'}{' '}
+            {mode === 'login' ? t('LOGIN.NO_ACCOUNT') : t('LOGIN.HAVE_ACCOUNT')}{' '}
             <Button type="button" variant="secondary" onClick={toggleMode}>
-              {mode === 'login' ? 'Register' : 'Sign in'}
+              {mode === 'login' ? t('LOGIN.REGISTER') : t('SIGN_IN')}
             </Button>
           </div>
         </div>

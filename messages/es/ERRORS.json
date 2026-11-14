@@ -1,0 +1,18 @@
+{
+  "CONFLICT": "Esta acción entra en conflicto con el estado actual.",
+  "EMAIL_IN_USE": "Este correo electrónico ya está en uso.",
+  "FORBIDDEN": "No tienes permiso para hacer esto.",
+  "INTERNAL_ERROR": "Algo salió mal. Inténtalo de nuevo.",
+  "INVALID_CREDENTIALS": "El correo electrónico o la contraseña no son correctos.",
+  "INVALID_INPUT": "Revisa los datos e inténtalo de nuevo.",
+  "INVALID_PASSWORD": "La contraseña no es correcta.",
+  "INVALID_TOKEN": "Este enlace no es válido o ha caducado.",
+  "NAME_IN_USE": "Este nombre ya está en uso.",
+  "NOT_FOUND": "No se encontró el elemento solicitado.",
+  "NO_UPDATES_PROVIDED": "No se indicó ningún cambio.",
+  "RATE_LIMITED": "Demasiadas solicitudes. Inténtalo de nuevo más tarde.",
+  "UNAUTHORIZED": "Inicia sesión para continuar.",
+  "UPDATE_FAILED": "No se pudo actualizar. Inténtalo de nuevo.",
+  "WEAK_PASSWORD": "Elige una contraseña más segura.",
+  "UNKNOWN": "Algo salió mal. Inténtalo de nuevo."
+}

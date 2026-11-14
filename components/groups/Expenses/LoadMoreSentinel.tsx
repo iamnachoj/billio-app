@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 type LoadMoreSentinelProps = {
   onIntersect: () => void;
@@ -13,6 +14,7 @@ export default function LoadMoreSentinel({
   enabled,
   isLoading,
 }: LoadMoreSentinelProps) {
+  const t = useTranslations('GROUPS');
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,7 +48,9 @@ export default function LoadMoreSentinel({
   return (
     <div ref={sentinelRef} className="flex justify-center py-4">
       {isLoading ? (
-        <span className="text-sm text-slate-500">Loading more expenses…</span>
+        <span className="text-sm text-slate-500">
+          {t('EXPENSES.LOADING_MORE')}
+        </span>
       ) : null}
     </div>
   );

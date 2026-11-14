@@ -1,9 +1,12 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { login, register } from '@/frontend-services/auth.service';
+import { useApiError } from '@/i18n/errors';
+import { useRouter } from '@/i18n/navigation';
+import { safeNextPath } from '@/components/auth/safeNextPath';
 
 type AlertState = {
   variant: 'success' | 'error';
@@ -16,6 +19,9 @@ export function useLogin(
   redirectTo?: string
 ) {
   const router = useRouter();
+  const t = useTranslations('AUTH');
+  const apiError = useApiError();
+  const locale = useLocale() === 'es' ? 'es' : 'en';
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
 
@@ -48,24 +54,24 @@ export function useLogin(
       if (name.length === 0 || name.length > 30) {
         return setAlert({
           variant: 'error',
-          title: 'Invalid name',
-          message: 'Name must contain between 1 and 30 characters.',
+          title: t('LOGIN.INVALID_NAME_TITLE'),
+          message: t('LOGIN.INVALID_NAME_MESSAGE'),
         });
       }
 
       if (password !== confirmPassword) {
         return setAlert({
           variant: 'error',
-          title: 'Passwords',
-          message: 'Passwords do not match.',
+          title: t('LOGIN.MISMATCH_TITLE'),
+          message: t('LOGIN.MISMATCH_MESSAGE'),
         });
       }
 
       if (!acceptTerms) {
         return setAlert({
           variant: 'error',
-          title: 'Terms of Service',
-          message: 'You must accept the Terms of Service.',
+          title: t('LOGIN.TERMS_TITLE'),
+          message: t('LOGIN.TERMS_MESSAGE'),
         });
       }
     }
@@ -75,45 +81,47 @@ export function useLogin(
 
       const response =
         mode === 'login'
-          ? await login(email, password)
+          ? await login(email, password, locale)
           : await register({
               name,
               email,
               password,
+              locale,
             });
 
       if (!response.success) {
         setAlert({
           variant: 'error',
-          title: 'Authentication failed',
-          message: response.error.message,
+          title: t('LOGIN.FAILURE_TITLE'),
+          message: apiError(response.error),
         });
 
         return;
       }
 
       if (mode === 'register') {
-        const loginResponse = await login(email, password);
+        const loginResponse = await login(email, password, locale);
 
         if (!loginResponse.success) {
           setAlert({
             variant: 'error',
-            title: 'Account created',
-            message:
-              loginResponse.error?.message ??
-              'Your account was created, but automatic sign-in failed.',
+            title: t('LOGIN.ACCOUNT_CREATED_TITLE'),
+            message: loginResponse.error
+              ? apiError(loginResponse.error)
+              : t('LOGIN.AUTO_LOGIN_FAILED'),
           });
 
           return;
         }
       }
 
-      router.push(redirectTo || '/dashboard');
+      const next = safeNextPath(redirectTo);
+      router.push(next.href, next.locale ? { locale: next.locale } : undefined);
     } catch {
       setAlert({
         variant: 'error',
-        title: 'Unexpected error',
-        message: 'Something went wrong. Please try again.',
+        title: t('ERRORS.UNEXPECTED_TITLE'),
+        message: t('ERRORS.UNEXPECTED_MESSAGE'),
       });
     } finally {
       setLoading(false);

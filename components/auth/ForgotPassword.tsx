@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
@@ -9,6 +10,7 @@ import Input from '@/components/ui/Input';
 import { useForgotPassword } from '@/components/auth/hooks/useForgotPassword';
 
 export default function ForgotPassword() {
+  const t = useTranslations('AUTH');
   const { email, loading, message, error, setEmail, handleSubmit } =
     useForgotPassword();
 
@@ -16,17 +18,14 @@ export default function ForgotPassword() {
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-teal-50 via-white to-gray-100 px-6">
       <div className="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl">
         <h1 className="text-3xl font-bold text-gray-800">
-          Forgot your password?
+          {t('FORGOT.TITLE')}
         </h1>
 
-        <p className="mt-3 text-gray-500">
-          Enter your email address and we&apos;ll send you instructions to reset
-          your password.
-        </p>
+        <p className="mt-3 text-gray-500">{t('FORGOT.DESCRIPTION')}</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <Input
-            label="Email"
+            label={t('EMAIL')}
             type="email"
             name="email"
             required
@@ -36,29 +35,29 @@ export default function ForgotPassword() {
           />
 
           {message && (
-            <Alert variant="success" title="Email sent">
+            <Alert variant="success" title={t('FORGOT.SUCCESS_TITLE')}>
               {message}
             </Alert>
           )}
 
           {error && (
-            <Alert variant="error" title="Unable to send email">
+            <Alert variant="error" title={t('FORGOT.FAILURE_TITLE')}>
               {error}
             </Alert>
           )}
 
           <Button loading={loading} type="submit" fullWidth>
-            Send reset link
+            {t('FORGOT.SUBMIT')}
           </Button>
         </form>
 
         <div className="mt-8 text-center text-sm text-gray-500">
-          Remember your password?{' '}
+          {t('FORGOT.REMEMBER')}{' '}
           <Link
             href="/login"
             className="font-medium text-teal-600 hover:underline"
           >
-            Sign in
+            {t('SIGN_IN')}
           </Link>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { ButtonHTMLAttributes } from 'react';
+import { useTranslations } from 'next-intl';
 
 type Variant = 'primary' | 'secondary' | 'danger';
 
@@ -18,6 +19,7 @@ export default function Button({
   fullWidth,
   ...props
 }: Props) {
+  const t = useTranslations('UI');
   return (
     <button
       disabled={disabled || loading}
@@ -38,7 +40,7 @@ export default function Button({
       )}
       {...props}
     >
-      {loading ? 'Loading...' : children}
+      {loading ? t('LOADING') : children}
     </button>
   );
 }
