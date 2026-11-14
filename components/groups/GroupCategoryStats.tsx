@@ -142,61 +142,66 @@ export default function GroupCategoryStats({
         </div>
       </div>
 
-      {isLoading ? (
-        <p className="text-sm text-slate-600 animate-pulse">Loading stats…</p>
-      ) : statsError ? (
-        <div className="space-y-1">
-          <p className="text-sm text-rose-700">{statsError}</p>
-          <button
-            type="button"
-            onClick={() => setRetryKey((key) => key + 1)}
-            className="text-sm font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900"
-          >
-            Retry
-          </button>
-        </div>
-      ) : !stats || stats.categories.length === 0 ? (
-        <p className="text-sm text-slate-600">No expenses in this period.</p>
-      ) : (
-        <div className="space-y-2">
-          {stats.topCategory ? (
-            <p className="text-sm text-slate-700">
-              Top category:{' '}
-              <span className="font-semibold text-slate-900">
-                {getExpenseCategoryEmoji(stats.topCategory.category)}{' '}
-                {getExpenseCategoryLabel(stats.topCategory.category)}
-              </span>{' '}
-              ({formatMoney(stats.topCategory.totalCents, stats.currency)})
-            </p>
-          ) : null}
+      <div className="min-h-48">
+        {isLoading ? (
+          <p role="status" className="text-sm text-slate-600 animate-pulse">
+            Loading stats…
+          </p>
+        ) : statsError ? (
+          <div className="space-y-1">
+            <p className="text-sm text-rose-700">{statsError}</p>
+            <button
+              type="button"
+              onClick={() => setRetryKey((key) => key + 1)}
+              className="text-sm font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900"
+            >
+              Retry
+            </button>
+          </div>
+        ) : !stats || stats.categories.length === 0 ? (
+          <p className="text-sm text-slate-600">No expenses in this period.</p>
+        ) : (
+          <div className="space-y-2">
+            {stats.topCategory ? (
+              <p className="text-sm text-slate-700">
+                Top category:{' '}
+                <span className="font-semibold text-slate-900">
+                  {getExpenseCategoryEmoji(stats.topCategory.category)}{' '}
+                  {getExpenseCategoryLabel(stats.topCategory.category)}
+                </span>{' '}
+                ({formatMoney(stats.topCategory.totalCents, stats.currency)})
+              </p>
+            ) : null}
 
-          <ul className="space-y-2">
-            {stats.categories.map((categoryStat) => (
-              <li key={categoryStat.category} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-800">
-                    {getExpenseCategoryEmoji(categoryStat.category)}{' '}
-                    {getExpenseCategoryLabel(categoryStat.category)}{' '}
-                    <span className="text-slate-400">
-                      ({Math.round(categoryStat.percentageOfTotal * 100) / 100}
-                      %)
+            <ul className="space-y-2">
+              {stats.categories.map((categoryStat) => (
+                <li key={categoryStat.category} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-800">
+                      {getExpenseCategoryEmoji(categoryStat.category)}{' '}
+                      {getExpenseCategoryLabel(categoryStat.category)}{' '}
+                      <span className="text-slate-400">
+                        (
+                        {Math.round(categoryStat.percentageOfTotal * 100) / 100}
+                        %)
+                      </span>
                     </span>
-                  </span>
-                  <span className="font-medium text-slate-900">
-                    {formatMoney(categoryStat.totalCents, stats.currency)}
-                  </span>
-                </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-slate-900"
-                    style={{ width: `${categoryStat.percentageOfTotal}%` }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                    <span className="font-medium text-slate-900">
+                      {formatMoney(categoryStat.totalCents, stats.currency)}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-slate-900"
+                      style={{ width: `${categoryStat.percentageOfTotal}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
