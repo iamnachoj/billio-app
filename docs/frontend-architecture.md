@@ -98,6 +98,10 @@ not infer language from a user's physical location. Use navigation helpers from
 Authenticated users change their saved language in dashboard settings. Public
 pages offer the same selector in the footer; it changes the locale without
 saving an account preference. The selector's options follow `routing.locales`.
+After a language selection, browser back and forward navigation retain that
+language when visiting older locale-prefixed history entries in the same tab.
+Those entries reload with the selected locale; explicit links still use their
+own locale.
 
 Do not hardcode user-facing text. Add matching uppercase, domain-namespaced keys
 to every supported locale under `messages/`, use `useTranslations` in client

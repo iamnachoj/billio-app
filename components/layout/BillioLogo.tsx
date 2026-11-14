@@ -12,7 +12,7 @@ export default function BillioLogo({ className = '' }: BillioLogoProps) {
       </span>
       <Image
         src="/billio-logo.png"
-        alt="Billio Logo"
+        alt=""
         width={32}
         height={32}
         className={`inline-block h-8 w-8 mb-1 ${className}`}

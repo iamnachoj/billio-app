@@ -1,5 +1,5 @@
 {
-  "GREETING": "Bonjour {name} 👋",
+  "GREETING": "Salut {name} 👋",
   "GROUPS": {
     "ADD": "Ajouter un groupe",
     "CREATE_TITLE": "Créer un groupe",

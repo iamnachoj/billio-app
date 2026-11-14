@@ -41,6 +41,7 @@ describe('LanguageSwitcher', () => {
     vi.clearAllMocks();
     vi.stubGlobal('window', {
       location: { search: '?next=%2Fen%2Fdashboard', hash: '#section' },
+      sessionStorage: { setItem: vi.fn() },
     });
   });
 
@@ -66,6 +67,10 @@ describe('LanguageSwitcher', () => {
         '/login?next=%2Fes%2Fdashboard#section',
         { locale: 'es' }
       )
+    );
+    expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+      'billio.selectedLocale',
+      'es'
     );
   });
 
@@ -107,6 +112,15 @@ describe('LanguageSwitcher', () => {
     await vi.waitFor(() =>
       expect(mocks.setState).toHaveBeenCalledWith('SAVE_ERROR')
     );
+    expect(mocks.replace).not.toHaveBeenCalled();
+  });
+
+  it('reports an error if the selected locale cannot be stored', () => {
+    vi.mocked(window.sessionStorage.setItem).mockImplementation(() => {
+      throw new Error('Storage unavailable');
+    });
+    selectLanguage('es');
+    expect(mocks.setState).toHaveBeenCalledWith('SAVE_ERROR');
     expect(mocks.replace).not.toHaveBeenCalled();
   });
 });

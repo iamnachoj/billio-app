@@ -7,6 +7,7 @@ import { useApiError } from '@/i18n/errors';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { updateMe } from '@/frontend-services/me.service';
 import { routing } from '@/i18n/routing';
+import { saveSelectedLocale } from './localePreference';
 import { localeSwitchHref } from './localeSwitchHref';
 
 type Locale = (typeof routing.locales)[number];
@@ -60,7 +61,13 @@ export default function LanguageSwitcher({ authenticated = false }: Props) {
       }
     }
 
-    router.replace(href, { locale: nextLocale });
+    try {
+      saveSelectedLocale(nextLocale);
+      router.replace(href, { locale: nextLocale });
+    } catch {
+      setError(t('SAVE_ERROR'));
+      setIsChanging(false);
+    }
   }
 
   return (

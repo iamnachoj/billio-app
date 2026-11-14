@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 
 import { logout } from '@/frontend-services/auth.service';
 import { deleteMe, updateMe } from '@/frontend-services/me.service';
@@ -12,7 +12,6 @@ import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import { useApiError } from '@/i18n/errors';
 import { Link, useRouter } from '@/i18n/navigation';
-import type { AppLocale } from '@/lib/locale';
 
 type UserAccountSettingsProps = {
   initialUser: {
@@ -35,7 +34,6 @@ export default function UserAccountSettings({
   const language = useTranslations('DASHBOARD.SETTINGS.LANGUAGE');
   const apiError = useApiError();
   const format = useFormatter();
-  const locale = useLocale() as AppLocale;
   const router = useRouter();
   const confirmationWord = t('DELETE_CONFIRMATION_WORD');
 
@@ -120,7 +118,6 @@ export default function UserAccountSettings({
         name: trimmedName,
         email: trimmedEmail,
         password,
-        locale,
       });
 
       if (!response.success) {

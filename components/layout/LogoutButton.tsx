@@ -9,7 +9,7 @@ export function LogoutButton() {
 
   return (
     <button
-      className="inline-flex items-center gap-2 hover:text-red-500 cursor-pointer"
+      className="inline-flex min-h-11 items-center gap-1 whitespace-nowrap hover:text-red-500 cursor-pointer sm:gap-2"
       onClick={handleLogout}
     >
       <span aria-hidden="true">🚪</span>
